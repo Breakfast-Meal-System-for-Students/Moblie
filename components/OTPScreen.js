@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -14,10 +15,20 @@ function OTPScreen() {
   const [otp, setOtp] = useState("");
 
   const handleVerifyOtp = () => {
-    // Handle OTP verification logic here
     console.log("Verifying OTP:", otp);
-    // After successful verification, navigate to the reset password screen
-    navigation.navigate("ResetPassword"); // Giả sử bạn có một trang đặt lại mật khẩu
+
+    // Kiểm tra OTP hợp lệ (giả định OTP là "123456")
+    if (otp === "123456") {
+      Alert.alert("Success", "OTP has been successfully reset!");
+      navigation.navigate("Login");
+    } else {
+      Alert.alert("Error", "Your OTP is incorrect. Please try again.");
+    }
+  };
+
+  const handleResendOtp = () => {
+    // Giả lập gửi lại OTP
+    Alert.alert("Success", "A new OTP has been sent to your email address.");
   };
 
   return (
@@ -47,9 +58,7 @@ function OTPScreen() {
             <Text style={styles.buttonText}>Verify OTP</Text>
           </TouchableOpacity>
           <View style={styles.linkContainer}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("ForgotPassword")}
-            >
+            <TouchableOpacity onPress={handleResendOtp}>
               <Text style={styles.link}>Resend OTP</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -69,7 +78,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay on background image
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   container: {
     flex: 1,
@@ -79,21 +88,21 @@ const styles = StyleSheet.create({
   },
   box: {
     width: "100%",
-    maxWidth: 400, // Adjust maximum width of the box
-    backgroundColor: "rgba(255, 255, 255, 0.8)", // Slightly transparent white background
-    borderRadius: 10, // Rounded corners of the box
+    maxWidth: 400,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 10,
     padding: 20,
-    shadowColor: "#000", // Shadow for the box
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 3, // Elevation for the box on Android
+    elevation: 3,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#009900", // Consistent color with other screens
+    color: "#009900",
     textAlign: "center",
   },
   description: {
@@ -115,7 +124,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#33CC33", // Consistent color with login button
+    backgroundColor: "#33CC33",
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
@@ -130,7 +139,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   link: {
-    color: "#009900", // Consistent color with other links
+    color: "#009900",
     fontSize: 16,
     textAlign: "center",
     marginTop: 10,

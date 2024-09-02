@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -14,10 +15,18 @@ function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
 
   const handleSendEmail = () => {
-    // Handle sending password reset email logic here
-    console.log("Sending password reset email to:", email);
-    // Navigate to login screen after sending request
-    navigation.navigate("Login");
+    if (!email) {
+      Alert.alert("Error", "Please enter your email address.");
+      return;
+    }
+
+    if (!email.endsWith("@gmail.com")) {
+      Alert.alert("Error", "Email must end with '@gmail.com'");
+      return;
+    }
+
+    Alert.alert("Success", "Password reset link sent to your email.");
+    navigation.navigate("OTPScreen");
   };
 
   return (
@@ -65,7 +74,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay on background image
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   container: {
     flex: 1,
@@ -75,21 +84,21 @@ const styles = StyleSheet.create({
   },
   box: {
     width: "100%",
-    maxWidth: 400, // Adjust maximum width of the box
-    backgroundColor: "rgba(255, 255, 255, 0.8)", // Slightly transparent white background
-    borderRadius: 10, // Rounded corners of the box
+    maxWidth: 400,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 10,
     padding: 20,
-    shadowColor: "#000", // Shadow for the box
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 3, // Elevation for the box on Android
+    elevation: 3,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#009900", // Consistent color with login screen
+    color: "#009900",
     textAlign: "center",
   },
   description: {
@@ -111,7 +120,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#33CC33", // Consistent color with login button
+    backgroundColor: "#33CC33",
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
@@ -126,7 +135,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   link: {
-    color: "#009900", // Consistent color with login link
+    color: "#009900",
     fontSize: 16,
     textAlign: "center",
   },

@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation để điều hướng
+import { useNavigation } from "@react-navigation/native";
 
 const HomeScreen = () => {
-  const navigation = useNavigation(); // Khai báo useNavigation để điều hướng giữa các màn hình
-
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home</Text>
@@ -13,12 +12,9 @@ const HomeScreen = () => {
       </Text>
       <Button
         title="Go to Second Screen"
-        onPress={() => navigation.navigate("SecondScreen")} // Điều hướng đến màn hình thứ hai
+        onPress={() => navigation.navigate("SecondScreen")}
       />
-      <Button
-        title="Login"
-        onPress={() => navigation.navigate("Login")} // Điều hướng đến màn hình đăng nhập
-      />
+      <Button title="Login" onPress={() => navigation.navigate("Login")} />
     </View>
   );
 };
@@ -35,7 +31,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   text: {
-    fontFamily: "Roboto", // Ensure the Roboto font is installed
+    fontFamily: "Roboto",
     fontSize: 16,
     marginBottom: 20,
   },

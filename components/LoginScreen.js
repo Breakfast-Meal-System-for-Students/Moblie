@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ImageBackground,
   Image,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -16,11 +17,24 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
+    // Kiểm tra email và mật khẩu
     if (!email || !password) {
-      alert("Please enter both email and password");
+      Alert.alert("Error", "Please enter both email and password");
       return;
     }
-    navigation.navigate("Home");
+
+    if (!email.endsWith("@gmail.com")) {
+      Alert.alert("Error", "Account it is incorrect");
+      return;
+    }
+
+    // Giả lập đăng nhập thành công
+    if (email === "example@gmail.com" && password === "password123") {
+      Alert.alert("Success", "Login successful!");
+      navigation.navigate("Home");
+    } else {
+      Alert.alert("Error", "Incorrect email or password");
+    }
   };
 
   return (
