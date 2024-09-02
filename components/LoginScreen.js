@@ -48,7 +48,7 @@ const LoginScreen = () => {
       <View style={styles.overlay} />
       <Image
         source={{
-          uri: "https://i.pinimg.com/736x/5c/af/1c/5caf1cf93d0e52b3ad4e3fd9e798f065.jpg",
+          uri: "https://i.pinimg.com/736x/79/13/82/791382fa3e8442210ef2392513f5761a.jpg",
         }}
         style={styles.image}
       />
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   image: {
-    width: 350,
-    height: 350,
+    width: 330,
+    height: 300,
     marginBottom: 0,
     alignSelf: "center",
   },
