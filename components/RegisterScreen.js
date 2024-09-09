@@ -1,24 +1,23 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
+  Text,
   StyleSheet,
-  ImageBackground,
   Alert,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-const RegisterScreen = ({ navigation }) => {
+export default function Register({ onRegister }) {
   const [fullName, setFullName] = useState("");
   const [dob, setDob] = useState(""); // Ngày sinh
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState(""); // Số điện thoại
-  const [username, setUsername] = useState(""); // Tài khoản
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Nhập lại mật khẩu
-
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const navigation = useNavigation(); // Lấy đối tượng navigation
 
   const handleRegister = () => {
     let validationErrors = {};
@@ -28,7 +27,6 @@ const RegisterScreen = ({ navigation }) => {
     if (!dob) validationErrors.dob = "Date of Birth is required";
     if (!email) validationErrors.email = "Email is required";
     if (!phone) validationErrors.phone = "Phone Number is required";
-    if (!username) validationErrors.username = "Username is required";
     if (!password) validationErrors.password = "Password is required";
     if (!confirmPassword)
       validationErrors.confirmPassword = "Confirm Password is required";
@@ -61,187 +59,107 @@ const RegisterScreen = ({ navigation }) => {
 
     // Giả lập đăng ký thành công
     Alert.alert("Success", "Registration successful!");
-    navigation.navigate("Login");
+    navigation.navigate("Home"); // Điều hướng đến trang Home
   };
 
   return (
-    <ImageBackground
-      source={{
-        uri: "https://i.pinimg.com/564x/4e/a5/9f/4ea59fb67c528f2c78a30d4d366bf536.jpg",
-      }}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-      <View style={styles.container}>
-        <View style={styles.box}>
-          <Text style={styles.title}>Register</Text>
-          <TextInput
-            style={[styles.input, errors.fullName && styles.inputError]}
-            placeholder="Full Name"
-            value={fullName}
-            onChangeText={setFullName}
-          />
-          {errors.fullName && (
-            <Text style={styles.errorText}>{errors.fullName}</Text>
-          )}
+    <View style={styles.formContainer}>
+      <TextInput
+        placeholder="Full Name"
+        style={[styles.input, errors.fullName && styles.inputError]}
+        value={fullName}
+        onChangeText={setFullName}
+      />
+      {errors.fullName && (
+        <Text style={styles.errorText}>{errors.fullName}</Text>
+      )}
+      <TextInput
+        style={[styles.input, errors.dob && styles.inputError]}
+        placeholder="Date of Birth (DD-MM-YYYY or DD/MM/YYYY)"
+        value={dob}
+        onChangeText={(text) => {
+          // Remove all non-numeric and non-slash/hyphen characters
+          const formattedText = text.replace(/[^0-9\-\/]/g, "").slice(0, 10);
+          setDob(formattedText);
+        }}
+        keyboardType="numeric"
+      />
+      {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+      <TextInput
+        style={[styles.input, errors.email && styles.inputError]}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+      <TextInput
+        style={[styles.input, errors.phone && styles.inputError]}
+        placeholder="Phone Number"
+        value={phone}
+        onChangeText={(text) => {
+          // Chỉ cho phép nhập số và giới hạn không quá 10 chữ số
+          const formattedText = text.replace(/[^0-9]/g, "").slice(0, 10);
+          setPhone(formattedText);
+        }}
+        keyboardType="numeric"
+      />
+      {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
-          <TextInput
-            style={[styles.input, errors.dob && styles.inputError]}
-            placeholder="Date of Birth (DD-MM-YYYY or DD/MM/YYYY)"
-            value={dob}
-            onChangeText={(text) => {
-              // Remove all non-numeric and non-slash/hyphen characters
-              const formattedText = text
-                .replace(/[^0-9\-\/]/g, "")
-                .slice(0, 10);
+      <TextInput
+        style={[styles.input, errors.password && styles.inputError]}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      {errors.password && (
+        <Text style={styles.errorText}>{errors.password}</Text>
+      )}
+      <TextInput
+        style={[styles.input, errors.confirmPassword && styles.inputError]}
+        placeholder="Confirm Password"
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
+      {errors.confirmPassword && (
+        <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+      )}
 
-              // Set the formatted text to the date of birth state
-              setDob(formattedText);
-            }}
-            keyboardType="numeric"
-          />
-          {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
-
-          <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-          <TextInput
-            style={[styles.input, errors.phone && styles.inputError]}
-            placeholder="Phone Number"
-            value={phone}
-            onChangeText={(text) => {
-              // Chỉ cho phép nhập số và giới hạn không quá 10 chữ số
-              const formattedText = text.replace(/[^0-9]/g, "").slice(0, 10);
-              setPhone(formattedText);
-            }}
-            keyboardType="numeric"
-          />
-          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-
-          <TextInput
-            style={[styles.input, errors.username && styles.inputError]}
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-          />
-          {errors.username && (
-            <Text style={styles.errorText}>{errors.username}</Text>
-          )}
-
-          <TextInput
-            style={[styles.input, errors.password && styles.inputError]}
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          {errors.password && (
-            <Text style={styles.errorText}>{errors.password}</Text>
-          )}
-
-          <TextInput
-            style={[styles.input, errors.confirmPassword && styles.inputError]}
-            placeholder="Confirm Password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-          {errors.confirmPassword && (
-            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-          )}
-
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Create Account</Text>
-          </TouchableOpacity>
-
-          <View style={styles.linkContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.link}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </ImageBackground>
+      <Pressable style={styles.formButton} onPress={handleRegister}>
+        <Text style={styles.buttonText}>REGISTER</Text>
+      </Pressable>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  formContainer: {
     paddingHorizontal: 20,
   },
-  box: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#009900",
-    textAlign: "center",
-  },
   input: {
-    width: "100%",
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "gray",
+    marginVertical: 10,
+    fontSize: 16,
+  },
+  formButton: {
+    backgroundColor: "rgba(123,104,238,0.8)",
+    height: 55,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 35,
+    marginTop: 20,
+  },
+  buttonText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "white",
   },
   inputError: {
     borderColor: "red",
-  },
-  button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#33CC33",
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  linkContainer: {
-    marginTop: 20,
-  },
-  link: {
-    color: "#009900",
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 10,
   },
   errorText: {
     color: "red",
@@ -250,5 +168,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-export default RegisterScreen;

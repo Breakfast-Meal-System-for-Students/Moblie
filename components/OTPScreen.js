@@ -17,10 +17,9 @@ function OTPScreen() {
   const handleVerifyOtp = () => {
     console.log("Verifying OTP:", otp);
 
-    // Kiểm tra OTP hợp lệ (giả định OTP là "123456")
     if (otp === "123456") {
       Alert.alert("Success", "OTP has been successfully reset!");
-      navigation.navigate("Login");
+      navigation.navigate("Main");
     } else {
       Alert.alert("Error", "Your OTP is incorrect. Please try again.");
     }
@@ -61,7 +60,7 @@ function OTPScreen() {
             <TouchableOpacity onPress={handleResendOtp}>
               <Text style={styles.link}>Resend OTP</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
               <Text style={styles.link}>Back to Login</Text>
             </TouchableOpacity>
           </View>

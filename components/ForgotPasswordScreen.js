@@ -57,7 +57,7 @@ function ForgotPasswordScreen() {
             <Text style={styles.buttonText}>Send Password Reset Request</Text>
           </TouchableOpacity>
           <View style={styles.linkContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
               <Text style={styles.link}>Back to Login</Text>
             </TouchableOpacity>
           </View>
