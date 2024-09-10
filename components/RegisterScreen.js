@@ -8,7 +8,6 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
-import DatePicker from "react-native-datepicker";
 
 const RegisterScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -87,26 +86,20 @@ const RegisterScreen = ({ navigation }) => {
             <Text style={styles.errorText}>{errors.fullName}</Text>
           )}
 
-          <DatePicker
-            style={[styles.datePicker, errors.dob && styles.inputError]}
-            date={dob}
-            mode="date"
-            placeholder="Select Date of Birth"
-            format="DD-MM-YYYY"
-            confirmBtnText="Confirm"
-            cancelBtnText="Cancel"
-            customStyles={{
-              dateIcon: {
-                position: "absolute",
-                left: 0,
-                top: 4,
-                marginLeft: 0,
-              },
-              dateInput: {
-                marginLeft: 36,
-              },
+          <TextInput
+            style={[styles.input, errors.dob && styles.inputError]}
+            placeholder="Date of Birth (DD-MM-YYYY or DD/MM/YYYY)"
+            value={dob}
+            onChangeText={(text) => {
+              // Remove all non-numeric and non-slash/hyphen characters
+              const formattedText = text
+                .replace(/[^0-9\-\/]/g, "")
+                .slice(0, 10);
+
+              // Set the formatted text to the date of birth state
+              setDob(formattedText);
             }}
-            onDateChange={(date) => setDob(date)}
+            keyboardType="numeric"
           />
           {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
 
@@ -255,10 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
     textAlign: "center",
-  },
-  datePicker: {
-    width: "100%",
-    marginBottom: 15,
   },
 });
 
