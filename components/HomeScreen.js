@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  TouchableWithoutFeedback,
   StatusBar,
   Platform,
   FlatList,
@@ -19,11 +18,6 @@ import {
   faMapPin,
   faSlidersH,
   faStar,
-  faGlassMartini,
-  faHamburger,
-  faBirthdayCake,
-  faCookieBite,
-  faTh,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from "./BottomTabNavigator";
@@ -31,13 +25,6 @@ import BottomTabNavigator from "./BottomTabNavigator";
 const { width } = Dimensions.get("window");
 
 const categories = [
-  { id: 1, name: "Drinks", icon: faGlassMartini },
-  { id: 2, name: "Food", icon: faHamburger },
-  { id: 3, name: "Cake", icon: faBirthdayCake },
-  { id: 4, name: "Snack", icon: faCookieBite },
-  { id: 5, name: "See All", icon: faTh },
-];
-const featured = [
   {
     id: 1,
     title: "Hot and Spicy",
@@ -151,12 +138,8 @@ const featured = [
             description: "Tacos with a spicy kick",
             price: 10,
             image: {
-              uri: "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-            },
-          },
-        ],
-      },
-    ],
+      uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
+    },
   },
   {
     id: 3,
@@ -220,7 +203,6 @@ function RestaurantCard({ item }) {
   );
 }
 
-// FeaturedRow Component
 function FeaturedRow({ title, description, restaurants }) {
   return (
     <View>
@@ -250,7 +232,6 @@ function FeaturedRow({ title, description, restaurants }) {
 export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const navigation = useNavigation();
   const flatListRef = useRef();
 
   useEffect(() => {
@@ -298,8 +279,6 @@ export default function HomeScreen() {
           <View style={styles.featuredImageContainer}>
             <Image style={styles.featuredImage} source={item.image} />
             <View style={styles.imageOverlay}>
-              {/* Nếu muốn hiển thị "Hot and Spicy", bao nó trong thẻ Text */}
-
               <Text style={styles.featuredTitle}>{item.title}</Text>
               <Text style={styles.featuredDescription}>{item.description}</Text>
             </View>
@@ -424,7 +403,6 @@ const styles = StyleSheet.create({
     height: 50,
   },
   categoryText: {
-    marginTop: 5,
     fontSize: 12,
   },
   featuredScrollContainer: {
