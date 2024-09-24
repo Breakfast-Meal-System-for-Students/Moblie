@@ -48,8 +48,7 @@ export default function Register({ onRegister }) {
 
     // Kiểm tra ngày sinh
     const dobPattern = /^\d{2}-\d{2}-\d{4}$/; // Định dạng DD-MM-YYYY
-    if (!dobPattern.test(dob))
-      validationErrors.dob = "Date of Birth must be in the format DD-MM-YYYY";
+    if (!dobPattern.test(dob)) validationErrors.dob = "Date of Birth ";
 
     // Nếu có lỗi, cập nhật trạng thái lỗi và thoát
     if (Object.keys(validationErrors).length > 0) {
@@ -138,20 +137,34 @@ export default function Register({ onRegister }) {
 const styles = StyleSheet.create({
   formContainer: {
     paddingHorizontal: 20,
+    paddingVertical: 50,
   },
   input: {
     borderBottomWidth: 1,
     borderBottomColor: "gray",
     marginVertical: 10,
     fontSize: 16,
+    padding: 10,
+    backgroundColor: "white", // Màu nền trắng cho input
+    borderRadius: 10, // Bo tròn góc cho input
+    shadowColor: "#000", // Màu của shadow
+    shadowOffset: { width: 0, height: 3 }, // Độ lệch của shadow
+    shadowOpacity: 0.27, // Độ mờ của shadow
+    shadowRadius: 4.65, // Độ lớn của shadow
+    elevation: 6, // Đổ bóng cho Android
   },
   formButton: {
-    backgroundColor: "rgba(123,104,238,0.8)",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 35,
-    marginTop: 20,
+    marginTop: 50,
+    shadowColor: "#000", // Màu của shadow
+    shadowOffset: { width: 0, height: 5 }, // Độ lệch của shadow
+    shadowOpacity: 0.3, // Độ mờ của shadow
+    shadowRadius: 6.68, // Độ lớn của shadow
+    elevation: 8, // Đổ bóng cho Android
   },
   buttonText: {
     fontSize: 20,

@@ -60,6 +60,7 @@ export default function WelcomeScreen({ navigation }) {
       ],
     };
   });
+
   const formAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity:
@@ -68,6 +69,7 @@ export default function WelcomeScreen({ navigation }) {
           : withTiming(0, { duration: 300 }),
     };
   });
+
   const formButtonAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: formButtonScale.value }],
@@ -92,14 +94,14 @@ export default function WelcomeScreen({ navigation }) {
   return (
     <Animated.View style={styles.container}>
       <Animated.View style={[StyleSheet.absoluteFill, imageAnimatedStyle]}>
-        <Svg height={height + 40} width={width}>
+        <Svg height={height} width={width}>
           <ClipPath id="clipPathId">
-            <Ellipse cx={width / 2} rx={width} ry={height + 40} />
+            <Ellipse cx={width / 2} rx={height / 1} ry={height / 1} />
           </ClipPath>
           <Image
-            xlinkHref={require("../assets/login-background.jpg")}
-            width={width + 70}
-            height={height + 100}
+            href={require("../assets/login-background.jpg")}
+            width={width * 1} // Giảm chiều rộng hình ảnh
+            height={height + 300} // Giảm chiều cao hình ảnh
             preserveAspectRatio="xMidYMid slice"
             clipPath="url(#clipPathId)"
           />
@@ -110,11 +112,13 @@ export default function WelcomeScreen({ navigation }) {
       <Animated.View
         style={[styles.closeButtonContainer, closeButtonContainerStyle]}
       >
-        <Text onPress={closeHandler}>X</Text>
+        <Pressable onPress={closeHandler}>
+          <Text style={{ fontSize: 18 }}>X</Text>
+        </Pressable>
       </Animated.View>
 
-      {/* Nút LOGIN và REGISTER sẽ ẩn khi imagePosition.value == 0 */}
-      {imagePosition.value === 1 && (
+      {/* Nút LOGIN và REGISTER sẽ hiển thị lại khi imagePosition.value == 1 */}
+      {imagePosition.value === 1 ? (
         <Animated.View style={[styles.bottomContainer, buttonsAnimatedStyle]}>
           <Pressable style={styles.button} onPress={loginHandler}>
             <Text style={styles.buttonText}>LOG IN</Text>
@@ -123,7 +127,7 @@ export default function WelcomeScreen({ navigation }) {
             <Text style={styles.buttonText}>REGISTER</Text>
           </Pressable>
         </Animated.View>
-      )}
+      ) : null}
 
       {/* Form LOGIN và REGISTER */}
       <Animated.View style={[styles.formInputContainer, formAnimatedStyle]}>
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   button: {
-    backgroundColor: "#00CC33",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",
@@ -159,7 +163,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
     shadowOffset: {
-      width: 0,
+      width: 4,
       height: 4,
     },
     shadowOpacity: 0.25,
@@ -173,24 +177,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   closeButtonContainer: {
-    height: 40,
+    position: "absolute",
+    top: 60, // Điều chỉnh khoảng cách từ đỉnh màn hình
+    alignSelf: "center", // Đặt nút nằm giữa theo chiều ngang
+    height: 40, // Kích thước của nút
     width: 40,
     justifyContent: "center",
-    alignSelf: "center",
+    alignItems: "center",
+    backgroundColor: "white", // Màu nền trắng để tương phản
+    borderRadius: 20, // Bo tròn nút thành hình tròn
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 2,
     },
-    shadowOpacity: 0.34,
-    shadowRadius: 6.27,
-    elevation: 1,
-    backgroundColr: "white",
-    alignItems: "center",
-    borderRadius: 70,
-    top: 60,
-    bottom: 5,
-    right: 0,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 3,
+    zIndex: 2, // Đảm bảo nút luôn ở trên cùng các phần tử khác
   },
   formInputContainer: {
     paddingHorizontal: 20,
@@ -202,7 +206,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   formButton: {
-    backgroundColor: "#00CC33",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",

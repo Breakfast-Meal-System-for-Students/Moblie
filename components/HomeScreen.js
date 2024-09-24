@@ -19,12 +19,51 @@ import {
   faSlidersH,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from "./BottomTabNavigator";
+import BottomTabNavigator from "./BottomNavigationBar";
 
 const { width } = Dimensions.get("window");
 
 const categories = [
+  {
+    id: 1,
+    name: "Drinks",
+    icon: {
+      uri: "https://i.pinimg.com/564x/35/f5/2a/35f52a1085330e295817560f37a4c129.jpg",
+    },
+  },
+  {
+    id: 2,
+    name: "Food",
+    icon: {
+      uri: "https://i.pinimg.com/564x/94/08/4b/94084ba112450fcd46bacfa59ad33340.jpg",
+    },
+  },
+  {
+    id: 3,
+    name: "Cake",
+    icon: {
+      uri: "https://i.pinimg.com/564x/2b/55/4b/2b554b83d60ffce10f163f9f666e509b.jpg",
+    },
+  },
+  {
+    id: 4,
+    name: "Snack",
+    icon: {
+      uri: "https://i.pinimg.com/564x/e8/2f/69/e82f69e91daceea8841c43a3a9261c1a.jpg",
+    },
+  },
+  {
+    id: 5,
+    name: "See All",
+    icon: {
+      uri: "https://i.pinimg.com/564x/38/7d/d7/387dd73b1b30c6f8b440d31422a7d972.jpg",
+    },
+  },
+];
+
+const featured = [
   {
     id: 1,
     title: "Hot and Spicy",
@@ -40,23 +79,10 @@ const categories = [
           uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
         },
         description: "Hot and spicy pizzas",
-        lng: 38.2145602,
-        lat: -85.5324269,
-        address: "434 Second Street",
         stars: 4,
         reviews: "4.4k",
         category: "Fast Food",
-        dishes: [
-          {
-            id: 1,
-            name: "Pizza",
-            description: "Cheezy garlic pizza",
-            price: 10,
-            image: {
-              uri: "https://i.pinimg.com/236x/b6/94/0e/b6940e530fa87fdf8f4e9cdf5ccafc36.jpg",
-            },
-          },
-        ],
+        address: "434 Second Street",
       },
       {
         id: 2,
@@ -65,23 +91,10 @@ const categories = [
           uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
         },
         description: "Hot and spicy drinks",
-        lng: 38.2145602,
-        lat: -85.5324269,
-        address: "434 Second Street",
         stars: 4,
         reviews: "4.4k",
         category: "Drinks",
-        dishes: [
-          {
-            id: 1,
-            name: "Spicy Drink",
-            description: "Spicy and refreshing",
-            price: 5,
-            image: {
-              uri: "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-            },
-          },
-        ],
+        address: "434 Second Street",
       },
     ],
   },
@@ -100,23 +113,10 @@ const categories = [
           uri: "https://i.pinimg.com/236x/d2/88/ea/d288ead43cacf7229a301b1bbaf09495.jpg",
         },
         description: "Delicious burgers at great prices",
-        lng: 38.2145602,
-        lat: -85.5324269,
-        address: "567 Burger Lane",
         stars: 4.2,
         reviews: "3.2k",
         category: "Burgers",
-        dishes: [
-          {
-            id: 2,
-            name: "Cheeseburger",
-            description: "Juicy cheeseburger with fresh toppings",
-            price: 8,
-            image: {
-              uri: "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-            },
-          },
-        ],
+        address: "567 Burger Lane",
       },
       {
         id: 2,
@@ -125,62 +125,19 @@ const categories = [
           uri: "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
         },
         description: "Spicy tacos and more",
-        lng: 38.2145602,
-        lat: -85.5324269,
-        address: "789 Taco Street",
         stars: 4.7,
         reviews: "6k",
         category: "Tacos",
-        dishes: [
-          {
-            id: 1,
-            name: "Spicy Tacos",
-            description: "Tacos with a spicy kick",
-            price: 10,
-            image: {
-      uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-    },
-  },
-  {
-    id: 3,
-    title: "Taco Fiesta",
-    description: "Spicy tacos and more",
-    image: {
-      uri: "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-    },
-    restaurants: [
-      {
-        id: 1,
-        name: "Taco Fiesta",
-        image: {
-          uri: "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-        },
-        description: "Spicy tacos and more",
-        lng: 38.2145602,
-        lat: -85.5324269,
         address: "789 Taco Street",
-        stars: 4.7,
-        reviews: "6k",
-        category: "Tacos",
-        dishes: [
-          {
-            id: 1,
-            name: "Spicy Tacos",
-            description: "Tacos with a spicy kick",
-            price: 10,
-            image: {
-              uri: "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-            },
-          },
-        ],
       },
     ],
   },
 ];
 
 function RestaurantCard({ item }) {
+  const navigation = useNavigation();
   return (
-    <TouchableWithoutFeedback>
+    <TouchableOpacity onPress={() => navigation.navigate("Shop")}>
       <View style={styles.restaurantCard}>
         <Image style={styles.restaurantImage} source={item.image} />
         <View style={styles.restaurantInfo}>
@@ -199,7 +156,7 @@ function RestaurantCard({ item }) {
           </View>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+    </TouchableOpacity>
   );
 }
 
@@ -207,12 +164,7 @@ function FeaturedRow({ title, description, restaurants }) {
   return (
     <View>
       <View style={styles.featuredHeaderContainer}>
-        {/* Hiển thị tiêu đề động từ prop "title" */}
-        <Text style={styles.featuredTitle}>{title}</Text>
-
-        <TouchableOpacity>
-          <Text style={styles.seeAllText}>See All</Text>
-        </TouchableOpacity>
+        <Text style={styles.seeAllText}>{title}</Text>
       </View>
       <ScrollView
         horizontal
@@ -228,10 +180,10 @@ function FeaturedRow({ title, description, restaurants }) {
   );
 }
 
-// HomeScreen Component
 export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const navigation = useNavigation();
   const flatListRef = useRef();
 
   useEffect(() => {
@@ -239,7 +191,7 @@ export default function HomeScreen() {
       setActiveIndex((prevIndex) =>
         prevIndex === featured.length - 1 ? 0 : prevIndex + 1
       );
-    }, 3000); // Auto-scroll every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -267,7 +219,34 @@ export default function HomeScreen() {
         backgroundColor="transparent"
       />
 
-      {/* Featured Images */}
+      {/* Phần Header */}
+      <View style={styles.header}>
+        <Image
+          source={{
+            uri: "https://i.pinimg.com/564x/cf/f7/4e/cff74e044fe8eb2918424b53297bce18.jpg",
+          }}
+          style={styles.profileImage}
+        />
+        <View>
+          <Text style={styles.greetingText}>Good Morning 👋</Text>
+          <Text style={styles.userName}>Andrew Ainsley</Text>
+        </View>
+        <View style={styles.iconContainer}>
+          <Ionicons name="notifications-outline" size={24} color="black" />
+          <Ionicons name="heart-outline" size={24} color="black" />
+        </View>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={20} color="#888" />
+        <TextInput placeholder="Search" style={styles.searchInput} />
+        <TouchableOpacity style={styles.filterButton}>
+          <Ionicons name="options-outline" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Featured Images Slider */}
       <FlatList
         ref={flatListRef}
         data={featured}
@@ -284,40 +263,41 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
+        contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
       />
-
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <FontAwesomeIcon icon={faSearch} style={styles.searchIcon} />
-          <TextInput placeholder="Restaurants" style={{ flex: 1 }} />
-        </View>
-        <View style={styles.locationContainer}>
-          <FontAwesomeIcon
-            icon={faMapPin}
-            size={20}
-            style={{ color: "green" }}
-          />
-          <Text style={styles.locationText}>Hồ Chí Minh</Text>
-        </View>
-
-        <FontAwesomeIcon
-          icon={faSlidersH}
-          size={25}
-          style={styles.filterIcon}
-        />
-      </View>
 
       {/* Categories */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.categoryScrollView}
+        contentContainerStyle={{ paddingHorizontal: 10, gap: 20 }}
       >
         {categories.map((category) => (
           <TouchableOpacity
             key={category.id}
-            onPress={() => setActiveCategory(category.id)}
+            onPress={() => {
+              switch (category.name) {
+                case "Drinks":
+                  navigation.navigate("Drink"); // Sửa từ "DrinkScreen" thành "Drink"
+                  break;
+                case "Food":
+                  navigation.navigate("Food"); // Sửa từ "FoodScreen" thành "Food"
+                  break;
+                case "Cake":
+                  navigation.navigate("Cake"); // Sửa từ "CakeScreen" thành "Cake"
+                  break;
+                case "Snack":
+                  navigation.navigate("Snack"); // Sửa từ "SnackScreen" thành "Snack"
+                  break;
+                case "See All":
+                  navigation.navigate("See All"); // Sửa từ "SeeAllScreen" thành "See All"
+                  break;
+                default:
+                  setActiveCategory(category.id);
+                  break;
+              }
+            }}
             style={[
               styles.categoryButton,
               activeCategory === category.id
@@ -325,15 +305,11 @@ export default function HomeScreen() {
                 : styles.inactiveCategory,
             ]}
           >
-            <FontAwesomeIcon
-              icon={category.icon}
-              style={styles.categoryImage}
-            />
+            <Image source={category.icon} style={styles.categoryImage} />
             <Text style={styles.categoryText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
-
       {/* Featured Rows */}
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -350,158 +326,69 @@ export default function HomeScreen() {
         ))}
       </ScrollView>
 
+      {/* Bottom Tab Navigator */}
       <BottomTabNavigator navigation={navigation} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  greetingText: {
+    fontSize: 14,
+    color: "#888",
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 10,
     paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    marginHorizontal: 15,
   },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
+  searchInput: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 50,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     marginLeft: 10,
-  },
-  locationText: {
-    color: "gray",
-    marginLeft: 20,
-  },
-  categoryScrollView: {
-    marginVertical: 20,
-  },
-  categoryButton: {
-    alignItems: "center",
-    marginHorizontal: 10,
-    padding: 13,
-    marginBottom: 70,
-    borderRadius: 70,
-    width: 70,
-    height: 70,
-  },
-  activeCategory: {
-    backgroundColor: "#00CC33",
-  },
-  inactiveCategory: {
-    backgroundColor: "#FFFFFF",
-  },
-  categoryImage: {
-    width: 50,
-    height: 50,
-  },
-  categoryText: {
-    fontSize: 12,
-  },
-  featuredScrollContainer: {
-    paddingBottom: 30,
-  },
-  featuredHeaderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    marginVertical: 10,
-  },
-  featuredTitle: {
-    fontWeight: "bold",
-    fontSize: 18,
-    color: "#FFFFFF",
-  },
-  seeAllText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
     fontSize: 16,
   },
-  leftSection: {
-    flexDirection: "column",
-  },
-  featuredTitle: {
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  featuredDescription: {
-    color: "gray",
-    fontSize: 14,
-  },
-  seeAllText: {
-    color: "#000",
-    fontWeight: "600",
-  },
-  restaurantCard: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    marginRight: 10,
-    overflow: "hidden",
-  },
-  restaurantImage: {
-    width: 200,
-    height: 120,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  restaurantInfo: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
-  restaurantName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  restaurantRatingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 5,
-  },
-  starIcon: {
-    marginRight: 5,
-    color: "gold",
-  },
-  ratingText: {
-    fontSize: 14,
-    marginRight: 5,
-  },
-  reviewsText: {
-    fontSize: 14,
-    color: "gray",
-  },
-  categoryText: {
-    fontSize: 14,
-    color: "gray",
-  },
-  locationInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  locationText: {
-    marginLeft: 5,
-    fontSize: 14,
+  filterButton: {
+    backgroundColor: "#00cc69",
+    padding: 10,
+    borderRadius: 10,
   },
   featuredImageContainer: {
     width: width,
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
+    marginVertical: 75,
   },
   featuredImage: {
-    width: width,
-    height: 200,
+    width: width - 10,
+    height: 150,
+    borderRadius: 20,
+    marginHorizontal: 10,
   },
   imageOverlay: {
     position: "absolute",
@@ -512,9 +399,97 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 24,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   featuredDescription: {
     color: "white",
     fontSize: 16,
+  },
+  categoryScrollView: {
+    paddingHorizontal: 10,
+    paddingVertical: 19,
+    width: width - 30,
+    height: 300,
+  },
+  categoryButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 15,
+  },
+  categoryImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginBottom: 5,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  activeCategory: {
+    borderColor: "#00cc69",
+    borderWidth: 2,
+    borderRadius: 50,
+    padding: 5,
+  },
+  inactiveCategory: {
+    borderColor: "transparent",
+    borderWidth: 2,
+    borderRadius: 50,
+    padding: 5,
+  },
+  restaurantCard: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginRight: 15,
+    width: 250,
+  },
+  restaurantImage: {
+    width: "100%",
+    height: 150,
+  },
+  restaurantInfo: {
+    padding: 10,
+  },
+  restaurantName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  restaurantRatingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  starIcon: {
+    color: "#ffcc00",
+    marginRight: 5,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: "#ffcc00",
+    marginRight: 5,
+  },
+  reviewsText: {
+    fontSize: 12,
+    color: "#888",
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  locationInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  locationText: {
+    fontSize: 12,
+    color: "#888",
+    marginLeft: 5,
+  },
+  featuredScrollContainer: {
+    paddingHorizontal: 15,
   },
 });

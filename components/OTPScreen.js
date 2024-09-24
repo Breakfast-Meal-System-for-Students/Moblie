@@ -33,7 +33,7 @@ function OTPScreen() {
   return (
     <ImageBackground
       source={{
-        uri: "https://i.pinimg.com/564x/4e/a5/9f/4ea59fb67c528f2c78a30d4d366bf536.jpg",
+        uri: "https://i.pinimg.com/564x/7a/2a/44/7a2a44acc08429486d762b187e85e547.jpg",
       }}
       style={styles.background}
       resizeMode="cover"
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#009900",
+    color: "#00cc69",
     textAlign: "center",
   },
   description: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#33CC33",
+    backgroundColor: "#00cc69",
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   link: {
-    color: "#009900",
+    color: "#00cc69",
     fontSize: 16,
     textAlign: "center",
     marginTop: 10,

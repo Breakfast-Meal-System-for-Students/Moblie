@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   button: {
-    backgroundColor: "#00CC33",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   formButton: {
-    backgroundColor: "#00CC33",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",

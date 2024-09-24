@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from "react-native";
 export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>This is the Favorites Screen</Text>
+      <Text style={styles.text}>Sản phẩm yêu thích</Text>
     </View>
   );
 }
@@ -14,10 +14,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   text: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
   },
 });
