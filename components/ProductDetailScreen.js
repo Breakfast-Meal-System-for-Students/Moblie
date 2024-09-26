@@ -11,50 +11,27 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faArrowLeft,
   faShoppingCart,
+  faCommentDots,
+  faUser,
   faPlus,
   faMinus,
-  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { product, cart, setCart } = route.params;
   const [notification, setNotification] = useState("");
 
-  const addToCart = () => {
+  const addToCart = (product) => {
     setCart((prevCart) => {
       const currentQuantity = prevCart[product.id]?.quantity || 0;
-      const newQuantity = currentQuantity + 1;
-
-      setNotification(`Đã thêm ${product.name} vào giỏ hàng!`);
-      setTimeout(() => setNotification(""), 2000);
-
+      setNotification(`Đã thêm 1 ${product.name} vào giỏ hàng.`);
       return {
         ...prevCart,
         [product.id]: {
           product,
-          quantity: newQuantity,
+          quantity: currentQuantity + 1,
         },
       };
-    });
-  };
-
-  const removeFromCart = () => {
-    setCart((prevCart) => {
-      const currentQuantity = prevCart[product.id]?.quantity || 0;
-      if (currentQuantity > 1) {
-        const newQuantity = currentQuantity - 1;
-        return {
-          ...prevCart,
-          [product.id]: {
-            product,
-            quantity: newQuantity,
-          },
-        };
-      } else {
-        const updatedCart = { ...prevCart };
-        delete updatedCart[product.id];
-        return updatedCart;
-      }
     });
   };
 
@@ -68,18 +45,6 @@ export default function ProductDetailScreen({ route, navigation }) {
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.shopName}>Fast Food</Text>
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("Checkout", { cart })}
-        >
-          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>
-            {Object.keys(cart).reduce(
-              (total, key) => total + cart[key].quantity,
-              0
-            )}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* Hình ảnh sản phẩm */}
@@ -103,15 +68,10 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productPrice}>${product.price}</Text>
 
         <View style={styles.addButtonContainer}>
-          <TouchableOpacity onPress={removeFromCart} style={styles.addButton}>
-            <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
-          </TouchableOpacity>
-
-          <Text style={styles.quantityText}>
-            {cart[product.id]?.quantity || 0}
-          </Text>
-
-          <TouchableOpacity onPress={addToCart} style={styles.addButton}>
+          <TouchableOpacity
+            onPress={() => addToCart(product)}
+            style={styles.addButton}
+          >
             <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -169,6 +129,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    right: 230,
   },
   cartButton: {
     padding: 10,

@@ -73,30 +73,6 @@ export default function BottomNavigationBar() {
         </Text>
       </TouchableOpacity>
 
-      {/* Hiển thị nút Favorites nếu showFavorites là true */}
-      {showFavorites && (
-        <Animated.View style={styles.favoriteContainer}>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => handlePress("Favorites")}
-          >
-            <FontAwesomeIcon
-              icon={faHeart}
-              size={20}
-              color={activeTab === "Favorites" ? "#00cc69" : "#707070"}
-            />
-            <Text
-              style={[
-                styles.label,
-                activeTab === "Favorites" && styles.labelActive,
-              ]}
-            >
-              Like
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
-
       {/* Nút cộng với hiệu ứng */}
       <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
         <TouchableOpacity

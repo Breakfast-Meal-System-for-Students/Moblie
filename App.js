@@ -14,14 +14,14 @@ import NotificationsScreen from "./components/NotificationsScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen";
-
 import CheckoutScreen from "./components/CheckoutScreen";
 import DrinkScreen from "./components/DrinkScreen";
 import FoodScreen from "./components/FoodScreen";
 import CakeScreen from "./components/CakeScreen";
 import SnackScreen from "./components/SnackScreen";
 import SeeAllScreen from "./components/SeeAllScreen";
-
+import EditProfile from "./components/EditProfile";
+import LogoutScreen from "./components/LogoutScreen";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -122,6 +122,16 @@ function App() {
         <Stack.Screen
           name="See All"
           component={SeeAllScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Logout"
+          component={LogoutScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
