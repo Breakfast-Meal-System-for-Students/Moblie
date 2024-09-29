@@ -1,6 +1,7 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgotPasswordScreen from "./components/ForgotPasswordScreen";
@@ -8,13 +9,13 @@ import OTPScreen from "./components/OTPScreen";
 import WelcomeScreen from "./components/Welcome";
 import HomeScreen from "./components/HomeScreen";
 import ShopScreen from "./components/ShopScreen";
-import OrdersScreen from "./components/OrdersScreen";
+// import OrdersScreen from "./components/OrdersScreen";
 import FavoritesScreen from "./components/FavoritesScreen";
 import NotificationsScreen from "./components/NotificationsScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen";
-import CheckoutScreen from "./components/CheckoutScreen";
+import CartScreen from "./components/CartScreen";
 import DrinkScreen from "./components/DrinkScreen";
 import FoodScreen from "./components/FoodScreen";
 import CakeScreen from "./components/CakeScreen";
@@ -22,6 +23,7 @@ import SnackScreen from "./components/SnackScreen";
 import SeeAllScreen from "./components/SeeAllScreen";
 import EditProfile from "./components/EditProfile";
 import LogoutScreen from "./components/LogoutScreen";
+
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -67,11 +69,11 @@ function App() {
           name="BottomNavigationBar"
           component={BottomNavigationBar}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Orders"
           component={OrdersScreen}
           options={{ headerShown: false }}
-        />
+        /> */}
         <Stack.Screen
           name="Favorites"
           component={FavoritesScreen}
@@ -93,10 +95,10 @@ function App() {
           options={{ headerShown: false }}
         />
 
-        {/* Di chuyển CheckoutScreen vào trong Stack.Navigator */}
+        {/* Di chuyển CartScreen vào trong Stack.Navigator */}
         <Stack.Screen
           name="Checkout"
-          component={CheckoutScreen}
+          component={CartScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -135,6 +137,11 @@ function App() {
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ headerShown: false }}
+      />
     </NavigationContainer>
   );
 }
