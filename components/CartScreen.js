@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,48 +6,47 @@ import {
   TouchableOpacity,
   Image,
   Modal,
+  Alert,
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CheckoutScreen = () => {
-  const [listData, setListData] = useState([
-    {
-      key: "1",
-      text: "Black Forest Cake",
-      price: 20.0,
-      quantity: 1,
-      image:
-        "https://i.pinimg.com/564x/51/14/17/5114171896082a4871ff0fe22f2d70ef.jpg",
-      note: "Delicious chocolate cake with cherries and cream.",
-    },
-    {
-      key: "2",
-      text: "Cupcake With Cherry",
-      price: 25.0,
-      quantity: 1,
-      image:
-        "https://i.pinimg.com/564x/f7/ec/13/f7ec1323a0e118481da37c0fdd17583c.jpg",
-      note: "Soft cupcake with a cherry topping.",
-    },
-    {
-      key: "3",
-      text: "Junior Mints Cupcake",
-      price: 18.0,
-      quantity: 1,
-      image:
-        "https://i.pinimg.com/564x/26/bb/33/26bb33673489b664be08b6e538d68a15.jpg",
-      note: "Cupcake with mint-flavored cream.",
-    },
-  ]);
-
+const CartScreen = () => {
+  const [listData, setListData] = useState([]);
   const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
     useState(false);
   const [isPaymentFailModalVisible, setPaymentFailModalVisible] =
     useState(false);
-  const [totalPrice, setTotalPrice] = useState(
-    listData.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  );
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  useEffect(() => {
+    fetchCartData();
+  }, []);
+
+  const fetchCartData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await axios.get(
+        "https://bms-fs-api.azurewebsites.net/api/Cart/GetAllCartForUser",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { pageIndex: 1, pageSize: 10 },
+        }
+      );
+      if (response.data.isSuccess) {
+        const cartItems = response.data.data;
+        setListData(cartItems);
+        calculateTotal(cartItems);
+      } else {
+        Alert.alert("Error", "Failed to fetch cart data.");
+      }
+    } catch (error) {
+      console.error("Fetch cart data error:", error);
+      Alert.alert("Error", "An error occurred while fetching cart data.");
+    }
+  };
 
   const deleteRow = (rowKey) => {
     const newData = [...listData];
@@ -58,6 +57,9 @@ const CheckoutScreen = () => {
   };
 
   const calculateTotal = (updatedItems) => {
+    if (!Array.isArray(updatedItems)) {
+      updatedItems = [];
+    }
     const total = updatedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -66,7 +68,6 @@ const CheckoutScreen = () => {
   };
 
   const handlePlaceOrder = () => {
-    // Randomly simulate payment success or failure
     const paymentSuccess = Math.random() > 0.5; // 50% success rate for demo
     if (paymentSuccess) {
       setPaymentSuccessModalVisible(true);
@@ -403,4 +404,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CheckoutScreen;
+export default CartScreen;

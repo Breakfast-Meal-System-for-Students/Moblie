@@ -29,7 +29,7 @@ export default function BottomNavigationBar() {
     if (screen === "Add") {
       setShowFavorites(!showFavorites); // Chuyển đổi trạng thái hiển thị Favorites
       Animated.spring(scaleValue, {
-        toValue: 1.3, // Phóng to nút lên 1.3 lần
+        toValue: 1.3, 
         friction: 3,
         useNativeDriver: true,
       }).start();

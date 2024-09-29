@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,32 +6,89 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faArrowLeft,
   faShoppingCart,
-  faCommentDots,
-  faUser,
   faPlus,
   faMinus,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
-
+import { faCommentDots } from "@fortawesome/free-solid-svg-icons"; // {{ edit_1 }}
 export default function ProductDetailScreen({ route, navigation }) {
-  const { product, cart, setCart } = route.params;
+  const { cart, setCart } = route.params;
+  const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState("");
-
-  const addToCart = (product) => {
+  const { productId } = route.params || {};
+  const [product, setProduct] = useState(null);
+  const addToCart = () => {
     setCart((prevCart) => {
       const currentQuantity = prevCart[product.id]?.quantity || 0;
-      setNotification(`Đã thêm 1 ${product.name} vào giỏ hàng.`);
+      const newQuantity = currentQuantity + 1;
+
+      setNotification(`Đã thêm ${product.name} vào giỏ hàng!`);
+      setTimeout(() => setNotification(""), 2000);
+
       return {
         ...prevCart,
         [product.id]: {
           product,
-          quantity: currentQuantity + 1,
+          quantity: newQuantity,
         },
       };
+    });
+  };
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/Product/${productId}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.isSuccess) {
+          setProduct(data.data);
+        } else {
+          console.error("Error fetching product details:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [productId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#00cc69" />;
+  }
+
+  const removeFromCart = () => {
+    setCart((prevCart) => {
+      const currentQuantity = prevCart[product.id]?.quantity || 0;
+      if (currentQuantity > 1) {
+        const newQuantity = currentQuantity - 1;
+        return {
+          ...prevCart,
+          [product.id]: {
+            product,
+            quantity: newQuantity,
+          },
+        };
+      } else {
+        const updatedCart = { ...prevCart };
+        delete updatedCart[product.id];
+        return updatedCart;
+      }
     });
   };
 
@@ -45,33 +102,55 @@ export default function ProductDetailScreen({ route, navigation }) {
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.shopName}>Fast Food</Text>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate("Checkout", { cart })}
+        >
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <Text style={styles.cartItemCount}>
+            {cart && Object.keys(cart).length > 0 // Check if cart is defined and has items
+              ? Object.keys(cart).reduce(
+                  (total, key) => total + (cart[key]?.quantity || 0), // Use optional chaining for quantity
+                  0
+                )
+              : 0 // Fallback value if cart is empty or undefined
+            }
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Hình ảnh sản phẩm */}
-      <View style={styles.bannerContainer}>
+      <View style={styles.container}>
         <Image
-          source={{ uri: product.image }}
-          style={styles.bannerImage}
-          resizeMode="cover"
+          source={{
+            uri:
+              product?.images?.[0]?.url ||
+              "https://yhg.vn/wp-content/uploads/2021/02/pizza-y.jpg",
+          }} // {{ edit_1 }}
+          style={styles.productImage}
         />
+        <Text style={styles.productName}>
+          {product?.name || "Default Product Name"}
+        </Text>
+        <Text style={styles.productDescription}>
+          {product?.description || "No description available."}
+        </Text>
+        <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
       </View>
 
-      {/* Tên sản phẩm */}
-      <Text style={styles.productName}>{product.name}</Text>
-      {/* Mô tả sản phẩm */}
-      <Text style={styles.productDescription}>
-        Đây là mô tả chi tiết của sản phẩm {product.name}. Bạn có thể thêm mô tả
-        tại đây.
-      </Text>
       {/* Giá và nút thêm/xóa */}
       <View style={styles.addButtonPriceContainer}>
-        <Text style={styles.productPrice}>${product.price}</Text>
+        <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
 
         <View style={styles.addButtonContainer}>
-          <TouchableOpacity
-            onPress={() => addToCart(product)}
-            style={styles.addButton}
-          >
+          <TouchableOpacity onPress={removeFromCart} style={styles.addButton}>
+            <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
+          </TouchableOpacity>
+
+          <Text style={styles.quantityText}>
+            {cart && product?.id ? cart[product.id]?.quantity || 0 : 0}
+          </Text>
+
+          <TouchableOpacity onPress={addToCart} style={styles.addButton}>
             <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -129,7 +208,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-    right: 230,
   },
   cartButton: {
     padding: 10,
