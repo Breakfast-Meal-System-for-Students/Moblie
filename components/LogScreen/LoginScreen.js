@@ -81,7 +81,7 @@ export default function Login() {
           <Text style={styles.link}>Forgot Password?</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.link}>Donot have an account?</Text>
+          <Text style={styles.link}>Do not have an account? </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     padding: 10, // Thêm khoảng cách trong input
+    backgroundColor: "white", // Thêm màu nền trắng cho input
   },
   formButton: {
     backgroundColor: "#00cc69",

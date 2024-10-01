@@ -21,7 +21,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from "./BottomNavigationBar";
+import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
 
 const { width } = Dimensions.get("window");
 
@@ -241,6 +241,7 @@ export default function HomeScreen() {
         )}
         contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
       />
+      <Text style={styles.categoryup}>Categories</Text>
 
       {/* Categories */}
       <ScrollView
@@ -312,7 +313,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 30,
     paddingHorizontal: 10,
   },
   profileImage: {
@@ -398,9 +399,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   categoryText: {
-    fontSize: 12,
+    marginTop: 20,
     fontWeight: "bold",
-    textAlign: "center",
+    fontSize: 20,
+    paddingLeft: 25,
   },
   activeCategory: {
     borderColor: "#00cc69",
@@ -466,5 +468,11 @@ const styles = StyleSheet.create({
   },
   featuredScrollContainer: {
     paddingHorizontal: 15,
+  },
+  categoryup: {
+    marginTop: 20,
+    fontWeight: "bold",
+    fontSize: 20,
+    paddingLeft: 25,
   },
 });
