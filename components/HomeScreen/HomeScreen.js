@@ -21,7 +21,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from "./BottomNavigationBar";
+import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
 
 const { width } = Dimensions.get("window");
 
@@ -63,81 +63,12 @@ const categories = [
   },
 ];
 
-const featured = [
-  {
-    id: 1,
-    title: "Hot and Spicy",
-    description: "Soft and tender fried chicken",
-    image: {
-      uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-    },
-    restaurants: [
-      {
-        id: 1,
-        name: "Papa Johns",
-        image: {
-          uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-        },
-        description: "Hot and spicy pizzas",
-        stars: 4,
-        reviews: "4.4k",
-        category: "Fast Food",
-        address: "434 Second Street",
-      },
-      {
-        id: 2,
-        name: "Drink Johns",
-        image: {
-          uri: "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-        },
-        description: "Hot and spicy drinks",
-        stars: 4,
-        reviews: "4.4k",
-        category: "Drinks",
-        address: "434 Second Street",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Best Deals",
-    description: "Exciting offers on your favorite foods",
-    image: {
-      uri: "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-    },
-    restaurants: [
-      {
-        id: 1,
-        name: "Burger Haven",
-        image: {
-          uri: "https://i.pinimg.com/236x/d2/88/ea/d288ead43cacf7229a301b1bbaf09495.jpg",
-        },
-        description: "Delicious burgers at great prices",
-        stars: 4.2,
-        reviews: "3.2k",
-        category: "Burgers",
-        address: "567 Burger Lane",
-      },
-      {
-        id: 2,
-        name: "Taco Fiesta",
-        image: {
-          uri: "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-        },
-        description: "Spicy tacos and more",
-        stars: 4.7,
-        reviews: "6k",
-        category: "Tacos",
-        address: "789 Taco Street",
-      },
-    ],
-  },
-];
-
 function RestaurantCard({ item }) {
   const navigation = useNavigation();
   return (
-    <TouchableOpacity onPress={() => navigation.navigate("Shop")}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate("Shop", { id: item.id })}
+    >
       <View style={styles.restaurantCard}>
         <Image style={styles.restaurantImage} source={item.image} />
         <View style={styles.restaurantInfo}>
@@ -181,6 +112,7 @@ function FeaturedRow({ title, description, restaurants }) {
 }
 
 export default function HomeScreen() {
+  const [featured, setFeatured] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const navigation = useNavigation();
@@ -194,17 +126,61 @@ export default function HomeScreen() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [featured.length]); // Add dependency to ensure it updates when featured changes
 
   useEffect(() => {
-    if (flatListRef.current) {
+    if (flatListRef.current && featured.length > 0) {
+      // Check if featured has items
       flatListRef.current.scrollToIndex({
         index: activeIndex,
         animated: true,
       });
     }
-  }, [activeIndex]);
+  }, [activeIndex, featured.length]); // Add featured.length to dependencies
 
+  useEffect(() => {
+    const fetchFeaturedData = async () => {
+      try {
+        const response = await fetch(
+          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=PENDING&pageIndex=1&pageSize=5",
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.isSuccess) {
+          const formattedData = data.data.data.map((item) => ({
+            id: item.id,
+            title: item.name,
+            description: item.description,
+            image: { uri: item.image || "default_image_url" }, // Use a default image if none is provided
+            restaurants: [
+              {
+                id: item.id,
+                name: item.name,
+                image: { uri: item.image || "default_image_url" },
+                description: item.description,
+                stars: item.rate || 0,
+                reviews: "N/A", // Assuming reviews data is not provided
+                category: "N/A", // Assuming category data is not provided
+                address: item.address,
+              },
+            ],
+          }));
+          setFeatured(formattedData);
+        } else {
+          console.error("Error fetching data:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+    };
+
+    fetchFeaturedData();
+  }, []);
   return (
     <View
       style={{
@@ -265,6 +241,7 @@ export default function HomeScreen() {
         )}
         contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
       />
+      <Text style={styles.categoryup}>Categories</Text>
 
       {/* Categories */}
       <ScrollView
@@ -325,7 +302,6 @@ export default function HomeScreen() {
           </View>
         ))}
       </ScrollView>
-
       {/* Bottom Tab Navigator */}
       <BottomTabNavigator navigation={navigation} />
     </View>
@@ -337,7 +313,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 30,
     paddingHorizontal: 10,
   },
   profileImage: {
@@ -423,9 +399,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   categoryText: {
-    fontSize: 12,
+    marginTop: 20,
     fontWeight: "bold",
-    textAlign: "center",
+    fontSize: 20,
+    paddingLeft: 25,
   },
   activeCategory: {
     borderColor: "#00cc69",
@@ -491,5 +468,11 @@ const styles = StyleSheet.create({
   },
   featuredScrollContainer: {
     paddingHorizontal: 15,
+  },
+  categoryup: {
+    marginTop: 20,
+    fontWeight: "bold",
+    fontSize: 20,
+    paddingLeft: 25,
   },
 });

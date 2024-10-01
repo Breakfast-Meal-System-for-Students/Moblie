@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Login({ onLogin }) {
+export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +44,6 @@ export default function Login({ onLogin }) {
       );
 
       if (response.data.isSuccess) {
-        // Store the token securely
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);
         Alert.alert("Success", "Login successful!", [
@@ -81,6 +80,9 @@ export default function Login({ onLogin }) {
         <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.link}>Forgot Password?</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.link}>Do not have an account? </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -92,13 +94,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   textInput: {
-    borderBottomWidth: 1,
-    borderBottomColor: "gray",
+    borderWidth: 1, // Thêm khung cho text input
+    borderColor: "gray",
+    borderRadius: 5, // Bo tròn góc của input
     marginVertical: 10,
     fontSize: 16,
+    padding: 10, // Thêm khoảng cách trong input
+    backgroundColor: "white", // Thêm màu nền trắng cho input
   },
   formButton: {
-    backgroundColor: "#00CC33",
+    backgroundColor: "#00cc69",
     height: 55,
     alignItems: "center",
     justifyContent: "center",
@@ -114,9 +119,10 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     width: "100%",
+    marginTop: 20,
   },
   link: {
-    color: "#009900",
+    color: "#00cc69",
     fontSize: 16,
     marginVertical: 5,
   },

@@ -29,7 +29,7 @@ export default function BottomNavigationBar() {
     if (screen === "Add") {
       setShowFavorites(!showFavorites); // Chuyển đổi trạng thái hiển thị Favorites
       Animated.spring(scaleValue, {
-        toValue: 1.3, // Phóng to nút lên 1.3 lần
+        toValue: 1.3, 
         friction: 3,
         useNativeDriver: true,
       }).start();
@@ -72,30 +72,6 @@ export default function BottomNavigationBar() {
           Orders
         </Text>
       </TouchableOpacity>
-
-      {/* Hiển thị nút Favorites nếu showFavorites là true */}
-      {showFavorites && (
-        <Animated.View style={styles.favoriteContainer}>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => handlePress("Favorites")}
-          >
-            <FontAwesomeIcon
-              icon={faHeart}
-              size={20}
-              color={activeTab === "Favorites" ? "#00cc69" : "#707070"}
-            />
-            <Text
-              style={[
-                styles.label,
-                activeTab === "Favorites" && styles.labelActive,
-              ]}
-            >
-              Like
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
 
       {/* Nút cộng với hiệu ứng */}
       <Animated.View style={{ transform: [{ scale: scaleValue }] }}>

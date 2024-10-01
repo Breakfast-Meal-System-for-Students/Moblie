@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  Dimensions,
   ScrollView,
+  Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -16,92 +17,27 @@ import {
   faPlus,
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
-import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
-
+import { useNavigation, useRoute } from "@react-navigation/native";
+const goToProductDetail = async (item) => {
+  navigation.navigate("ProductDetail", { productId: item.id });
+};
 const { width } = Dimensions.get("window");
 
-const carouselImages = [
-  {
-    id: 1,
-    image:
-      "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-  },
-  {
-    id: 2,
-    image:
-      "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-  },
-  {
-    id: 3,
-    image:
-      "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-  },
-];
-
-const offers = [
-  {
-    id: 1,
-    image:
-      "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-    discount: "30% Discount",
-  },
-  {
-    id: 2,
-    image:
-      "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-    discount: "21% Discount",
-  },
-  {
-    id: 3,
-    image:
-      "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-    discount: "50% Discount",
-  },
-];
-
-const products = [
-  {
-    id: 1,
-    name: "Big Garden Salad",
-    price: 2.0,
-    rating: 4.8,
-    reviews: "1.2k reviews",
-    distance: "2.4 Km",
-    offers: "Offers are available",
-    image:
-      "https://i.pinimg.com/236x/41/b6/99/41b6994f16222eb7c140a6d3f67729ba.jpg",
-  },
-  {
-    id: 2,
-    name: "Jumbo Burger",
-    price: 19,
-    rating: 4.5,
-    reviews: "800 reviews",
-    distance: "3.1 Km",
-    offers: "20% Discount",
-    image:
-      "https://i.pinimg.com/236x/f5/20/10/f52010f1acafbe3969cc567c41d44865.jpg",
-  },
-  {
-    id: 3,
-    name: "Chicken Kabab",
-    price: 25,
-    rating: 4.7,
-    reviews: "900 reviews",
-    distance: "1.8 Km",
-    offers: "Buy 1 Get 1 Free",
-    image:
-      "https://i.pinimg.com/236x/22/84/6e/22846ecb774c5c4c1c1d5c8e767d3d8a.jpg",
-  },
-];
-
-export default function HomeScreen() {
+export default function ShopScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  console.log(route.params); // Check what params are being passed
+  const { id } = route.params || {}; // Use default empty object to avoid errors
   const [cart, setCart] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [shopDetails, setShopDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
   const flatListRef = useRef(null);
-
+  const goToProductDetail = async (item) => {
+    navigation.navigate("ProductDetail", { productId: item.id });
+  };
   const addToCart = (product) => {
     setCart((prevCart) => {
       const currentQuantity = prevCart[product.id]?.quantity || 0;
@@ -114,6 +50,7 @@ export default function HomeScreen() {
       };
     });
   };
+
   const removeFromCart = (product) => {
     setCart((prevCart) => {
       const currentQuantity = prevCart[product.id]?.quantity || 0;
@@ -129,19 +66,74 @@ export default function HomeScreen() {
       return prevCart;
     });
   };
+
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const nextIndex = (currentIndex + 1) % carouselImages.length;
-      setCurrentIndex(nextIndex);
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-    }, 3000);
+    const fetchShopDetails = async () => {
+      try {
+        const response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/ShopApplication/${id}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.isSuccess) {
+          setShopDetails(data.data);
+          console.error("Error fetching shop details:", data.data);
+        } else {
+          console.error("Error fetching shop details:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/Product/all-product-by-shop-id?id=${id}&pageIndex=1&pageSize=5`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+            },
+          }
+        );
 
-    return () => clearInterval(intervalId);
-  }, [currentIndex]);
+        const data = await response.json();
+        console.log("Products API Response:", data); // Log the response
+        if (data.isSuccess) {
+          setProducts(data.data.data); // Set the products from the response
+        } else {
+          console.error("Error fetching products:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    };
+    fetchShopDetails();
+    fetchProducts();
+  }, [id]);
 
-  const goToProductDetail = (product) => {
-    navigation.navigate("ProductDetail", { product, cart, setCart });
-  };
+  if (loading) {
+    return <ActivityIndicator size="large" color="#00cc69" />;
+  }
+
+  if (!id) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Shop ID is not available.</Text>
+      </View>
+    );
+  }
+
+  // Check if shopDetails is available before rendering
 
   return (
     <ScrollView style={styles.container}>
@@ -152,10 +144,10 @@ export default function HomeScreen() {
         >
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.shopName}>Fast Food</Text>
+        <Text style={styles.shopName}>{shopDetails.name}</Text>
         <TouchableOpacity
           style={styles.cartButton}
-          onPress={() => navigation.navigate("Checkout", { cart })} // Điều hướng tới CheckoutScreen với dữ liệu giỏ hàng
+          onPress={() => navigation.navigate("Checkout", { cart })}
         >
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
           <Text style={styles.cartItemCount}>
@@ -169,38 +161,43 @@ export default function HomeScreen() {
 
       <View style={styles.carouselContainer}>
         <FlatList
-          data={carouselImages}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          data={shopDetails.products}
           renderItem={({ item }) => (
-            <Image source={{ uri: item.image }} style={styles.carouselImage} />
+            <ProductCard
+              product={{
+                ...item,
+                name: item.name || "Unnamed Product",
+                description: item.description || "No description available.",
+                image: item.image || "https://via.placeholder.com/150", // Default image
+                address: item.address || "Address not available",
+                rate: item.rate || 0,
+                email: item.email || "No email provided",
+              }}
+              addToCart={addToCart}
+            />
           )}
-          ref={flatListRef}
-          pagingEnabled
+          keyExtractor={(item) => item.id.toString()}
         />
       </View>
 
       <View style={styles.productDescriptionContainer}>
-        <Text style={styles.productName}>Big Garden Salad</Text>
-
+        <Text style={styles.productName}>{shopDetails.name}</Text>
         <View style={styles.productDetailsRow}>
           <FontAwesome name="star" size={18} color="#f1c40f" />
           <Text style={styles.productDetailsText}>4.8 (1.2k reviews)</Text>
         </View>
-
         <View style={styles.productDetailsRow}>
           <FontAwesome name="map-marker" size={18} color="#00cc69" />
           <Text style={styles.productDetailsText}>2.4 Km</Text>
           <Text style={styles.productDetailsText}> | Deliver Now | $ 2.00</Text>
         </View>
-
+        <Text style={styles.productDetailsText}>{shopDetails.description}</Text>
         <View style={styles.productDetailsRow}>
           <FontAwesome name="tag" size={18} color="#00cc69" />
           <Text style={styles.productDetailsText}>Offers are available</Text>
         </View>
       </View>
-
+      {/* 
       <View style={styles.offersSection}>
         <Text style={styles.sectionTitle}>Near by Offer</Text>
         <FlatList
@@ -215,52 +212,55 @@ export default function HomeScreen() {
             </View>
           )}
         />
-      </View>
-
+      </View> */}
       <View style={styles.productsSection}>
-        <Text style={styles.sectionTitle}>Fast food</Text>
-        {products.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.productItem}
-            onPress={() => goToProductDetail(item)} // Điều hướng ở đây
-          >
-            <Image source={{ uri: item.image }} style={styles.productImage} />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>{item.name}</Text>
-              <View style={styles.ratingContainer}>
-                <FontAwesome name="star" size={18} color="#f1c40f" />
-                <Text style={styles.rating}>
-                  {item.rating} ({item.reviews})
-                </Text>
-              </View>
-              <Text style={styles.productPrice}>${item.price}</Text>
-              <Text style={styles.distance}>{item.distance}</Text>
-              <Text style={styles.offers}>{item.offers}</Text>
-            </View>
-
-            {/* Nút thêm và trừ sản phẩm */}
-            <View style={styles.addButtonContainer}>
+        <Text style={styles.sectionTitle}>Products</Text>
+        {products.length === 0 ? (
+          <Text style={styles.errorText}>No products available.</Text>
+        ) : (
+          <FlatList
+            data={products}
+            renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => removeFromCart(item)}
-                style={styles.addButton}
+                key={item.id}
+                style={styles.productItem}
+                onPress={() => goToProductDetail(item)}
               >
-                <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
+                <Image
+                  source={{
+                    uri:
+                      item.images[0]?.url || "https://via.placeholder.com/150",
+                  }}
+                  style={styles.productImage}
+                />
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>
+                    {item.name || "Unnamed Product"}
+                  </Text>
+                  <Text style={styles.productPrice}>${item.price || 0}</Text>
+                  <View style={styles.addButtonContainer}>
+                    <TouchableOpacity
+                      onPress={() => removeFromCart(item)}
+                      style={styles.addButton}
+                    >
+                      <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.quantityText}>
+                      {cart[item.id]?.quantity || 0}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => addToCart(item)}
+                      style={styles.addButton}
+                    >
+                      <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </TouchableOpacity>
-
-              <Text style={styles.quantityText}>
-                {cart[item.id]?.quantity || 0}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => addToCart(item)}
-                style={styles.addButton}
-              >
-                <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+            )}
+            keyExtractor={(item) => item.id.toString()}
+          />
+        )}
       </View>
     </ScrollView>
   );
@@ -427,5 +427,10 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 20,
   },
 });

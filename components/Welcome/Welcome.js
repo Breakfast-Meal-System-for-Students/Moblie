@@ -18,8 +18,8 @@ import Animated, {
   withSequence,
   withSpring,
 } from "react-native-reanimated";
-import LoginScreen from "./LoginScreen";
-import RegisterScreen from "./RegisterScreen";
+import LoginScreen from "../LogScreen/LoginScreen";
+import RegisterScreen from "../RegisterScreen/RegisterScreen";
 
 const { height, width } = Dimensions.get("window");
 
@@ -99,7 +99,7 @@ export default function WelcomeScreen({ navigation }) {
             <Ellipse cx={width / 2} rx={height / 1} ry={height / 1} />
           </ClipPath>
           <Image
-            href={require("../assets/login-background.jpg")}
+            href={require("../../assets/login-background.jpg")}
             width={width * 1} // Giảm chiều rộng hình ảnh
             height={height + 300} // Giảm chiều cao hình ảnh
             preserveAspectRatio="xMidYMid slice"

@@ -11,9 +11,10 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function Register({ onRegister }) {
   const [fullName, setFullName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState(""); // Ngày sinh
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState(""); // Số điện thoại
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -24,9 +25,9 @@ export default function Register({ onRegister }) {
 
     // Kiểm tra các trường không được để trống
     if (!fullName) validationErrors.fullName = "Full Name is required";
-    if (!dob) validationErrors.dob = "Date of Birth is required";
+    if (!lastName) validationErrors.lastName = "Last Name is required"; // Sửa lại từ "Full Name" thành "Last Name"
     if (!email) validationErrors.email = "Email is required";
-    if (!phone) validationErrors.phone = "Phone Number is required";
+
     if (!password) validationErrors.password = "Password is required";
     if (!confirmPassword)
       validationErrors.confirmPassword = "Confirm Password is required";
@@ -38,17 +39,6 @@ export default function Register({ onRegister }) {
     // Kiểm tra mật khẩu
     if (password !== confirmPassword)
       validationErrors.confirmPassword = "Passwords do not match";
-
-    // Kiểm tra số điện thoại
-    const phonePattern = /^[0-9]+$/;
-    if (!phonePattern.test(phone))
-      validationErrors.phone = "Phone Number must contain only numbers";
-    if (phone.length > 10)
-      validationErrors.phone = "Phone Number must not exceed 10 digits";
-
-    // Kiểm tra ngày sinh
-    const dobPattern = /^\d{2}-\d{2}-\d{4}$/; // Định dạng DD-MM-YYYY
-    if (!dobPattern.test(dob)) validationErrors.dob = "Date of Birth ";
 
     // Nếu có lỗi, cập nhật trạng thái lỗi và thoát
     if (Object.keys(validationErrors).length > 0) {
@@ -67,23 +57,22 @@ export default function Register({ onRegister }) {
         placeholder="Full Name"
         style={[styles.input, errors.fullName && styles.inputError]}
         value={fullName}
-        onChangeText={setFullName}
+        onChangeText={setFullName} // Đúng hàm xử lý cho fullName
       />
       {errors.fullName && (
         <Text style={styles.errorText}>{errors.fullName}</Text>
       )}
+
       <TextInput
-        style={[styles.input, errors.dob && styles.inputError]}
-        placeholder="Date of Birth (DD-MM-YYYY or DD/MM/YYYY)"
-        value={dob}
-        onChangeText={(text) => {
-          // Remove all non-numeric and non-slash/hyphen characters
-          const formattedText = text.replace(/[^0-9\-\/]/g, "").slice(0, 10);
-          setDob(formattedText);
-        }}
-        keyboardType="numeric"
+        placeholder="Last Name"
+        style={[styles.input, errors.lastName && styles.inputError]} // Đúng điều kiện lỗi cho Last Name
+        value={lastName} // Gán đúng giá trị cho lastName
+        onChangeText={setLastName} // Đúng hàm xử lý cho lastName
       />
-      {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+      {errors.lastName && (
+        <Text style={styles.errorText}>{errors.lastName}</Text>
+      )}
+
       <TextInput
         style={[styles.input, errors.email && styles.inputError]}
         placeholder="Email"
@@ -93,18 +82,6 @@ export default function Register({ onRegister }) {
         autoCapitalize="none"
       />
       {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-      <TextInput
-        style={[styles.input, errors.phone && styles.inputError]}
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={(text) => {
-          // Chỉ cho phép nhập số và giới hạn không quá 10 chữ số
-          const formattedText = text.replace(/[^0-9]/g, "").slice(0, 10);
-          setPhone(formattedText);
-        }}
-        keyboardType="numeric"
-      />
-      {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
       <TextInput
         style={[styles.input, errors.password && styles.inputError]}
