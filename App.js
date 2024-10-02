@@ -15,7 +15,7 @@ import NotificationsScreen from "./components/NotificationsScreen/NotificationsS
 import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
-import CartScreen from "./components/Categories/CartScreen";
+import CartScreen from "./components/CartScreen/CartScreen";
 import DrinkScreen from "./components/Categories/DrinkScreen";
 import FoodScreen from "./components/Categories/FoodScreen";
 import CakeScreen from "./components/Categories/CakeScreen";
