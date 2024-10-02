@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -14,32 +15,56 @@ import {
   faShoppingCart,
   faPlus,
   faMinus,
-  faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { faCommentDots } from "@fortawesome/free-solid-svg-icons"; // {{ edit_1 }}
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function ProductDetailScreen({ route, navigation }) {
   const { cart, setCart } = route.params;
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState("");
   const { productId } = route.params || {};
   const [product, setProduct] = useState(null);
-  const addToCart = () => {
-    setCart((prevCart) => {
-      const currentQuantity = prevCart[product.id]?.quantity || 0;
-      const newQuantity = currentQuantity + 1;
+  const [quantity, setQuantity] = useState(1);
 
-      setNotification(`Đã thêm ${product.name} vào giỏ hàng!`);
-      setTimeout(() => setNotification(""), 2000);
+  const addToCart = async () => {
+    const requestBody = {
+      cartId: null,
+      productId: product.id,
+      quantity: quantity,
+      price: product.price,
+      note: "string",
+    };
 
-      return {
-        ...prevCart,
-        [product.id]: {
-          product,
-          quantity: newQuantity,
-        },
-      };
-    });
+    try {
+      const storedShopId = await AsyncStorage.getItem("shopId");
+      const token = await AsyncStorage.getItem("token");
+      const response = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${storedShopId}`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.messages[0]?.content || "Failed to add to cart"
+        );
+      }
+
+      const data = await response.json();
+      Alert.alert("Success", data.messages[0].content);
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
   };
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -72,26 +97,6 @@ export default function ProductDetailScreen({ route, navigation }) {
     return <ActivityIndicator size="large" color="#00cc69" />;
   }
 
-  const removeFromCart = () => {
-    setCart((prevCart) => {
-      const currentQuantity = prevCart[product.id]?.quantity || 0;
-      if (currentQuantity > 1) {
-        const newQuantity = currentQuantity - 1;
-        return {
-          ...prevCart,
-          [product.id]: {
-            product,
-            quantity: newQuantity,
-          },
-        };
-      } else {
-        const updatedCart = { ...prevCart };
-        delete updatedCart[product.id];
-        return updatedCart;
-      }
-    });
-  };
-
   const renderHeader = () => (
     <View>
       <View style={styles.headerContainer}>
@@ -108,13 +113,12 @@ export default function ProductDetailScreen({ route, navigation }) {
         >
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
           <Text style={styles.cartItemCount}>
-            {cart && Object.keys(cart).length > 0 // Check if cart is defined and has items
+            {cart && Object.keys(cart).length > 0
               ? Object.keys(cart).reduce(
-                  (total, key) => total + (cart[key]?.quantity || 0), // Use optional chaining for quantity
+                  (total, key) => total + (cart[key]?.quantity || 0),
                   0
                 )
-              : 0 // Fallback value if cart is empty or undefined
-            }
+              : 0}
           </Text>
         </TouchableOpacity>
       </View>
@@ -125,7 +129,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             uri:
               product?.images?.[0]?.url ||
               "https://yhg.vn/wp-content/uploads/2021/02/pizza-y.jpg",
-          }} // {{ edit_1 }}
+          }}
           style={styles.productImage}
         />
         <Text style={styles.productName}>
@@ -134,60 +138,46 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productDescription}>
           {product?.description || "No description available."}
         </Text>
-        <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
       </View>
 
-      {/* Giá và nút thêm/xóa */}
       <View style={styles.addButtonPriceContainer}>
         <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
 
         <View style={styles.addButtonContainer}>
-          <TouchableOpacity onPress={removeFromCart} style={styles.addButton}>
+          <TouchableOpacity
+            onPress={() => setQuantity(Math.max(1, quantity - 1))}
+            style={styles.addButton}
+          >
             <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
           </TouchableOpacity>
 
-          <Text style={styles.quantityText}>
-            {cart && product?.id ? cart[product.id]?.quantity || 0 : 0}
-          </Text>
+          <Text style={styles.quantityText}>{quantity}</Text>
 
-          <TouchableOpacity onPress={addToCart} style={styles.addButton}>
+          <TouchableOpacity
+            onPress={() => setQuantity(quantity + 1)}
+            style={styles.addButton}
+          >
             <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Thông báo thêm sản phẩm vào giỏ hàng */}
+      <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
+        <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+      </TouchableOpacity>
+
       {notification !== "" && (
         <Text style={styles.notificationText}>{notification}</Text>
       )}
-
-      <Text style={styles.commentsTitle}>Bình luận</Text>
     </View>
   );
 
-  const comments = [
-    { id: 1, user: "John Doe", comment: "Great product! Highly recommend it." },
-    { id: 2, user: "Jane Smith", comment: "Not what I expected, but okay." },
-    { id: 3, user: "Alex Johnson", comment: "Good value for the price!" },
-  ];
-
   return (
     <FlatList
-      data={comments}
+      data={[]} // Empty data since comments are removed
       keyExtractor={(item) => item.id.toString()}
       ListHeaderComponent={renderHeader}
-      renderItem={({ item }) => (
-        <View style={styles.commentItem}>
-          <View style={styles.commentHeader}>
-            <FontAwesomeIcon icon={faUser} size={18} color="#00cc69" />
-            <Text style={styles.commentUser}>{item.user}</Text>
-          </View>
-          <View style={styles.commentBody}>
-            <FontAwesomeIcon icon={faCommentDots} size={16} color="#666" />
-            <Text style={styles.commentText}>{item.comment}</Text>
-          </View>
-        </View>
-      )}
+      renderItem={null} // No renderItem since comments are removed
     />
   );
 }
@@ -224,14 +214,21 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     fontSize: 12,
   },
-  bannerContainer: {
-    width: "100%",
-    height: 300,
-    marginBottom: 20,
+  container: {
+    paddingHorizontal: 20,
   },
-  bannerImage: {
-    width: "100%",
-    height: "100%",
+  productImage: {
+    width: 400,
+    height: 250,
+    borderRadius: 1,
+    marginVertical: 1,
+    alignSelf: "center",
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   productName: {
     fontSize: 24,
@@ -277,37 +274,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     color: "#000",
   },
-  commentsTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "left",
-    paddingHorizontal: 20,
-  },
-  commentItem: {
-    padding: 10,
-    backgroundColor: "#f1f1f1",
-    borderRadius: 8,
-    marginBottom: 10,
-    paddingHorizontal: 20,
-  },
-  commentHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  commentUser: {
-    fontWeight: "bold",
-    marginLeft: 5,
-  },
-  commentBody: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  commentText: {
-    marginLeft: 5,
-    color: "#666",
-  },
   notificationText: {
     color: "#00cc69",
     fontWeight: "bold",
@@ -320,5 +286,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
     paddingHorizontal: 20,
+  },
+  addToCartButton: {
+    backgroundColor: "#00cc69",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginVertical: 20,
+    marginHorizontal: 20,
+  },
+  addToCartButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

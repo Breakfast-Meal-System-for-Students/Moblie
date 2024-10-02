@@ -8,33 +8,30 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios"; // Add axios import
 
 export default function Register({ onRegister }) {
   const [fullName, setFullName] = useState("");
   const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState(""); // Ngày sinh
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigation = useNavigation(); // Lấy đối tượng navigation
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     let validationErrors = {};
 
     // Kiểm tra các trường không được để trống
     if (!fullName) validationErrors.fullName = "Full Name is required";
-    if (!lastName) validationErrors.lastName = "Last Name is required"; // Sửa lại từ "Full Name" thành "Last Name"
+    if (!lastName) validationErrors.lastName = "Last Name is required";
     if (!email) validationErrors.email = "Email is required";
-
     if (!password) validationErrors.password = "Password is required";
     if (!confirmPassword)
       validationErrors.confirmPassword = "Confirm Password is required";
 
     // Kiểm tra định dạng email
-    if (!email.endsWith("@gmail.com"))
-      validationErrors.email = "Email must end with '@gmail.com'";
 
     // Kiểm tra mật khẩu
     if (password !== confirmPassword)
@@ -46,9 +43,40 @@ export default function Register({ onRegister }) {
       return;
     }
 
-    // Giả lập đăng ký thành công
-    Alert.alert("Success", "Registration successful!");
-    navigation.navigate("Home"); // Điều hướng đến trang Home
+    try {
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Auth/register",
+        {
+          email,
+          firstName: fullName,
+          lastName,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            accept: "*/*",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        Alert.alert(
+          "Success",
+          "Registration successful! Please log in to continue."
+        );
+        navigation.navigate("Login"); // Điều hướng đến trang Login
+      } else {
+        Alert.alert("Error", "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.detail ||
+          "An error occurred during registration. Please try again."
+      );
+    }
   };
 
   return (
@@ -57,7 +85,7 @@ export default function Register({ onRegister }) {
         placeholder="Full Name"
         style={[styles.input, errors.fullName && styles.inputError]}
         value={fullName}
-        onChangeText={setFullName} // Đúng hàm xử lý cho fullName
+        onChangeText={setFullName}
       />
       {errors.fullName && (
         <Text style={styles.errorText}>{errors.fullName}</Text>
@@ -65,9 +93,9 @@ export default function Register({ onRegister }) {
 
       <TextInput
         placeholder="Last Name"
-        style={[styles.input, errors.lastName && styles.inputError]} // Đúng điều kiện lỗi cho Last Name
-        value={lastName} // Gán đúng giá trị cho lastName
-        onChangeText={setLastName} // Đúng hàm xử lý cho lastName
+        style={[styles.input, errors.lastName && styles.inputError]}
+        value={lastName}
+        onChangeText={setLastName}
       />
       {errors.lastName && (
         <Text style={styles.errorText}>{errors.lastName}</Text>
@@ -93,6 +121,7 @@ export default function Register({ onRegister }) {
       {errors.password && (
         <Text style={styles.errorText}>{errors.password}</Text>
       )}
+
       <TextInput
         style={[styles.input, errors.confirmPassword && styles.inputError]}
         placeholder="Confirm Password"
@@ -122,13 +151,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     padding: 10,
-    backgroundColor: "white", // Màu nền trắng cho input
-    borderRadius: 10, // Bo tròn góc cho input
-    shadowColor: "#000", // Màu của shadow
-    shadowOffset: { width: 0, height: 3 }, // Độ lệch của shadow
-    shadowOpacity: 0.27, // Độ mờ của shadow
-    shadowRadius: 4.65, // Độ lớn của shadow
-    elevation: 6, // Đổ bóng cho Android
+    backgroundColor: "white",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
   },
   formButton: {
     backgroundColor: "#00cc69",
@@ -137,11 +166,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 35,
     marginTop: 50,
-    shadowColor: "#000", // Màu của shadow
-    shadowOffset: { width: 0, height: 5 }, // Độ lệch của shadow
-    shadowOpacity: 0.3, // Độ mờ của shadow
-    shadowRadius: 6.68, // Độ lớn của shadow
-    elevation: 8, // Đổ bóng cho Android
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6.68,
+    elevation: 8,
   },
   buttonText: {
     fontSize: 20,

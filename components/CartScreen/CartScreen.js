@@ -14,6 +14,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CartScreen = () => {
+  const [shopId, setShopId] = useState(null);
   const [listData, setListData] = useState([]);
   const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
     useState(false);
@@ -22,21 +23,30 @@ const CartScreen = () => {
   const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
-    fetchCartData();
+    const getShopId = async () => {
+      const storedShopId = await AsyncStorage.getItem("shopId");
+      if (storedShopId) {
+        setShopId(storedShopId);
+        fetchCartData(storedShopId);
+      }
+    };
+
+    getShopId();
   }, []);
 
-  const fetchCartData = async () => {
+  const fetchCartData = async (shopId) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
+      const storedShopId = await AsyncStorage.getItem("shopId");
+      // console.error("shopiid" + storedShopId);
       const response = await axios.get(
-        "https://bms-fs-api.azurewebsites.net/api/Cart/GetAllCartForUser",
+        `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=f261d247-8e8b-4bb3-a9e8-08dcdd5e21ac`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { pageIndex: 1, pageSize: 10 },
         }
       );
       if (response.data.isSuccess) {
-        const cartItems = response.data.data;
+        const cartItems = response.data.data.cartDetails;
         setListData(cartItems);
         calculateTotal(cartItems);
       } else {
@@ -50,7 +60,7 @@ const CartScreen = () => {
 
   const deleteRow = (rowKey) => {
     const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.key === rowKey);
+    const prevIndex = listData.findIndex((item) => item.id === rowKey);
     newData.splice(prevIndex, 1);
     setListData(newData);
     calculateTotal(newData);
@@ -67,18 +77,32 @@ const CartScreen = () => {
     setTotalPrice(total);
   };
 
-  const handlePlaceOrder = () => {
-    const paymentSuccess = Math.random() > 0.5; // 50% success rate for demo
-    if (paymentSuccess) {
-      setPaymentSuccessModalVisible(true);
-    } else {
+  const handlePlaceOrder = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const cartId = "a6046246-8ed2-45ed-b4f3-ae08a59185db"; // Replace with actual cartId
+      const response = await axios.post(
+        `https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder?cartId=${cartId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        setPaymentSuccessModalVisible(true);
+      } else {
+        setPaymentFailModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
       setPaymentFailModalVisible(true);
     }
   };
 
   const increaseQuantity = (key) => {
     const updatedData = listData.map((item) =>
-      item.key === key ? { ...item, quantity: item.quantity + 1 } : item
+      item.id === key ? { ...item, quantity: item.quantity + 1 } : item
     );
     setListData(updatedData);
     calculateTotal(updatedData);
@@ -86,7 +110,7 @@ const CartScreen = () => {
 
   const decreaseQuantity = (key) => {
     const updatedData = listData.map((item) =>
-      item.key === key && item.quantity > 1
+      item.id === key && item.quantity > 1
         ? { ...item, quantity: item.quantity - 1 }
         : item
     );
@@ -105,14 +129,14 @@ const CartScreen = () => {
       <View style={styles.quantityContainer}>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => decreaseQuantity(data.item.key)}
+          onPress={() => decreaseQuantity(data.item.id)}
         >
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{data.item.quantity}</Text>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => increaseQuantity(data.item.key)}
+          onPress={() => increaseQuantity(data.item.id)}
         >
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
@@ -124,7 +148,7 @@ const CartScreen = () => {
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteRow(data.item.key)}
+        onPress={() => deleteRow(data.item.id)}
       >
         <Text style={styles.backTextWhite}>Delete</Text>
       </TouchableOpacity>
