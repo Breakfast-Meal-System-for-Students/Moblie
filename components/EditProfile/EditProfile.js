@@ -13,11 +13,42 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 export default function EditProfile() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { data, handleUpdateProfile } = route.params;
+  const { data } = route.params;
 
   const [firstName, setFirstName] = useState(data?.firstName || "");
   const [lastName, setLastName] = useState(data?.lastName || "");
   const [phone, setPhone] = useState(data?.phone || "");
+
+  // Define handleUpdateProfile function here
+  const handleUpdateProfile = async (firstName, lastName, phone) => {
+    const formData = new FormData();
+    formData.append("firstName", firstName);
+    formData.append("lastName", lastName);
+    formData.append("phone", phone);
+
+    try {
+      const response = await fetch(
+        "https://bms-fs-api.azurewebsites.net/api/Account",
+        {
+          method: "PUT",
+          headers: {
+            Accept: "*/*",
+            "Content-Type": "multipart/form-data",
+            // Include authorization header if needed
+            // 'Authorization': `Bearer ${yourToken}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.message || "Failed to update profile");
+      }
+    } catch (error) {
+      throw error; // Rethrow the error to handle it in the calling function
+    }
+  };
 
   const handleSave = async () => {
     if (!firstName || !lastName || !phone) {
@@ -30,7 +61,7 @@ export default function EditProfile() {
       Alert.alert("Success", "Profile updated successfully!");
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert("Error", error.message || "Failed to update profile");
     }
   };
 
@@ -101,7 +132,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    right: 200,
   },
   formContainer: {
     padding: 20,

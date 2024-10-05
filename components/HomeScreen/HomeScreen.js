@@ -11,57 +11,15 @@ import {
   Platform,
   FlatList,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import {
-  faSearch,
-  faMapPin,
-  faSlidersH,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
+import { faMapPin, faStar } from "@fortawesome/free-solid-svg-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
 
 const { width } = Dimensions.get("window");
-
-const categories = [
-  {
-    id: 1,
-    name: "Drinks",
-    icon: {
-      uri: "https://i.pinimg.com/564x/35/f5/2a/35f52a1085330e295817560f37a4c129.jpg",
-    },
-  },
-  {
-    id: 2,
-    name: "Food",
-    icon: {
-      uri: "https://i.pinimg.com/564x/94/08/4b/94084ba112450fcd46bacfa59ad33340.jpg",
-    },
-  },
-  {
-    id: 3,
-    name: "Cake",
-    icon: {
-      uri: "https://i.pinimg.com/564x/2b/55/4b/2b554b83d60ffce10f163f9f666e509b.jpg",
-    },
-  },
-  {
-    id: 4,
-    name: "Snack",
-    icon: {
-      uri: "https://i.pinimg.com/564x/e8/2f/69/e82f69e91daceea8841c43a3a9261c1a.jpg",
-    },
-  },
-  {
-    id: 5,
-    name: "See All",
-    icon: {
-      uri: "https://i.pinimg.com/564x/38/7d/d7/387dd73b1b30c6f8b440d31422a7d972.jpg",
-    },
-  },
-];
 
 function RestaurantCard({ item }) {
   const navigation = useNavigation();
@@ -112,43 +70,41 @@ function FeaturedRow({ title, description, restaurants }) {
 }
 
 export default function HomeScreen() {
+  const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const navigation = useNavigation();
   const flatListRef = useRef();
 
+  // Fetch categories from the API
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((prevIndex) =>
-        prevIndex === featured.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 3000);
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://bms-fs-api.azurewebsites.net/api/Category?pageIndex=1&pageSize=5"
+        );
+        const data = await response.json();
+        if (data.isSuccess) {
+          setCategories(data.data.data); // Set the categories from the response
+        } else {
+          console.error("Error fetching categories:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [featured.length]); // Add dependency to ensure it updates when featured changes
+    fetchCategories();
+  }, []);
 
-  useEffect(() => {
-    if (flatListRef.current && featured.length > 0) {
-      // Check if featured has items
-      flatListRef.current.scrollToIndex({
-        index: activeIndex,
-        animated: true,
-      });
-    }
-  }, [activeIndex, featured.length]); // Add featured.length to dependencies
-
+  // Fetch featured data (existing logic)
   useEffect(() => {
     const fetchFeaturedData = async () => {
       try {
         const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=PENDING&pageIndex=1&pageSize=5",
-          {
-            method: "GET",
-            headers: {
-              Accept: "*/*",
-            },
-          }
+          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=PENDING&pageIndex=1&pageSize=5"
         );
         const data = await response.json();
         if (data.isSuccess) {
@@ -156,7 +112,7 @@ export default function HomeScreen() {
             id: item.id,
             title: item.name,
             description: item.description,
-            image: { uri: item.image || "default_image_url" }, // Use a default image if none is provided
+            image: { uri: item.image || "default_image_url" },
             restaurants: [
               {
                 id: item.id,
@@ -164,15 +120,15 @@ export default function HomeScreen() {
                 image: { uri: item.image || "default_image_url" },
                 description: item.description,
                 stars: item.rate || 0,
-                reviews: "N/A", // Assuming reviews data is not provided
-                category: "N/A", // Assuming category data is not provided
+                reviews: "N/A",
+                category: "N/A",
                 address: item.address,
               },
             ],
           }));
           setFeatured(formattedData);
         } else {
-          console.error("Error fetching data:", data.messages);
+          console.error("Error fetching featured data:", data.messages);
         }
       } catch (error) {
         console.error("Fetch error:", error);
@@ -181,6 +137,11 @@ export default function HomeScreen() {
 
     fetchFeaturedData();
   }, []);
+
+  if (loadingCategories) {
+    return <ActivityIndicator size="large" color="#00cc69" />;
+  }
+
   return (
     <View
       style={{
@@ -195,7 +156,7 @@ export default function HomeScreen() {
         backgroundColor="transparent"
       />
 
-      {/* Phần Header */}
+      {/* Header */}
       <View style={styles.header}>
         <Image
           source={{
@@ -241,7 +202,6 @@ export default function HomeScreen() {
         )}
         contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
       />
-      <Text style={styles.categoryup}>Categories</Text>
 
       {/* Categories */}
       <ScrollView
@@ -254,39 +214,21 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={category.id}
             onPress={() => {
-              switch (category.name) {
-                case "Drinks":
-                  navigation.navigate("Drink"); // Sửa từ "DrinkScreen" thành "Drink"
-                  break;
-                case "Food":
-                  navigation.navigate("Food"); // Sửa từ "FoodScreen" thành "Food"
-                  break;
-                case "Cake":
-                  navigation.navigate("Cake"); // Sửa từ "CakeScreen" thành "Cake"
-                  break;
-                case "Snack":
-                  navigation.navigate("Snack"); // Sửa từ "SnackScreen" thành "Snack"
-                  break;
-                case "See All":
-                  navigation.navigate("See All"); // Sửa từ "SeeAllScreen" thành "See All"
-                  break;
-                default:
-                  setActiveCategory(category.id);
-                  break;
-              }
+              navigation.navigate("CategoriesScreen", {
+                categoryId: category.id, // Pass the category ID
+              });
             }}
-            style={[
-              styles.categoryButton,
-              activeCategory === category.id
-                ? styles.activeCategory
-                : styles.inactiveCategory,
-            ]}
+            style={styles.categoryButton}
           >
-            <Image source={category.icon} style={styles.categoryImage} />
+            <Image
+              source={category.image ? { uri: category.image } : null}
+              style={styles.categoryImage}
+            />
             <Text style={styles.categoryText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
+
       {/* Featured Rows */}
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -302,6 +244,7 @@ export default function HomeScreen() {
           </View>
         ))}
       </ScrollView>
+
       {/* Bottom Tab Navigator */}
       <BottomTabNavigator navigation={navigation} />
     </View>
@@ -313,7 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 30,
+    marginBottom: 10,
     paddingHorizontal: 10,
   },
   profileImage: {
@@ -399,10 +342,9 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   categoryText: {
-    marginTop: 20,
+    fontSize: 12,
     fontWeight: "bold",
-    fontSize: 20,
-    paddingLeft: 25,
+    textAlign: "center",
   },
   activeCategory: {
     borderColor: "#00cc69",
@@ -468,11 +410,5 @@ const styles = StyleSheet.create({
   },
   featuredScrollContainer: {
     paddingHorizontal: 15,
-  },
-  categoryup: {
-    marginTop: 20,
-    fontWeight: "bold",
-    fontSize: 20,
-    paddingLeft: 25,
   },
 });

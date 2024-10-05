@@ -26,18 +26,12 @@ export default function BottomNavigationBar() {
 
   const handlePress = (screen) => {
     setActiveTab(screen);
-    if (screen === "Add") {
-      setShowFavorites(!showFavorites); // Chuyển đổi trạng thái hiển thị Favorites
-      Animated.spring(scaleValue, {
-        toValue: 1.3, 
-        friction: 3,
-        useNativeDriver: true,
-      }).start();
+    if (screen === "GroupOrder") {
+      navigation.navigate("GroupOrder"); // Ensure the name matches the one in Stack.Navigator
     } else {
-      navigation.navigate(screen); // Điều hướng đến màn hình tương ứng
+      navigation.navigate(screen); // Navigate to other screens
     }
   };
-
   return (
     <View style={styles.container}>
       {/* Các nút bên trái */}
@@ -59,17 +53,17 @@ export default function BottomNavigationBar() {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handlePress("Orders")}
+        onPress={() => handlePress("Order")}
       >
         <FontAwesomeIcon
           icon={faListAlt}
           size={20}
-          color={activeTab === "Orders" ? "#00cc69" : "#707070"}
+          color={activeTab === "Order" ? "#00cc69" : "#707070"}
         />
         <Text
-          style={[styles.label, activeTab === "Orders" && styles.labelActive]}
+          style={[styles.label, activeTab === "Order" && styles.labelActive]}
         >
-          Orders
+          Order
         </Text>
       </TouchableOpacity>
 
@@ -77,7 +71,7 @@ export default function BottomNavigationBar() {
       <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
         <TouchableOpacity
           style={styles.centralButton}
-          onPress={() => handlePress("Add")}
+          onPress={() => handlePress("GroupOrder")}
         >
           <FontAwesomeIcon icon={faPlus} size={28} color="#fff" />
         </TouchableOpacity>
