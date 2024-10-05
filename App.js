@@ -9,18 +9,14 @@ import OTPScreen from "./components/OTPScreen/OTPScreen";
 import WelcomeScreen from "./components/Welcome/Welcome";
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import ShopScreen from "./components/ShopScreen/ShopScreen";
-// import OrdersScreen from "./components/OrdersScreen";
+import CategoriesScreen from "./components/Categories/CategoriesScreen";
 import FavoritesScreen from "./components/FavoritesScreen/FavoritesScreen";
 import NotificationsScreen from "./components/NotificationsScreen/NotificationsScreen";
 import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
-import DrinkScreen from "./components/Categories/DrinkScreen";
-import FoodScreen from "./components/Categories/FoodScreen";
-import CakeScreen from "./components/Categories/CakeScreen";
-import SnackScreen from "./components/Categories/SnackScreen";
-import SeeAllScreen from "./components/Categories/SeeAllScreen";
+
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 
@@ -65,15 +61,16 @@ function App() {
           component={ShopScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="BottomNavigationBar"
           component={BottomNavigationBar}
         />
-        {/* <Stack.Screen
-          name="Orders"
-          component={OrdersScreen}
+        <Stack.Screen
+          name="CategoriesScreen"
+          component={CategoriesScreen}
           options={{ headerShown: false }}
-        /> */}
+        />
         <Stack.Screen
           name="Favorites"
           component={FavoritesScreen}
@@ -101,31 +98,7 @@ function App() {
           component={CartScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="Drink"
-          component={DrinkScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Food"
-          component={FoodScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Cake"
-          component={CakeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Snack"
-          component={SnackScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="See All"
-          component={SeeAllScreen}
-          options={{ headerShown: false }}
-        />
+
         <Stack.Screen
           name="Logout"
           component={LogoutScreen}

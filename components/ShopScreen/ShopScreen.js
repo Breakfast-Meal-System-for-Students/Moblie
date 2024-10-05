@@ -137,6 +137,18 @@ export default function ShopScreen() {
         <Text style={styles.shopName}>
           {shopDetails.name || "Shop Name Not Available"}
         </Text>
+        <TouchableOpacity style={styles.buttonContainer}>
+          <View style={styles.iconTextContainer}>
+            <Image
+              source={{
+                uri: "https://i.pinimg.com/564x/e1/3e/03/e13e03f278ccc0d67cbeccc3a1a76e42.jpg",
+              }}
+              style={styles.icon}
+            />
+
+            <Text style={styles.buttonText}>Đặt đơn nhóm</Text>
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => navigation.navigate("Checkout", { cart })}
@@ -309,5 +321,30 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     marginTop: 20,
+  },
+  buttonContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 25,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderColor: "#ff7a00",
+    borderWidth: 1,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  iconTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  buttonText: {
+    fontSize: 10,
+    color: "#000000",
+    fontWeight: "bold",
   },
 });

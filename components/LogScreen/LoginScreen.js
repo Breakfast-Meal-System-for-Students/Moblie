@@ -46,6 +46,7 @@ export default function Login() {
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);
+        navigation.navigate("Home");
         Alert.alert("Success", "Login successful!", [
           { text: "OK", onPress: () => navigation.navigate("Home") },
         ]);
