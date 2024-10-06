@@ -55,16 +55,17 @@ function FeaturedRow({ title, description, restaurants }) {
       <View style={styles.featuredHeaderContainer}>
         <Text style={styles.seeAllText}>{title}</Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 15 }}
-        style={{ overflow: "visible", paddingVertical: 16 }}
-      >
-        {restaurants.map((restaurant) => (
-          <RestaurantCard key={restaurant.id} item={restaurant} />
-        ))}
-      </ScrollView>
+      {/* Sử dụng FlatList với horizontal để cuộn ngang */}
+      <FlatList
+        data={restaurants}
+        horizontal // Cho phép cuộn ngang
+        showsHorizontalScrollIndicator={false} // Ẩn thanh cuộn ngang
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingHorizontal: 15 }} // Đảm bảo padding bên trong danh sách
+        renderItem={({ item }) => (
+          <RestaurantCard item={item} /> // Hiển thị từng thẻ nhà hàng
+        )}
+      />
     </View>
   );
 }
@@ -73,6 +74,7 @@ export default function HomeScreen() {
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0); // Thay thế biến currentIndex bằng useState
   const navigation = useNavigation();
   const flatListRef = useRef();
 
@@ -99,6 +101,25 @@ export default function HomeScreen() {
     fetchCategories();
   }, []);
 
+  // Tự động cuộn ngang
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (flatListRef.current && featured.length > 0) {
+        let newIndex = currentIndex + 1;
+        if (newIndex >= featured.length) {
+          newIndex = 0; // Quay lại đầu khi đến cuối danh sách
+        }
+        setCurrentIndex(newIndex);
+        flatListRef.current.scrollToIndex({
+          index: newIndex,
+          animated: true,
+        });
+      }
+    }, 3000); // 3 giây tự động cuộn một lần
+
+    return () => clearInterval(intervalId); // Xóa interval khi component unmount
+  }, [currentIndex, featured.length]); // Đảm bảo currentIndex và featured.length là dependency
+
   // Fetch featured data (existing logic)
   useEffect(() => {
     const fetchFeaturedData = async () => {
@@ -110,7 +131,6 @@ export default function HomeScreen() {
         if (data.isSuccess) {
           const formattedData = data.data.data.map((item) => ({
             id: item.id,
-            title: item.name,
             description: item.description,
             image: { uri: item.image || "default_image_url" },
             restaurants: [
@@ -147,7 +167,7 @@ export default function HomeScreen() {
       style={{
         flex: 1,
         backgroundColor: "white",
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+        paddingTop: StatusBar.currentHeight,
       }}
     >
       <StatusBar
@@ -174,66 +194,65 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#888" />
-        <TextInput placeholder="Search" style={styles.searchInput} />
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="options-outline" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Featured Images Slider */}
-      <FlatList
-        ref={flatListRef}
-        data={featured}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.featuredImageContainer}>
-            <Image style={styles.featuredImage} source={item.image} />
-            <View style={styles.imageOverlay}>
-              <Text style={styles.featuredTitle}>{item.title}</Text>
-              <Text style={styles.featuredDescription}>{item.description}</Text>
-            </View>
-          </View>
-        )}
-        contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
-      />
-
-      {/* Categories */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoryScrollView}
-        contentContainerStyle={{ paddingHorizontal: 10, gap: 20 }}
-      >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            onPress={() => {
-              navigation.navigate("CategoriesScreen", {
-                categoryId: category.id, // Pass the category ID
-              });
-            }}
-            style={styles.categoryButton}
-          >
-            <Image
-              source={category.image ? { uri: category.image } : null}
-              style={styles.categoryImage}
-            />
-            <Text style={styles.categoryText}>{category.name}</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color="#888" />
+          <TextInput placeholder="Search" style={styles.searchInput} />
+          <TouchableOpacity style={styles.filterButton}>
+            <Ionicons name="options-outline" size={20} color="#fff" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        </View>
 
-      {/* Featured Rows */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.featuredScrollContainer}
-      >
+        {/* Featured Images Slider */}
+        <FlatList
+          ref={flatListRef}
+          data={featured}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.featuredImageContainer}>
+              <Image style={styles.featuredImage} source={item.image} />
+              <View style={styles.imageOverlay}>
+                <Text style={styles.featuredTitle}>{item.title}</Text>
+                <Text style={styles.featuredDescription}>
+                  {item.description}
+                </Text>
+              </View>
+            </View>
+          )}
+          contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
+        />
+
+        {/* Categories */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScrollView}
+          contentContainerStyle={{ paddingHorizontal: 10, gap: 20 }}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              onPress={() => {
+                navigation.navigate("CategoriesScreen", {
+                  categoryId: category.id, // Pass the category ID
+                });
+              }}
+              style={styles.categoryButton}
+            >
+              <Image
+                source={category.image ? { uri: category.image } : null}
+                style={styles.categoryImage}
+              />
+              <Text style={styles.categoryText}>{category.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Featured Rows */}
         {featured.map((item) => (
           <View key={item.id} style={{ marginTop: 20 }}>
             <FeaturedRow
@@ -256,8 +275,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 30,
     paddingHorizontal: 10,
+    paddingTop: Platform.OS === "ios" ? 50 : 10, // Thêm khoảng cách cho iOS
+    marginTop: Platform.OS === "ios" ? 20 : 10, // Tùy chỉnh khoảng cách trên iOS và Android
   },
   profileImage: {
     width: 50,
@@ -265,11 +286,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   greetingText: {
-    fontSize: 14,
+    fontSize: Platform.OS === "ios" ? 16 : 14, // Kích thước lớn hơn trên iOS
     color: "#888",
+    textAlign: Platform.OS === "ios" ? "center" : "left", // Căn giữa trên iOS
   },
   userName: {
-    fontSize: 18,
+    fontSize: Platform.OS === "ios" ? 20 : 18, // Kích thước lớn hơn trên iOS
     fontWeight: "bold",
   },
   iconContainer: {
@@ -283,7 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 2,
     marginHorizontal: 15,
   },
   searchInput: {
@@ -301,11 +323,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    marginVertical: 75,
+    marginVertical: 5,
   },
   featuredImage: {
     width: width - 10,
-    height: 150,
+    height: 190,
     borderRadius: 20,
     marginHorizontal: 10,
   },
@@ -315,25 +337,25 @@ const styles = StyleSheet.create({
     left: 20,
   },
   featuredTitle: {
-    color: "white",
+    color: "red",
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 5,
   },
   featuredDescription: {
-    color: "white",
+    color: "yellow",
     fontSize: 16,
   },
   categoryScrollView: {
-    paddingHorizontal: 10,
-    paddingVertical: 19,
+    paddingHorizontal: 1,
+    paddingVertical: 1,
     width: width - 30,
-    height: 300,
+    height: 90,
   },
   categoryButton: {
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 15,
+    marginRight: 10,
   },
   categoryImage: {
     width: 50,
@@ -346,28 +368,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  activeCategory: {
-    borderColor: "#00cc69",
-    borderWidth: 2,
-    borderRadius: 50,
-    padding: 5,
-  },
-  inactiveCategory: {
-    borderColor: "transparent",
-    borderWidth: 2,
-    borderRadius: 50,
-    padding: 5,
-  },
   restaurantCard: {
     backgroundColor: "#fff",
     borderRadius: 10,
     overflow: "hidden",
-    marginRight: 15,
-    width: 250,
+    marginRight: 19,
+    width: 365,
   },
   restaurantImage: {
     width: "100%",
-    height: 150,
+    height: 190,
   },
   restaurantInfo: {
     padding: 10,
@@ -394,10 +404,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#888",
   },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
   locationInfo: {
     flexDirection: "row",
     alignItems: "center",
@@ -407,8 +413,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#888",
     marginLeft: 5,
-  },
-  featuredScrollContainer: {
-    paddingHorizontal: 15,
   },
 });
