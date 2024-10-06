@@ -16,7 +16,7 @@ import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
-
+// import Map from "./components/Map/Map";
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 
@@ -115,6 +115,11 @@ function App() {
         component={CartScreen}
         options={{ headerShown: false }}
       />
+      {/* <Stack.Screen
+        name="Map"
+        component={Map}
+        options={{ headerShown: false }}
+      /> */}
     </NavigationContainer>
   );
 }

@@ -5,8 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   Alert,
+  Pressable,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -30,114 +31,111 @@ function ForgotPasswordScreen() {
   };
 
   return (
-    <ImageBackground
-      source={{
-        uri: "https://i.pinimg.com/564x/7a/2a/44/7a2a44acc08429486d762b187e85e547.jpg",
-      }}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-      <View style={styles.container}>
-        <View style={styles.box}>
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.description}>
-            Enter your email address below and we will send you a link to reset
-            your password.
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+
+      <Image
+        source={{
+          uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+        }}
+        style={styles.icon}
+      />
+
+      <Text style={styles.headerText}>Forgot Password?</Text>
+
+      <TextInput
+        placeholder="Enter your email"
+        style={styles.textInput}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <Pressable style={styles.button} onPress={handleSendEmail}>
+        <Text style={styles.buttonText}>Send Password Reset Request</Text>
+      </Pressable>
+
+      <View style={styles.policyContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
+          <Text style={styles.policyText}>
+            <Text style={styles.policyLink}>Back to Login</Text>
           </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity style={styles.button} onPress={handleSendEmail}>
-            <Text style={styles.buttonText}>Send Password Reset Request</Text>
-          </TouchableOpacity>
-          <View style={styles.linkContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-              <Text style={styles.link}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
   container: {
     flex: 1,
+    padding: 20,
+    backgroundColor: "#fff", // Nền trắng
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
-  box: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
   },
-  title: {
+  backButtonText: {
     fontSize: 24,
-    fontWeight: "bold",
+    color: "black",
+  },
+  icon: {
+    width: 300,
+    height: 200,
+    alignSelf: "center",
     marginBottom: 10,
+  },
+  headerText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
     color: "#00cc69",
-    textAlign: "center",
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
     marginBottom: 20,
-    color: "#333",
   },
-  input: {
+  textInput: {
     width: "100%",
-    height: 50,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "gray",
     borderRadius: 5,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: "#fff",
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   button: {
     width: "100%",
-    height: 50,
     backgroundColor: "#00cc69",
-    borderRadius: 5,
-    justifyContent: "center",
+    paddingVertical: 15,
+    borderRadius: 30,
     alignItems: "center",
-    marginBottom: 20,
+    marginVertical: 20,
   },
   buttonText: {
+    fontSize: 18,
     color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
   },
-  linkContainer: {
-    marginTop: 20,
+  policyContainer: {
+    marginVertical: 10,
+    alignItems: "center",
   },
-  link: {
-    color: "#00cc69",
-    fontSize: 16,
+  policyText: {
+    fontSize: 14,
+    color: "gray",
     textAlign: "center",
+  },
+  policyLink: {
+    color: "#00cc69",
   },
 });
 
