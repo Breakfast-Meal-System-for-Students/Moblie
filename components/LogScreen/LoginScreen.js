@@ -7,22 +7,24 @@ import {
   Text,
   StyleSheet,
   Alert,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Login() {
+export default function Register() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // State để theo dõi xem mật khẩu có đang hiển thị hay không
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     setIsFormValid(email.trim() !== "" && password.trim() !== "");
   }, [email, password]);
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     if (!isFormValid) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
@@ -30,7 +32,7 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Auth/login",
+        "https://bms-fs-api.azurewebsites.net/api/Auth/login", // Đổi endpoint thành login
         {
           email,
           password,
@@ -46,10 +48,7 @@ export default function Login() {
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);
-        navigation.navigate("Home");
-        Alert.alert("Success", "Login successful!", [
-          { text: "OK", onPress: () => navigation.navigate("Home") },
-        ]);
+        navigation.navigate("Home"); // Điều hướng sang trang Home
       } else {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }
@@ -60,71 +59,169 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.formContainer}>
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+
+      <Image
+        source={{
+          uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+        }}
+        style={styles.icon}
+      />
+
+      <Text style={styles.headerText}>Login to Your Account</Text>
+
       <TextInput
         placeholder="Email"
         style={styles.textInput}
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
       />
-      <TextInput
-        placeholder="Password"
-        style={styles.textInput}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Pressable style={styles.formButton} onPress={handleLogin}>
-        <Text style={styles.buttonText}>LOG IN</Text>
-      </Pressable>
-      <View style={styles.linkContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-          <Text style={styles.link}>Forgot Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.link}>Do not have an account? </Text>
+
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Password"
+          style={styles.textInputPassword}
+          secureTextEntry={!showPassword} // Hiển thị hoặc ẩn mật khẩu
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity
+          style={styles.eyeIconContainer}
+          onPress={() => setShowPassword(!showPassword)} // Thay đổi trạng thái xem mật khẩu
+        >
+          <Text style={styles.eyeIcon}>{showPassword ? "👁" : "👁️‍🗨️"}</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.policyContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+          <Text style={styles.policyText}>
+            <Text style={styles.policyLink}>Forgot the password?</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <Pressable style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Login</Text>
+      </Pressable>
+
+      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+        <Text style={styles.signInText}>Don’t have an account? Sign Up</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    paddingVertical: 100,
-    paddingHorizontal: 20,
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: "black",
+  },
+  icon: {
+    width: 300,
+    height: 200,
+    alignSelf: "center",
+    marginBottom: 0,
+  },
+  headerText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#00cc69",
+    marginBottom: 20,
   },
   textInput: {
-    borderWidth: 1, // Thêm khung cho text input
+    borderWidth: 1,
     borderColor: "gray",
-    borderRadius: 5, // Bo tròn góc của input
+    borderRadius: 5,
+    padding: 12,
     marginVertical: 10,
     fontSize: 16,
-    padding: 10, // Thêm khoảng cách trong input
-    backgroundColor: "white", // Thêm màu nền trắng cho input
+    backgroundColor: "#f9f9f9",
   },
-  formButton: {
-    backgroundColor: "#00cc69",
-    height: 55,
+  textInputPassword: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
+  },
+  passwordContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 35,
-    marginTop: 20,
+    position: "relative",
+    marginVertical: 10,
+  },
+  eyeIconContainer: {
+    position: "absolute",
+    right: 10,
+    padding: 10,
+  },
+  eyeIcon: {
+    fontSize: 24,
+    color: "gray",
+  },
+  policyContainer: {
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  policyText: {
+    fontSize: 14,
+    color: "gray",
+  },
+  policyLink: {
+    color: "#00cc69",
+  },
+  button: {
+    backgroundColor: "#00cc69",
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: "center",
+    marginVertical: 20,
   },
   buttonText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "white",
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
   },
-  linkContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    width: "100%",
-    marginTop: 20,
+  orText: {
+    textAlign: "center",
+    color: "gray",
+    marginVertical: 10,
   },
-  link: {
+  socialLoginContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 15,
+  },
+  socialIcon: {
+    width: 50,
+    height: 50,
+  },
+  signInText: {
+    textAlign: "center",
     color: "#00cc69",
     fontSize: 16,
-    marginVertical: 5,
+    marginTop: 20,
   },
 });

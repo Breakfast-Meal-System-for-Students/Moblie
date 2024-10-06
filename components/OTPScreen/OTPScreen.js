@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -31,78 +30,68 @@ function OTPScreen() {
   };
 
   return (
-    <ImageBackground
-      source={{
-        uri: "https://i.pinimg.com/564x/7a/2a/44/7a2a44acc08429486d762b187e85e547.jpg",
-      }}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-      <View style={styles.container}>
-        <View style={styles.box}>
-          <Text style={styles.title}>Enter OTP</Text>
-          <Text style={styles.description}>
-            Please enter the OTP sent to your email address.
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter OTP"
-            value={otp}
-            onChangeText={setOtp}
-            keyboardType="numeric"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-            <Text style={styles.buttonText}>Verify OTP</Text>
-          </TouchableOpacity>
-          <View style={styles.linkContainer}>
-            <TouchableOpacity onPress={handleResendOtp}>
-              <Text style={styles.link}>Resend OTP</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-              <Text style={styles.link}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.headerText}>Enter OTP</Text>
+
+      <Text style={styles.description}>
+        Please enter the OTP sent to your email address.
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Enter OTP"
+        value={otp}
+        onChangeText={setOtp}
+        keyboardType="numeric"
+        autoCapitalize="none"
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
+        <Text style={styles.buttonText}>Verify OTP</Text>
+      </TouchableOpacity>
+
+      <View style={styles.linkContainer}>
+        <TouchableOpacity onPress={handleResendOtp}>
+          <Text style={styles.link}>Resend OTP</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
+          <Text style={styles.link}>Back to Login</Text>
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
   container: {
     flex: 1,
+    padding: 20,
+    backgroundColor: "#fff", // Nền trắng
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
-  box: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
   },
-  title: {
+  backButtonText: {
     fontSize: 24,
+    color: "black",
+  },
+  headerText: {
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 10,
-    color: "#00cc69",
     textAlign: "center",
+    color: "#00cc69",
+    marginBottom: 20,
   },
   description: {
     fontSize: 16,
@@ -124,18 +113,19 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     backgroundColor: "#00cc69",
-    borderRadius: 5,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
   linkContainer: {
     marginTop: 20,
+    alignItems: "center",
   },
   link: {
     color: "#00cc69",

@@ -5,36 +5,31 @@ import {
   StyleSheet,
   Text,
   Animated,
+  Platform,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faHome,
   faListAlt,
-  faHeart,
   faBell,
   faUser,
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
-import { useNavigation } from "@react-navigation/native"; // Sử dụng useNavigation để điều hướng
+import { useNavigation } from "@react-navigation/native";
 
 export default function BottomNavigationBar() {
   const [activeTab, setActiveTab] = useState("Home");
-  const [showFavorites, setShowFavorites] = useState(false); // Trạng thái để hiển thị Favorites
-  const navigation = useNavigation(); // Lấy đối tượng điều hướng
-
-  const scaleValue = useRef(new Animated.Value(1)).current; // Giá trị scale mặc định là 1
+  const navigation = useNavigation();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePress = (screen) => {
     setActiveTab(screen);
-    if (screen === "GroupOrder") {
-      navigation.navigate("GroupOrder"); // Ensure the name matches the one in Stack.Navigator
-    } else {
-      navigation.navigate(screen); // Navigate to other screens
-    }
+    navigation.navigate(screen);
   };
+
   return (
     <View style={styles.container}>
-      {/* Các nút bên trái */}
+      {/* Nút Home */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => handlePress("Home")}
@@ -51,6 +46,7 @@ export default function BottomNavigationBar() {
         </Text>
       </TouchableOpacity>
 
+      {/* Nút Order */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => handlePress("Order")}
@@ -67,8 +63,8 @@ export default function BottomNavigationBar() {
         </Text>
       </TouchableOpacity>
 
-      {/* Nút cộng với hiệu ứng */}
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      {/* Nút trung tâm (Plus) */}
+      <Animated.View style={[styles.centralButtonContainer]}>
         <TouchableOpacity
           style={styles.centralButton}
           onPress={() => handlePress("GroupOrder")}
@@ -77,6 +73,7 @@ export default function BottomNavigationBar() {
         </TouchableOpacity>
       </Animated.View>
 
+      {/* Nút Notifications */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => handlePress("Notifications")}
@@ -96,6 +93,7 @@ export default function BottomNavigationBar() {
         </Text>
       </TouchableOpacity>
 
+      {/* Nút Profile */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => handlePress("Profile")}
@@ -118,63 +116,52 @@ export default function BottomNavigationBar() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between", // Chia đều không gian giữa các nút
     alignItems: "center",
-    backgroundColor: "#98FB98",
-    paddingVertical: 10,
+    backgroundColor: Platform.OS === "ios" ? "#f8f8f8" : "#98FB98",
+    paddingVertical: Platform.OS === "ios" ? 15 : 10,
     paddingBottom: 10,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
+    shadowOpacity: Platform.OS === "ios" ? 0.2 : 0,
     shadowRadius: 3,
-    elevation: 5,
-    // marginLeft: 6,
+    elevation: Platform.OS === "android" ? 5 : 0,
+    paddingHorizontal: 10,
   },
   button: {
+    flex: 1, // Đảm bảo các nút chiếm không gian đều nhau
+    justifyContent: "center",
     alignItems: "center",
-    marginLeft: 18,
+    paddingVertical: 5, // Tạo không gian bên trong các nút
   },
-  favoriteContainer: {
-    position: "absolute",
-    top: -100, // Điều chỉnh vị trí để nằm trên nút cộng
-    left: 182, // Di chuyển sang phải bằng cách thay đổi giá trị này
-    alignSelf: "flex-start",
-  },
-  favoriteButton: {
+  centralButtonContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#B0C4DE",
-    padding: 5,
-    borderRadius: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   centralButton: {
     backgroundColor: "#00cc69",
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: Platform.OS === "ios" ? 70 : 60, // Nút Plus lớn hơn trên iOS
+    height: Platform.OS === "ios" ? 70 : 60,
+    borderRadius: Platform.OS === "ios" ? 35 : 30,
     justifyContent: "center",
     alignItems: "center",
     marginTop: -40,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: Platform.OS === "ios" ? 0.3 : 0.1,
     shadowRadius: 5,
-    elevation: 5,
-    left: 13,
+    elevation: Platform.OS === "android" ? 5 : 0,
   },
   label: {
     fontSize: 12,
     color: "#707070",
-    marginTop: 9,
+    marginTop: 5,
   },
   labelActive: {
-    color: "#707070",
+    color: "#00cc69",
     fontWeight: "bold",
   },
 });
