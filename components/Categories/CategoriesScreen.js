@@ -11,26 +11,34 @@ import {
 import axios from "axios";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-
+import { Platform } from "react-native";
 const CategoriesScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cart, setCart] = useState({});
   const route = useRoute();
   const { categoryId } = route.params;
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get(
-        `https://bms-fs-api.azurewebsites.net/api/RegisterCategory/all-product-by-category-id?categoryId=${categoryId}&pageSize=4`,
+        `https://bms-fs-api.azurewebsites.net/api/RegisterCategory/all-product-by-category-id`,
         {
+          params: {
+            categoryId: categoryId,
+            pageSize: 10,
+            pageIndex: 1,
+            isDesc: false,
+          },
           headers: {
             Accept: "*/*",
           },
         }
       );
+
       if (response.data.isSuccess) {
-        setProducts(response.data.data.data);
+        setProducts(response.data.data.data); // Lấy danh sách sản phẩm từ phản hồi
       } else {
         setError("Failed to fetch products.");
       }
@@ -55,24 +63,46 @@ const CategoriesScreen = ({ navigation }) => {
   }
 
   const renderProductItem = ({ item }) => (
-    <View style={styles.productContainer}>
-      <Image
-        source={{
-          uri:
-            item.product.images.length > 0
-              ? item.product.images[0]
-              : "placeholder-uri",
-        }}
-        style={styles.productImage}
-      />
-      <View style={styles.productDetails}>
-        <Text style={styles.productName}>{item.product.name}</Text>
-        <Text style={styles.productPrice}>
-          ${item.product.price.toFixed(2)}
-        </Text>
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate("ProductDetail", {
+          productId: item.product.id,
+          cart: cart, // Truyền `cart` vào đây
+          setCart: setCart, // Truyền `setCart` nếu cần chỉnh sửa `cart`
+        })
+      }
+    >
+      <View style={styles.productContainer}>
+        <Image
+          source={{
+            uri:
+              item.product.images.length > 0
+                ? item.product.images[0].url
+                : "https://via.placeholder.com/60",
+          }}
+          style={styles.productImage}
+        />
+        <View style={styles.productDetails}>
+          <Text style={styles.productName}>{item.product.name}</Text>
+          <View style={styles.productMeta}>
+            <Text style={styles.productDistance}>
+              {item.product.distance} km
+            </Text>
+            <Text style={styles.productRating}>
+              ⭐ {item.product.rating} ({item.product.ratingCount})
+            </Text>
+          </View>
+          <View style={styles.productPriceContainer}>
+            <Text style={styles.productPrice}>
+              ${item.product.price.toFixed(2)}
+            </Text>
+            <Text style={styles.productDeliveryFee}>
+              🚚 ${item.product.deliveryFee}
+            </Text>
+          </View>
+        </View>
       </View>
-      <Text style={styles.productQuantity}>{item.product.quantity}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -81,14 +111,14 @@ const CategoriesScreen = ({ navigation }) => {
         onPress={() => navigation.goBack()}
         style={styles.backButton}
       >
-        <Ionicons name="arrow-back" size={24} color="black" />
+        <Ionicons name="arrow-back" size={28} color="#ffffff" />
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
 
       <FlatList
         data={products}
         renderItem={renderProductItem}
-        keyExtractor={(item) => item.productId}
+        keyExtractor={(item) => item.product.id}
         contentContainerStyle={styles.productList}
       />
     </View>
@@ -98,29 +128,33 @@ const CategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#00cc69",
+    backgroundColor: "#ffffff",
     padding: 10,
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
-    backgroundColor: "#ffffff", // Màu nền cho nút back
-    paddingVertical: 8,
+    marginTop: Platform.OS === "ios" ? 38 : 30,
+    backgroundColor: "#00cc69",
+    paddingVertical: 12,
     paddingHorizontal: 15,
-    borderRadius: 20, // Tạo bo góc cho nút back
+    borderRadius: 10,
+    width: "100%",
+    justifyContent: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 3,
-    elevation: 2, // Hiệu ứng nổi
+    elevation: 3,
   },
   backButtonText: {
-    marginLeft: 5,
-    fontSize: 16,
-    color: "#003366",
-    fontWeight: "600", // Tăng độ đậm cho text back
+    marginLeft: 10,
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "700",
   },
+
   productList: {
     paddingBottom: 20,
   },
@@ -129,39 +163,68 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 15,
-    backgroundColor: "#ffffff", // Màu nền trắng cho container
+    backgroundColor: "#ffffff",
     marginBottom: 10,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 3, // Hiệu ứng nổi nhẹ
+    elevation: 3,
   },
   productImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10, // Bo góc hình ảnh
+    width: 80,
+    height: 80,
+    borderRadius: 10,
   },
   productDetails: {
     flex: 1,
-    marginLeft: 15, // Khoảng cách giữa hình ảnh và thông tin sản phẩm
+    marginLeft: 15,
   },
   productName: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333", // Màu chữ tối hơn cho tên sản phẩm
+    color: "#333",
     marginBottom: 5,
   },
   productPrice: {
     fontSize: 15,
-    color: "#00cc69", // Màu xanh dịu hơn cho giá
-    fontWeight: "600", // Tăng độ đậm cho giá
+    color: "#00cc69",
+    fontWeight: "600",
   },
   productQuantity: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#555", // Màu xám cho số lượng
+    color: "#555",
+  },
+  productMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 5,
+  },
+  productDistance: {
+    fontSize: 14,
+    color: "#555",
+    marginRight: 10,
+  },
+  productRating: {
+    fontSize: 14,
+    color: "#ffa500",
+  },
+  productPriceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  productPrice: {
+    fontSize: 15,
+    color: "#00cc69",
+    fontWeight: "600",
+    marginRight: 10,
+  },
+  productDeliveryFee: {
+    fontSize: 15,
+    color: "#00cc69",
   },
 });
 

@@ -6,18 +6,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 function OTPScreen() {
   const navigation = useNavigation();
   const [otp, setOtp] = useState("");
+  const { width } = Dimensions.get("window");
 
   const handleVerifyOtp = () => {
     console.log("Verifying OTP:", otp);
 
     if (otp === "123456") {
-      Alert.alert("Success", "OTP has been successfully reset!");
+      Alert.alert("Success", "OTP has been successfully verified!");
       navigation.navigate("Main");
     } else {
       Alert.alert("Error", "Your OTP is incorrect. Please try again.");
@@ -25,46 +28,58 @@ function OTPScreen() {
   };
 
   const handleResendOtp = () => {
-    // Giả lập gửi lại OTP
     Alert.alert("Success", "A new OTP has been sent to your email address.");
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
+      <ImageBackground
+        source={{
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
+        }}
+        style={styles.background}
+        resizeMode="cover"
       >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
+        <View style={styles.overlay} />
 
-      <Text style={styles.headerText}>Enter OTP</Text>
+        <View style={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
 
-      <Text style={styles.description}>
-        Please enter the OTP sent to your email address.
-      </Text>
+          <Text style={styles.headerText}>Enter OTP</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter OTP"
-        value={otp}
-        onChangeText={setOtp}
-        keyboardType="numeric"
-        autoCapitalize="none"
-      />
+          <Text style={styles.description}>
+            Please enter the OTP sent to your email address.
+          </Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-        <Text style={styles.buttonText}>Verify OTP</Text>
-      </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter OTP"
+            placeholderTextColor="#888"
+            value={otp}
+            onChangeText={setOtp}
+            keyboardType="numeric"
+            autoCapitalize="none"
+          />
 
-      <View style={styles.linkContainer}>
-        <TouchableOpacity onPress={handleResendOtp}>
-          <Text style={styles.link}>Resend OTP</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-          <Text style={styles.link}>Back to Login</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
+            <Text style={styles.buttonText}>Verify OTP</Text>
+          </TouchableOpacity>
+
+          <View style={styles.linkContainer}>
+            <TouchableOpacity onPress={handleResendOtp}>
+              <Text style={styles.link}>Resend OTP</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
+              <Text style={styles.link}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -72,10 +87,20 @@ function OTPScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  content: {
+    flex: 1,
     padding: 20,
-    backgroundColor: "#fff", // Nền trắng
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 1,
   },
   backButton: {
     position: "absolute",
@@ -84,20 +109,20 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: "black",
+    color: "white",
   },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     marginBottom: 20,
   },
   description: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
-    color: "#333",
+    color: "white",
   },
   input: {
     width: "100%",
@@ -107,7 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 15,
     marginBottom: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
   },
   button: {
     width: "100%",
@@ -128,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   link: {
-    color: "#00cc69",
+    color: "white",
     fontSize: 16,
     textAlign: "center",
     marginTop: 10,

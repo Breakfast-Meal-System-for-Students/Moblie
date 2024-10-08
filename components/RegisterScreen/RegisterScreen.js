@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Alert,
   Image,
+  ImageBackground,
+  Dimensions,
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -22,6 +24,8 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+
+  const { width, height } = Dimensions.get("window");
 
   useEffect(() => {
     setIsFormValid(
@@ -75,71 +79,105 @@ export default function Register() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-
-      <Image
+    <View style={styles.container}>
+      <ImageBackground
         source={{
-          uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
         }}
-        style={styles.icon}
-      />
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
 
-      <Text style={styles.headerText}>Register</Text>
+        <ScrollView contentContainerStyle={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
 
-      <TextInput
-        placeholder="First Name"
-        style={styles.textInput}
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      <TextInput
-        placeholder="Last Name"
-        style={styles.textInput}
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <TextInput
-        placeholder="Email"
-        style={styles.textInput}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        placeholder="Password"
-        style={styles.textInput}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        placeholder="Confirm Password"
-        style={styles.textInput}
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/474x/fb/0d/bd/fb0dbd692b2033510852bfe63a89c268.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4,
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2,
+              },
+            ]}
+          />
 
-      <Pressable style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </Pressable>
-    </ScrollView>
+          <Text style={styles.headerText}>Register</Text>
+
+          <TextInput
+            placeholder="First Name"
+            style={styles.textInput}
+            value={fullName}
+            onChangeText={setFullName}
+          />
+          <TextInput
+            placeholder="Last Name"
+            style={styles.textInput}
+            value={lastName}
+            onChangeText={setLastName}
+          />
+          <TextInput
+            placeholder="Email"
+            style={styles.textInput}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+          />
+          <TextInput
+            placeholder="Password"
+            style={styles.textInput}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TextInput
+            placeholder="Confirm Password"
+            style={styles.textInput}
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
+          <Pressable style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Register</Text>
+          </Pressable>
+
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.signInText}>
+              Already have an account? Login
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  content: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#fff",
     justifyContent: "center",
-    alignItems: "center",
+    zIndex: 1,
   },
   backButton: {
     position: "absolute",
@@ -148,19 +186,17 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: "black",
+    color: "white",
   },
   icon: {
-    width: 300,
-    height: 200,
     alignSelf: "center",
-    marginBottom: 1,
+    marginBottom: 20,
   },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     marginBottom: 20,
   },
   textInput: {
@@ -172,18 +208,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     backgroundColor: "#f9f9f9",
-  },
-  policyContainer: {
-    marginVertical: 10,
-    alignItems: "center",
-  },
-  policyText: {
-    fontSize: 14,
-    color: "gray",
-    textAlign: "center",
-  },
-  policyLink: {
-    color: "#00cc69",
   },
   button: {
     width: "100%",
@@ -200,8 +224,8 @@ const styles = StyleSheet.create({
   },
   signInText: {
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     fontSize: 16,
-    marginTop: 10,
+    marginTop: 20,
   },
 });

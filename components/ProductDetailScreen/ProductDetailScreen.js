@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Alert,
+  Dimensions,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -17,14 +17,17 @@ import {
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
+const { width } = Dimensions.get("window");
 
 export default function ProductDetailScreen({ route, navigation }) {
-  const { cart, setCart } = route.params;
+  const { cart = {}, setCart = () => {} } = route.params || {}; // Đảm bảo giá trị mặc định cho `cart` và `setCart`
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState("");
   const { productId } = route.params || {};
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const addToCart = async () => {
     const requestBody = {
@@ -124,14 +127,36 @@ export default function ProductDetailScreen({ route, navigation }) {
       </View>
 
       <View style={styles.container}>
+        {/* Large Image */}
         <Image
           source={{
             uri:
-              product?.images?.[0]?.url ||
+              product?.images?.[selectedImageIndex]?.url ||
               "https://yhg.vn/wp-content/uploads/2021/02/pizza-y.jpg",
           }}
-          style={styles.productImage}
+          style={styles.productImageLarge}
         />
+
+        {/* Thumbnails */}
+        <FlatList
+          data={product?.images || []}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
+              <Image
+                source={{ uri: item.url || "https://via.placeholder.com/150" }}
+                style={[
+                  styles.thumbnail,
+                  selectedImageIndex === index && styles.activeThumbnail,
+                ]}
+              />
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.thumbnailContainer}
+        />
+
         <Text style={styles.productName}>
           {product?.name || "Default Product Name"}
         </Text>
@@ -190,6 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#00cc69",
+    marginTop: Platform.OS === "ios" ? 49 : 20, // Thêm marginTop khác cho iOS
   },
   backButton: {
     padding: 10,
@@ -216,41 +242,49 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
+    alignItems: "center",
   },
-  productImage: {
-    width: 400,
-    height: 250,
-    borderRadius: 1,
-    marginVertical: 1,
-    alignSelf: "center",
+  productImageLarge: {
+    width: width * 1,
+    height: 370,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  thumbnailContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  activeThumbnail: {
+    borderColor: "#00cc69",
     borderWidth: 2,
-    borderColor: "#e0e0e0",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
   },
   productName: {
     fontSize: 24,
     fontWeight: "bold",
     marginVertical: 10,
-    textAlign: "left",
-    paddingHorizontal: 20,
+    textAlign: "center",
   },
   productPrice: {
     fontSize: 22,
     fontWeight: "bold",
     color: "red",
     marginBottom: 10,
-    textAlign: "left",
-    paddingHorizontal: 20,
+    textAlign: "center",
   },
   productDescription: {
     fontSize: 16,
     color: "#666",
     marginBottom: 20,
-    textAlign: "left",
-    paddingHorizontal: 20,
+    textAlign: "center",
   },
   addButtonContainer: {
     flexDirection: "row",

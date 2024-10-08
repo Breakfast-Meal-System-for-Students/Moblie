@@ -8,12 +8,15 @@ import {
   Alert,
   Pressable,
   Image,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
+  const { width } = Dimensions.get("window");
 
   const handleSendEmail = () => {
     if (!email) {
@@ -32,42 +35,62 @@ function ForgotPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-
-      <Image
+      <ImageBackground
         source={{
-          uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
         }}
-        style={styles.icon}
-      />
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
 
-      <Text style={styles.headerText}>Forgot Password?</Text>
+        <View style={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
 
-      <TextInput
-        placeholder="Enter your email"
-        style={styles.textInput}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4,
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2,
+              },
+            ]}
+          />
 
-      <Pressable style={styles.button} onPress={handleSendEmail}>
-        <Text style={styles.buttonText}>Send Password Reset Request</Text>
-      </Pressable>
+          <Text style={styles.headerText}>Forgot Password?</Text>
 
-      <View style={styles.policyContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-          <Text style={styles.policyText}>
-            <Text style={styles.policyLink}>Back to Login</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TextInput
+            placeholder="Enter your email"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <Pressable style={styles.button} onPress={handleSendEmail}>
+            <Text style={styles.buttonText}>Send Password Reset Request</Text>
+          </Pressable>
+
+          <View style={styles.policyContainer}>
+            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
+              <Text style={styles.policyText}>
+                <Text style={styles.policyLink}>Back to Login</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -75,10 +98,20 @@ function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  content: {
+    flex: 1,
     padding: 20,
-    backgroundColor: "#fff", // Nền trắng
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 1,
   },
   backButton: {
     position: "absolute",
@@ -87,19 +120,17 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: "black",
+    color: "white",
   },
   icon: {
-    width: 300,
-    height: 200,
     alignSelf: "center",
-    marginBottom: 10,
+    marginBottom: 20,
   },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     marginBottom: 20,
   },
   textInput: {
@@ -135,7 +166,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   policyLink: {
-    color: "#00cc69",
+    color: "white",
   },
 });
 

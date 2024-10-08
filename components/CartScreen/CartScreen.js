@@ -7,13 +7,19 @@ import {
   Image,
   Modal,
   Alert,
+  Platform, // Import Platform
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome"; // Import FontAwesomeIcon
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons"; // Import the specific icons
 
 const CartScreen = () => {
+  const navigation = useNavigation();
+
   const [listData, setListData] = useState([]);
   const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
     useState(false);
@@ -53,9 +59,6 @@ const CartScreen = () => {
   }, []);
 
   const calculateTotal = (updatedItems) => {
-    if (!Array.isArray(updatedItems)) {
-      updatedItems = [];
-    }
     const total = updatedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -79,13 +82,37 @@ const CartScreen = () => {
     }
   };
 
-  const deleteItem = (rowKey) => {
-    const updatedItems = listData.filter((item) => item.key !== rowKey);
-    setListData(updatedItems);
-    calculateTotal(updatedItems);
+  const deleteItem = async (cartItemId) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await axios.delete(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCartItem`,
+        {
+          params: {
+            cartItemId: cartItemId,
+          },
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const updatedItems = listData.filter((item) => item.id !== cartItemId);
+        setListData(updatedItems);
+        calculateTotal(updatedItems);
+        Alert.alert("Success", "Item has been removed from your cart.");
+      } else {
+        Alert.alert("Error", "Failed to delete item.");
+      }
+    } catch (error) {
+      console.error("Delete item error:", error);
+      Alert.alert("Error", "An error occurred while deleting the item.");
+    }
   };
 
-  const renderItem = (data, rowMap) => (
+  const renderItem = (data) => (
     <View style={styles.rowFront}>
       <Image
         source={{
@@ -117,11 +144,11 @@ const CartScreen = () => {
     </View>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = (data) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteItem(data.item.key)}
+        onPress={() => deleteItem(data.item.id)}
       >
         <Ionicons name="trash-outline" size={25} color="white" />
       </TouchableOpacity>
@@ -130,7 +157,24 @@ const CartScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Order Summary</Text>
+      {/* Thanh tiêu đề */}
+      <View style={styles.headerContainer}>
+        {/* Nút quay lại */}
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {/* Tiêu đề */}
+        <Text style={styles.headerTitle}>Order Summary</Text>
+
+        {/* Biểu tượng giỏ hàng */}
+        <TouchableOpacity style={styles.cartIconContainer}>
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <View style={styles.cartBadge}>
+            <Text style={styles.cartBadgeText}>0</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
 
       <SwipeListView
         data={listData}
@@ -146,6 +190,7 @@ const CartScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Payment Modals */}
       <Modal visible={isPaymentSuccessModalVisible} animationType="slide">
         <View style={styles.successModalContainer}>
           <Ionicons
@@ -169,40 +214,57 @@ const CartScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: "#F4F6F9",
     flex: 1,
-    padding: 16,
+    padding: 15,
+  },
+
+  backButton: {
+    padding: 10,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
   },
   sectionTitle: {
-    fontWeight: "600",
-    fontSize: 20,
+    fontWeight: "700",
+    fontSize: 22,
     color: "#003366",
-    marginVertical: 10,
+    marginBottom: 20,
+    textAlign: "center",
   },
   rowFront: {
     backgroundColor: "white",
-    borderBottomColor: "black",
-    borderBottomWidth: 1,
+    borderRadius: 10,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   productImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     marginRight: 10,
+    marginTop: 20,
   },
   productDetails: {
     flex: 1,
   },
   textStyle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
   },
   priceStyle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "500",
+    color: "#00cc99",
   },
   quantityContainer: {
     flexDirection: "row",
@@ -211,15 +273,18 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 18,
     marginHorizontal: 10,
+    color: "#333",
   },
   quantityButton: {
-    backgroundColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#E0E0E0",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
   },
   quantityButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#555",
   },
   footer: {
     flexDirection: "row",
@@ -227,19 +292,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     borderTopWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#ddd",
     paddingTop: 10,
   },
   totalText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#003366",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "red",
   },
   orderButton: {
-    padding: 15,
-    backgroundColor: "#4CAF50",
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#00cc69",
+    borderRadius: 30,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   orderButtonText: {
     fontSize: 18,
@@ -253,6 +324,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     paddingRight: 15,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   backRightBtn: {
     alignItems: "center",
@@ -261,6 +334,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: 75,
+    backgroundColor: "#DD2C00",
+    right: 0,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
   },
   backRightBtnRight: {
     backgroundColor: "#DD2C00",
@@ -271,24 +348,67 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
+    paddingHorizontal: 20,
   },
   successTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#4CAF50",
-    marginTop: 20,
+    textAlign: "center",
+    marginVertical: 20,
   },
   failModalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFE8E8",
+    backgroundColor: "white",
+    paddingHorizontal: 20,
   },
   failTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#DD2C00",
-    marginTop: 20,
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#00cc69",
+    height: 70, // Chiều cao cố định cho cả iOS và Android
+    paddingTop: Platform.OS === "ios" ? 10 : 0, // Chỉ thêm paddingTop cho iOS để tránh việc trùng vào phần notch
+    marginTop: Platform.OS === "ios" ? 40 : 0,
+  },
+
+  headerTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  cartIconContainer: {
+    position: "relative",
+  },
+
+  cartBadge: {
+    position: "absolute",
+    right: -6,
+    top: -6,
+    backgroundColor: "red",
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  cartBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });
 
