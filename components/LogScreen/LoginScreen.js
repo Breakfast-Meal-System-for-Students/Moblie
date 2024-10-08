@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Alert,
   Image,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
@@ -17,8 +19,10 @@ export default function Register() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State để theo dõi xem mật khẩu có đang hiển thị hay không
+  const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+
+  const { width, height } = Dimensions.get("window");
 
   useEffect(() => {
     setIsFormValid(email.trim() !== "" && password.trim() !== "");
@@ -32,7 +36,7 @@ export default function Register() {
 
     try {
       const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Auth/login", // Đổi endpoint thành login
+        "https://bms-fs-api.azurewebsites.net/api/Auth/login",
         {
           email,
           password,
@@ -48,7 +52,7 @@ export default function Register() {
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);
-        navigation.navigate("Home"); // Điều hướng sang trang Home
+        navigation.navigate("Home");
       } else {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }
@@ -60,61 +64,89 @@ export default function Register() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-
-      <Image
+      {/* Hình nền */}
+      <ImageBackground
         source={{
-          uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
         }}
-        style={styles.icon}
-      />
+        style={styles.background}
+        resizeMode="cover"
+      >
+        {/* Lớp phủ màu */}
+        <View style={styles.overlay} />
 
-      <Text style={styles.headerText}>Login to Your Account</Text>
+        {/* Nội dung chính */}
+        <View style={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
 
-      <TextInput
-        placeholder="Email"
-        style={styles.textInput}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/474x/fb/0d/bd/fb0dbd692b2033510852bfe63a89c268.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4, // điều chỉnh kích thước logo theo ý muốn
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2, // đặt bán kính để tạo thành hình tròn
+              },
+            ]}
+          />
 
-      <View style={styles.passwordContainer}>
-        <TextInput
-          placeholder="Password"
-          style={styles.textInputPassword}
-          secureTextEntry={!showPassword} // Hiển thị hoặc ẩn mật khẩu
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          style={styles.eyeIconContainer}
-          onPress={() => setShowPassword(!showPassword)} // Thay đổi trạng thái xem mật khẩu
-        >
-          <Text style={styles.eyeIcon}>{showPassword ? "👁" : "👁️‍🗨️"}</Text>
-        </TouchableOpacity>
-      </View>
+          <Text style={styles.headerText}>Login to Your Account</Text>
 
-      <View style={styles.policyContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-          <Text style={styles.policyText}>
-            <Text style={styles.policyLink}>Forgot the password?</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+          />
 
-      <Pressable style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Login</Text>
-      </Pressable>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#888"
+              style={styles.textInputPassword}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              style={styles.eyeIconContainer}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Text style={styles.eyeIcon}>{showPassword ? "👁" : "👁️‍🗨️"}</Text>
+            </TouchableOpacity>
+          </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.signInText}>Don’t have an account? Sign Up</Text>
-      </TouchableOpacity>
+          <View style={styles.policyContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
+              <Text style={styles.policyText}>
+                <Text style={styles.policyLink}>Forgot the password?</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Pressable style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Login</Text>
+          </Pressable>
+
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text style={styles.signInText}>
+              Don’t have an account? Sign Up
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -122,9 +154,19 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // Lớp phủ màu đen 50% trong suốt
+  },
+  content: {
+    flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
     justifyContent: "center",
+    zIndex: 1, // Đặt ở phía trên lớp phủ
   },
   backButton: {
     position: "absolute",
@@ -133,19 +175,17 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: "black",
+    color: "white",
   },
   icon: {
-    width: 300,
-    height: 200,
     alignSelf: "center",
-    marginBottom: 0,
+    marginBottom: 20,
   },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     marginBottom: 20,
   },
   textInput: {
@@ -190,7 +230,7 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   policyLink: {
-    color: "#00cc69",
+    color: "white",
   },
   button: {
     backgroundColor: "#00cc69",
@@ -204,23 +244,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  orText: {
-    textAlign: "center",
-    color: "gray",
-    marginVertical: 10,
-  },
-  socialLoginContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 15,
-  },
-  socialIcon: {
-    width: 50,
-    height: 50,
-  },
   signInText: {
     textAlign: "center",
-    color: "#00cc69",
+    color: "white",
     fontSize: 16,
     marginTop: 20,
   },

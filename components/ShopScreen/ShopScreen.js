@@ -14,6 +14,7 @@ import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -134,10 +135,17 @@ export default function ShopScreen() {
         >
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
+
         <Text style={styles.shopName}>
           {shopDetails.name || "Shop Name Not Available"}
         </Text>
-        <TouchableOpacity style={styles.buttonContainer}>
+
+        <TouchableOpacity
+          style={styles.iconTextButton}
+          onPress={() => {
+            /* Thêm logic cho nút */
+          }}
+        >
           <View style={styles.iconTextContainer}>
             <Image
               source={{
@@ -145,10 +153,10 @@ export default function ShopScreen() {
               }}
               style={styles.icon}
             />
-
-            <Text style={styles.buttonText}>Đặt đơn nhóm</Text>
           </View>
+          <Text style={styles.buttonText}>Đặt đơn nhóm</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => navigation.navigate("Checkout", { cart })}
@@ -190,6 +198,15 @@ export default function ShopScreen() {
           <Text style={styles.productDetailsText}>Offers are available</Text>
         </View>
       </View>
+      <View>
+        {/* Other Shop Details */}
+        <TouchableOpacity
+          style={styles.feedbackButton}
+          onPress={() => navigation.navigate("Feedback", { shopId: id })}
+        >
+          <Text style={styles.feedbackButtonText}>View Feedback</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -229,48 +246,73 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    marginStart: Platform.OS === "ios" ? 0 : 1,
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: Platform.OS === "ios" ? 20 : 15,
+    paddingHorizontal: Platform.OS === "ios" ? 15 : 10,
     backgroundColor: "#00cc69",
+    marginTop: Platform.OS === "ios" ? 38 : 30,
+    width: "100%",
+    shadowColor: "#000",
   },
+
   backButton: {
     padding: 10,
-  },
-  shopName: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  cartButton: {
-    padding: 10,
+    marginLeft: Platform.OS === "ios" ? 10 : 0,
     flexDirection: "row",
     alignItems: "center",
   },
+
+  shopName: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "bold",
+    flex: 1, // Giúp tên cửa hàng nằm giữa
+    textAlign: "center",
+    marginLeft: Platform.OS === "ios" ? 10 : 0,
+    marginRight: Platform.OS === "ios" ? 10 : 0,
+  },
+
+  cartButton: {
+    flexDirection: "row", // Sắp xếp icon và văn bản cạnh nhau
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    marginRight: Platform.OS === "ios" ? 1 : 0,
+    position: "relative",
+  },
+
   cartItemCount: {
     position: "absolute",
-    top: -10,
-    right: -10,
+    top: -8, // Điều chỉnh vị trí phía trên icon giỏ hàng
+    right: -8, // Điều chỉnh vị trí bên phải icon giỏ hàng
     backgroundColor: "red",
     color: "#fff",
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
     fontSize: 12,
+    fontWeight: "bold",
+    textAlign: "center",
+    minWidth: 20, // Đảm bảo độ rộng tối thiểu để hiển thị số
+    minHeight: 20, // Đảm bảo độ cao tối thiểu để trông cân đối
   },
+
   shopImage: {
     width: width,
     height: 200,
     resizeMode: "cover",
+    marginTop: 5,
   },
   productDescriptionContainer: {
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#f8f8f8",
+    marginTop: 2,
   },
   productName: {
     fontSize: 20,
@@ -323,28 +365,30 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonContainer: {
-    backgroundColor: "#ffffff",
     borderRadius: 25,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    borderColor: "#ff7a00",
-    borderWidth: 1,
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
+    marginTop: Platform.OS === "ios" ? 60 : 1,
+    backgroundColor: "#fff", // hoặc "transparent" nếu muốn bỏ nền
   },
   iconTextContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column", // Đặt icon nằm trên văn bản
+    alignItems: "center", // Căn giữa cả icon và văn bản theo chiều ngang
+    justifyContent: "center", // Căn giữa theo chiều dọc
+    paddingVertical: 1, // Thêm padding dọc nếu cần
   },
+
   icon: {
     width: 20,
     height: 20,
-    marginRight: 10,
+    marginRight: 1,
   },
   buttonText: {
-    fontSize: 10,
-    color: "#000000",
+    fontSize: 14,
+    color: "#fff", // Màu chữ trắng để tương phản với nền
     fontWeight: "bold",
   },
 });

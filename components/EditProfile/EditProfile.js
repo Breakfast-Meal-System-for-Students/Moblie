@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,7 +20,6 @@ export default function EditProfile() {
   const [lastName, setLastName] = useState(data?.lastName || "");
   const [phone, setPhone] = useState(data?.phone || "");
 
-  // Define handleUpdateProfile function here
   const handleUpdateProfile = async (firstName, lastName, phone) => {
     const formData = new FormData();
     formData.append("firstName", firstName);
@@ -34,8 +34,6 @@ export default function EditProfile() {
           headers: {
             Accept: "*/*",
             "Content-Type": "multipart/form-data",
-            // Include authorization header if needed
-            // 'Authorization': `Bearer ${yourToken}`,
           },
           body: formData,
         }
@@ -46,7 +44,7 @@ export default function EditProfile() {
         throw new Error(errorResponse.message || "Failed to update profile");
       }
     } catch (error) {
-      throw error; // Rethrow the error to handle it in the calling function
+      throw error;
     }
   };
 
@@ -66,7 +64,7 @@ export default function EditProfile() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.outerContainer}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
@@ -78,81 +76,132 @@ export default function EditProfile() {
         <Text style={styles.headerText}>Edit Profile</Text>
       </View>
 
-      {/* Form */}
-      <View style={styles.formContainer}>
-        <Text style={styles.label}>First Name</Text>
-        <TextInput
-          style={styles.input}
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholder="Enter your first name"
-        />
+      {/* Main Card Container */}
+      <View style={styles.container}>
+        {/* Profile Picture */}
+        <View style={styles.profileContainer}>
+          <Image
+            source={{ uri: data?.avatar || "https://via.placeholder.com/100" }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{`${firstName} ${lastName}`}</Text>
+          <Text style={styles.profileEmail}>youremail@example.com</Text>
+        </View>
 
-        <Text style={styles.label}>Last Name</Text>
-        <TextInput
-          style={styles.input}
-          value={lastName}
-          onChangeText={setLastName}
-          placeholder="Enter your last name"
-        />
+        {/* Form */}
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>First Name</Text>
+          <TextInput
+            style={styles.input}
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="Enter your first name"
+          />
 
-        <Text style={styles.label}>Phone</Text>
-        <TextInput
-          style={styles.input}
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-        />
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+            style={styles.input}
+            value={lastName}
+            onChangeText={setLastName}
+            placeholder="Enter your last name"
+          />
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
+          <Text style={styles.label}>Phone</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f2f2f2",
+    paddingTop: 40, // Padding for header spacing
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#00cc69",
     padding: 16,
+    backgroundColor: "#00cc69",
   },
   backButton: {
     padding: 8,
+    marginRight: 10,
   },
   headerText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
   },
+  container: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    paddingBottom: 20,
+    elevation: 5,
+    marginHorizontal: 20,
+    marginTop: 20,
+    overflow: "hidden",
+  },
+  profileContainer: {
+    alignItems: "center",
+    marginTop: -20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#00cc69",
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: "#777",
+  },
   formContainer: {
     padding: 20,
   },
   label: {
-    fontSize: 16,
-    marginBottom: 8,
-    fontWeight: "bold",
+    fontSize: 14,
+    marginBottom: 6,
+    fontWeight: "600",
+    color: "#555",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9",
   },
   saveButton: {
-    backgroundColor: "#00cc69",
-    padding: 15,
+    backgroundColor: "#00c853",
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
+    marginTop: 10,
   },
   saveButtonText: {
     color: "#fff",
