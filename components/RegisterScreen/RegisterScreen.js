@@ -1,45 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
   Pressable,
+  TouchableOpacity,
   Text,
   StyleSheet,
   Alert,
+  Image,
+  ImageBackground,
+  Dimensions,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import axios from "axios"; // Add axios import
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Register({ onRegister }) {
+export default function Register() {
+  const navigation = useNavigation();
   const [fullName, setFullName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dob, setDob] = useState(""); // Ngày sinh
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const navigation = useNavigation(); // Lấy đối tượng navigation
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  const { width, height } = Dimensions.get("window");
+
+  useEffect(() => {
+    setIsFormValid(
+      fullName.trim() !== "" &&
+        lastName.trim() !== "" &&
+        email.trim() !== "" &&
+        password.trim() !== "" &&
+        password === confirmPassword
+    );
+  }, [fullName, lastName, email, password, confirmPassword]);
 
   const handleRegister = async () => {
-    let validationErrors = {};
-
-    // Kiểm tra các trường không được để trống
-    if (!fullName) validationErrors.fullName = "Full Name is required";
-    if (!lastName) validationErrors.lastName = "Last Name is required";
-    if (!email) validationErrors.email = "Email is required";
-    if (!password) validationErrors.password = "Password is required";
-    if (!confirmPassword)
-      validationErrors.confirmPassword = "Confirm Password is required";
-
-    // Kiểm tra định dạng email
-
-    // Kiểm tra mật khẩu
-    if (password !== confirmPassword)
-      validationErrors.confirmPassword = "Passwords do not match";
-
-    // Nếu có lỗi, cập nhật trạng thái lỗi và thoát
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    if (!isFormValid) {
+      Alert.alert("Error", "Please complete all fields correctly.");
       return;
     }
 
@@ -47,9 +47,9 @@ export default function Register({ onRegister }) {
       const response = await axios.post(
         "https://bms-fs-api.azurewebsites.net/api/Auth/register",
         {
-          email,
           firstName: fullName,
           lastName,
+          email,
           password,
         },
         {
@@ -60,130 +60,172 @@ export default function Register({ onRegister }) {
         }
       );
 
-      if (response.status === 200) {
-        Alert.alert(
-          "Success",
-          "Registration successful! Please log in to continue."
-        );
-        navigation.navigate("Login"); // Điều hướng đến trang Login
+      if (response.data.isSuccess) {
+        await AsyncStorage.setItem("userToken", response.data.data.token);
+        console.log(response.data.data.token);
+        Alert.alert("Success", "Registration successful!", [
+          { text: "OK", onPress: () => navigation.navigate("Login") },
+        ]);
       } else {
-        Alert.alert("Error", "Registration failed. Please try again.");
+        Alert.alert("Error", "Registration failed. Please check your details.");
       }
     } catch (error) {
       console.error("Registration error:", error);
       Alert.alert(
         "Error",
-        error.response?.data?.detail ||
-          "An error occurred during registration. Please try again."
+        "An error occurred during registration. Please try again."
       );
     }
   };
 
   return (
-    <View style={styles.formContainer}>
-      <TextInput
-        placeholder="Full Name"
-        style={[styles.input, errors.fullName && styles.inputError]}
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      {errors.fullName && (
-        <Text style={styles.errorText}>{errors.fullName}</Text>
-      )}
+    <View style={styles.container}>
+      <ImageBackground
+        source={{
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
+        }}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
 
-      <TextInput
-        placeholder="Last Name"
-        style={[styles.input, errors.lastName && styles.inputError]}
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      {errors.lastName && (
-        <Text style={styles.errorText}>{errors.lastName}</Text>
-      )}
+        <ScrollView contentContainerStyle={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
 
-      <TextInput
-        style={[styles.input, errors.email && styles.inputError]}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/474x/fb/0d/bd/fb0dbd692b2033510852bfe63a89c268.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4,
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2,
+              },
+            ]}
+          />
 
-      <TextInput
-        style={[styles.input, errors.password && styles.inputError]}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      {errors.password && (
-        <Text style={styles.errorText}>{errors.password}</Text>
-      )}
+          <Text style={styles.headerText}>Register</Text>
 
-      <TextInput
-        style={[styles.input, errors.confirmPassword && styles.inputError]}
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-      {errors.confirmPassword && (
-        <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-      )}
+          <TextInput
+            placeholder="First Name"
+            style={styles.textInput}
+            value={fullName}
+            onChangeText={setFullName}
+          />
+          <TextInput
+            placeholder="Last Name"
+            style={styles.textInput}
+            value={lastName}
+            onChangeText={setLastName}
+          />
+          <TextInput
+            placeholder="Email"
+            style={styles.textInput}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+          />
+          <TextInput
+            placeholder="Password"
+            style={styles.textInput}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TextInput
+            placeholder="Confirm Password"
+            style={styles.textInput}
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
 
-      <Pressable style={styles.formButton} onPress={handleRegister}>
-        <Text style={styles.buttonText}>REGISTER</Text>
-      </Pressable>
+          <Pressable style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Register</Text>
+          </Pressable>
+
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.signInText}>
+              Already have an account? Login
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 50,
+  container: {
+    flex: 1,
   },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: "gray",
-    marginVertical: 10,
-    fontSize: 16,
-    padding: 10,
-    backgroundColor: "white",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
+  background: {
+    flex: 1,
   },
-  formButton: {
-    backgroundColor: "#00cc69",
-    height: 55,
-    alignItems: "center",
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  content: {
+    flexGrow: 1,
+    padding: 20,
     justifyContent: "center",
-    borderRadius: 35,
-    marginTop: 50,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6.68,
-    elevation: 8,
+    zIndex: 1,
   },
-  buttonText: {
-    fontSize: 20,
-    fontWeight: "600",
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+  },
+  backButtonText: {
+    fontSize: 24,
     color: "white",
   },
-  inputError: {
-    borderColor: "red",
+  icon: {
+    alignSelf: "center",
+    marginBottom: 20,
   },
-  errorText: {
-    color: "red",
-    fontSize: 14,
-    marginBottom: 10,
+  headerText: {
+    fontSize: 28,
+    fontWeight: "bold",
     textAlign: "center",
+    color: "white",
+    marginBottom: 20,
+  },
+  textInput: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
+  },
+  button: {
+    width: "100%",
+    backgroundColor: "#00cc69",
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  signInText: {
+    textAlign: "center",
+    color: "white",
+    fontSize: 16,
+    marginTop: 20,
   },
 });

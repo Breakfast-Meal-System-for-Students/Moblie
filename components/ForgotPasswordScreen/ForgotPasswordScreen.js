@@ -5,14 +5,18 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   Alert,
+  Pressable,
+  Image,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
+  const { width } = Dimensions.get("window");
 
   const handleSendEmail = () => {
     if (!email) {
@@ -30,114 +34,139 @@ function ForgotPasswordScreen() {
   };
 
   return (
-    <ImageBackground
-      source={{
-        uri: "https://i.pinimg.com/564x/7a/2a/44/7a2a44acc08429486d762b187e85e547.jpg",
-      }}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-      <View style={styles.container}>
-        <View style={styles.box}>
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.description}>
-            Enter your email address below and we will send you a link to reset
-            your password.
-          </Text>
+    <View style={styles.container}>
+      <ImageBackground
+        source={{
+          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
+        }}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+
+        <View style={styles.content}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4,
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2,
+              },
+            ]}
+          />
+
+          <Text style={styles.headerText}>Forgot Password?</Text>
+
           <TextInput
-            style={styles.input}
             placeholder="Enter your email"
+            placeholderTextColor="#888"
+            style={styles.textInput}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <TouchableOpacity style={styles.button} onPress={handleSendEmail}>
+
+          <Pressable style={styles.button} onPress={handleSendEmail}>
             <Text style={styles.buttonText}>Send Password Reset Request</Text>
-          </TouchableOpacity>
-          <View style={styles.linkContainer}>
+          </Pressable>
+
+          <View style={styles.policyContainer}>
             <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-              <Text style={styles.link}>Back to Login</Text>
+              <Text style={styles.policyText}>
+                <Text style={styles.policyLink}>Back to Login</Text>
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   background: {
     flex: 1,
-    justifyContent: "center",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
-  container: {
+  content: {
     flex: 1,
+    padding: 20,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    zIndex: 1,
   },
-  box: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
   },
-  title: {
+  backButtonText: {
     fontSize: 24,
+    color: "white",
+  },
+  icon: {
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 10,
-    color: "#00cc69",
     textAlign: "center",
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
+    color: "white",
     marginBottom: 20,
-    color: "#333",
   },
-  input: {
+  textInput: {
     width: "100%",
-    height: 50,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "gray",
     borderRadius: 5,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: "#fff",
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   button: {
     width: "100%",
-    height: 50,
     backgroundColor: "#00cc69",
-    borderRadius: 5,
-    justifyContent: "center",
+    paddingVertical: 15,
+    borderRadius: 30,
     alignItems: "center",
-    marginBottom: 20,
+    marginVertical: 20,
   },
   buttonText: {
+    fontSize: 18,
     color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
   },
-  linkContainer: {
-    marginTop: 20,
+  policyContainer: {
+    marginVertical: 10,
+    alignItems: "center",
   },
-  link: {
-    color: "#00cc69",
-    fontSize: 16,
+  policyText: {
+    fontSize: 14,
+    color: "gray",
     textAlign: "center",
+  },
+  policyLink: {
+    color: "white",
   },
 });
 

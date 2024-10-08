@@ -7,14 +7,19 @@ import {
   Image,
   Modal,
   Alert,
+  Platform, // Import Platform
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome"; // Import FontAwesomeIcon
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons"; // Import the specific icons
 
 const CartScreen = () => {
-  const [shopId, setShopId] = useState(null);
+  const navigation = useNavigation();
+
   const [listData, setListData] = useState([]);
   const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
     useState(false);
@@ -23,53 +28,37 @@ const CartScreen = () => {
   const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
-    const getShopId = async () => {
-      const storedShopId = await AsyncStorage.getItem("shopId");
-      if (storedShopId) {
-        setShopId(storedShopId);
-        fetchCartData(storedShopId);
+    const fetchCartData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        const shopId = await AsyncStorage.getItem("shopId");
+        const response = await axios.get(
+          `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
+          {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.isSuccess) {
+          const cartItems = response.data.data.cartDetails;
+          setListData(cartItems);
+          calculateTotal(cartItems);
+        } else {
+          Alert.alert("Error", "Failed to fetch cart data.");
+        }
+      } catch (error) {
+        console.error("Fetch cart data error:", error);
+        Alert.alert("Error", "An error occurred while fetching cart data.");
       }
     };
 
-    getShopId();
+    fetchCartData();
   }, []);
 
-  const fetchCartData = async (shopId) => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const storedShopId = await AsyncStorage.getItem("shopId");
-      // console.error("shopiid" + storedShopId);
-      const response = await axios.get(
-        `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=f261d247-8e8b-4bb3-a9e8-08dcdd5e21ac`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.data.isSuccess) {
-        const cartItems = response.data.data.cartDetails;
-        setListData(cartItems);
-        calculateTotal(cartItems);
-      } else {
-        Alert.alert("Error", "Failed to fetch cart data.");
-      }
-    } catch (error) {
-      console.error("Fetch cart data error:", error);
-      Alert.alert("Error", "An error occurred while fetching cart data.");
-    }
-  };
-
-  const deleteRow = (rowKey) => {
-    const newData = [...listData];
-    const prevIndex = listData.findIndex((item) => item.id === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
-    calculateTotal(newData);
-  };
-
   const calculateTotal = (updatedItems) => {
-    if (!Array.isArray(updatedItems)) {
-      updatedItems = [];
-    }
     const total = updatedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -77,66 +66,77 @@ const CartScreen = () => {
     setTotalPrice(total);
   };
 
-  const handlePlaceOrder = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const cartId = "a6046246-8ed2-45ed-b4f3-ae08a59185db"; // Replace with actual cartId
-      const response = await axios.post(
-        `https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder?cartId=${cartId}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  const increaseQuantity = (index) => {
+    const updatedItems = [...listData];
+    updatedItems[index].quantity += 1;
+    setListData(updatedItems);
+    calculateTotal(updatedItems);
+  };
 
-      if (response.data.isSuccess) {
-        setPaymentSuccessModalVisible(true);
-      } else {
-        setPaymentFailModalVisible(true);
-      }
-    } catch (error) {
-      console.error("Error placing order:", error);
-      setPaymentFailModalVisible(true);
+  const decreaseQuantity = (index) => {
+    const updatedItems = [...listData];
+    if (updatedItems[index].quantity > 1) {
+      updatedItems[index].quantity -= 1;
+      setListData(updatedItems);
+      calculateTotal(updatedItems);
     }
   };
 
-  const increaseQuantity = (key) => {
-    const updatedData = listData.map((item) =>
-      item.id === key ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setListData(updatedData);
-    calculateTotal(updatedData);
-  };
+  const deleteItem = async (cartItemId) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await axios.delete(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCartItem`,
+        {
+          params: {
+            cartItemId: cartItemId,
+          },
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  const decreaseQuantity = (key) => {
-    const updatedData = listData.map((item) =>
-      item.id === key && item.quantity > 1
-        ? { ...item, quantity: item.quantity - 1 }
-        : item
-    );
-    setListData(updatedData);
-    calculateTotal(updatedData);
+      if (response.status === 200) {
+        const updatedItems = listData.filter((item) => item.id !== cartItemId);
+        setListData(updatedItems);
+        calculateTotal(updatedItems);
+        Alert.alert("Success", "Item has been removed from your cart.");
+      } else {
+        Alert.alert("Error", "Failed to delete item.");
+      }
+    } catch (error) {
+      console.error("Delete item error:", error);
+      Alert.alert("Error", "An error occurred while deleting the item.");
+    }
   };
 
   const renderItem = (data) => (
     <View style={styles.rowFront}>
-      <Image source={{ uri: data.item.image }} style={styles.productImage} />
+      <Image
+        source={{
+          uri:
+            data.item.img ||
+            "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
+        }}
+        style={styles.productImage}
+      />
       <View style={styles.productDetails}>
-        <Text style={styles.textStyle}>{data.item.text}</Text>
-        <Text style={styles.noteStyle}>{data.item.note}</Text>
+        <Text style={styles.textStyle}>{data.item.name}</Text>
         <Text style={styles.priceStyle}>${data.item.price.toFixed(2)}</Text>
       </View>
       <View style={styles.quantityContainer}>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => decreaseQuantity(data.item.id)}
+          onPress={() => decreaseQuantity(data.index)}
         >
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{data.item.quantity}</Text>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => increaseQuantity(data.item.id)}
+          onPress={() => increaseQuantity(data.index)}
         >
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
@@ -144,20 +144,37 @@ const CartScreen = () => {
     </View>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = (data) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteRow(data.item.id)}
+        onPress={() => deleteItem(data.item.id)}
       >
-        <Text style={styles.backTextWhite}>Delete</Text>
+        <Ionicons name="trash-outline" size={25} color="white" />
       </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Order Summary</Text>
+      {/* Thanh tiêu đề */}
+      <View style={styles.headerContainer}>
+        {/* Nút quay lại */}
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {/* Tiêu đề */}
+        <Text style={styles.headerTitle}>Order Summary</Text>
+
+        {/* Biểu tượng giỏ hàng */}
+        <TouchableOpacity style={styles.cartIconContainer}>
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <View style={styles.cartBadge}>
+            <Text style={styles.cartBadgeText}>0</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
 
       <SwipeListView
         data={listData}
@@ -168,12 +185,12 @@ const CartScreen = () => {
 
       <View style={styles.footer}>
         <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
-        <TouchableOpacity style={styles.orderButton} onPress={handlePlaceOrder}>
+        <TouchableOpacity style={styles.orderButton}>
           <Text style={styles.orderButtonText}>Place Order</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Payment Success Modal */}
+      {/* Payment Modals */}
       <Modal visible={isPaymentSuccessModalVisible} animationType="slide">
         <View style={styles.successModalContainer}>
           <Ionicons
@@ -182,48 +199,13 @@ const CartScreen = () => {
             color="#4CAF50"
           />
           <Text style={styles.successTitle}>Order successful!</Text>
-          <Text style={styles.successMessage}>
-            Your order will be delivered on time. Thank you!
-          </Text>
-
-          <TouchableOpacity
-            style={styles.viewOrdersButton}
-            onPress={() => setPaymentSuccessModalVisible(false)}
-          >
-            <Text style={styles.viewOrdersText}>View orders</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.continueShoppingButton}
-            onPress={() => setPaymentSuccessModalVisible(false)}
-          >
-            <Text style={styles.continueShoppingText}>Continue Shopping</Text>
-          </TouchableOpacity>
         </View>
       </Modal>
 
-      {/* Payment Failure Modal */}
       <Modal visible={isPaymentFailModalVisible} animationType="slide">
         <View style={styles.failModalContainer}>
           <Ionicons name="close-circle-outline" size={100} color="#DD2C00" />
           <Text style={styles.failTitle}>Payment Failed!</Text>
-          <Text style={styles.failMessage}>
-            There was an issue with your payment. Please try again.
-          </Text>
-
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => setPaymentFailModalVisible(false)}
-          >
-            <Text style={styles.retryButtonText}>Retry Payment</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => setPaymentFailModalVisible(false)}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -232,65 +214,108 @@ const CartScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: "#F4F6F9",
     flex: 1,
-    padding: 16,
+    padding: 15,
+  },
+
+  backButton: {
+    padding: 10,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
   },
   sectionTitle: {
-    fontWeight: "600",
-    fontSize: 20,
+    fontWeight: "700",
+    fontSize: 22,
     color: "#003366",
-    marginVertical: 10,
+    marginBottom: 20,
+    textAlign: "center",
   },
   rowFront: {
     backgroundColor: "white",
-    borderBottomColor: "black",
-    borderBottomWidth: 1,
+    borderRadius: 10,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   productImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     marginRight: 10,
+    marginTop: 20,
   },
   productDetails: {
     flex: 1,
   },
   textStyle: {
     fontSize: 16,
-    fontWeight: "bold",
-  },
-  noteStyle: {
-    fontSize: 14,
-    color: "#666",
-    marginVertical: 5,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
   },
   priceStyle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "500",
+    color: "#00cc99",
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  quantityButton: {
-    width: 30,
-    height: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-  },
-  quantityButtonText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   quantityText: {
     fontSize: 18,
     marginHorizontal: 10,
+    color: "#333",
+  },
+  quantityButton: {
+    backgroundColor: "#E0E0E0",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  quantityButtonText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#555",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+    paddingTop: 10,
+  },
+  totalText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "red",
+  },
+  orderButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#00cc69",
+    borderRadius: 30,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  orderButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
   },
   rowBack: {
     alignItems: "center",
@@ -299,6 +324,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     paddingRight: 15,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   backRightBtn: {
     alignItems: "center",
@@ -307,124 +334,81 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: 75,
+    backgroundColor: "#DD2C00",
+    right: 0,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
   },
   backRightBtnRight: {
-    backgroundColor: "red",
+    backgroundColor: "#DD2C00",
     right: 0,
-  },
-  backTextWhite: {
-    color: "#FFF",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    paddingTop: 10,
-  },
-  totalText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#003366",
-  },
-  orderButton: {
-    padding: 15,
-    backgroundColor: "#4CAF50",
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  orderButtonText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "600",
   },
   successModalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
+    paddingHorizontal: 20,
   },
   successTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#4CAF50",
-    marginTop: 20,
-  },
-  successMessage: {
-    fontSize: 16,
     textAlign: "center",
-    marginVertical: 10,
-    color: "#666",
-  },
-  viewOrdersButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 15,
-    paddingHorizontal: 80,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  viewOrdersText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  continueShoppingButton: {
-    backgroundColor: "#E0F7EF",
-    paddingVertical: 15,
-    paddingHorizontal: 60,
-    borderRadius: 8,
-    marginTop: 15,
-  },
-  continueShoppingText: {
-    color: "#4CAF50",
-    fontWeight: "600",
-    fontSize: 16,
+    marginVertical: 20,
   },
   failModalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFE8E8",
+    backgroundColor: "white",
+    paddingHorizontal: 20,
   },
   failTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#DD2C00",
-    marginTop: 20,
-  },
-  failMessage: {
-    fontSize: 16,
     textAlign: "center",
-    marginVertical: 10,
-    color: "#b71c1c",
+    marginVertical: 20,
   },
-  retryButton: {
-    backgroundColor: "#DD2C00",
-    paddingVertical: 15,
-    paddingHorizontal: 80,
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#00cc69",
+    height: 70, // Chiều cao cố định cho cả iOS và Android
+    paddingTop: Platform.OS === "ios" ? 10 : 0, // Chỉ thêm paddingTop cho iOS để tránh việc trùng vào phần notch
+    marginTop: Platform.OS === "ios" ? 40 : 0,
+  },
+
+  headerTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  cartIconContainer: {
+    position: "relative",
+  },
+
+  cartBadge: {
+    position: "absolute",
+    right: -6,
+    top: -6,
+    backgroundColor: "red",
     borderRadius: 8,
-    marginTop: 20,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  retryButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  cancelButton: {
-    backgroundColor: "#FFE8E8",
-    paddingVertical: 15,
-    paddingHorizontal: 60,
-    borderRadius: 8,
-    marginTop: 15,
-    borderWidth: 1,
-    borderColor: "#DD2C00",
-  },
-  cancelButtonText: {
-    color: "#DD2C00",
-    fontWeight: "600",
-    fontSize: 16,
+
+  cartBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });
 

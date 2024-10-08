@@ -17,9 +17,15 @@ import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigati
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
 import MapScreen from "./components/MapScreen/MapScreen";
+// import Map from "./components/Map/Map";
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
-
+import MyCart from "./components/MyCart/MyCart";
+import MyNotification from "./components/MyNotification/MyNotification";
+import Address from "./components/Address/Address";
+import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
+import Payment from "./components/Payment/Payment";
+import Security from "./components/Security/Security";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -111,13 +117,45 @@ function App() {
         />
             <Stack.Screen
           name="MapScreen"
-          component={MapScreen}
-          options={{ headerShown: false }}
+          component={MapScreen}   
+ options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Feedback"
+          component={FeedbackScreen}   
+                options={{ headerShown: false }}
+        />
+      
       </Stack.Navigator>
       <Stack.Screen
         name="Cart"
         component={CartScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyCart"
+        component={MyCart}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyNotification"
+        component={MyNotification}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Address"
+        component={Address}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Security"
+        component={Security}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="Payment"
+        component={Payment}
         options={{ headerShown: false }}
       />
     </NavigationContainer>
