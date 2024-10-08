@@ -16,6 +16,7 @@ import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
+import MapScreen from "./components/MapScreen/MapScreen";
 // import Map from "./components/Map/Map";
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
@@ -114,11 +115,17 @@ function App() {
           component={EditProfile}
           options={{ headerShown: false }}
         />
+            <Stack.Screen
+          name="MapScreen"
+          component={MapScreen}   
+ options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Feedback"
-          component={FeedbackScreen}
-          options={{ headerShown: false }}
+          component={FeedbackScreen}   
+                options={{ headerShown: false }}
         />
+      
       </Stack.Navigator>
       <Stack.Screen
         name="Cart"
