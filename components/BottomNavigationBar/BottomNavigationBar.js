@@ -76,20 +76,20 @@ export default function BottomNavigationBar() {
       {/* Nút Notifications */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handlePress("Notifications")}
+        onPress={() => handlePress("MapScreen")} // Thay đổi từ "Notifications" thành "MapScreen"
       >
         <FontAwesomeIcon
-          icon={faBell}
+          icon={faBell} // Có thể thay đổi icon nếu cần
           size={20}
-          color={activeTab === "Notifications" ? "#00cc69" : "#707070"}
+          color={activeTab === "MapScreen" ? "#00cc69" : "#707070"} // Cập nhật điều kiện cho MapScreen
         />
         <Text
           style={[
             styles.label,
-            activeTab === "Notifications" && styles.labelActive,
+            activeTab === "MapScreen" && styles.labelActive, // Cập nhật điều kiện cho MapScreen
           ]}
         >
-          Notifications
+          MapScreen 
         </Text>
       </TouchableOpacity>
 
