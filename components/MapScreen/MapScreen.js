@@ -5,6 +5,7 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 const MapScreen = () => {
   const [startAddress, setStartAddress] = useState("");
   const [endAddress, setEndAddress] = useState("");
+  const [search, setSearch] = useState("");
   const [route, setRoute] = useState([]);
   const [duration, setDuration] = useState("");
   const [shops, setShops] = useState([]);
@@ -100,19 +101,18 @@ const MapScreen = () => {
           animated: true,
         });
       }
-
       // Gọi API GetShop
-      await fetchShops(startAddress, endAddress);
+      await fetchShops(startAddress, endAddress, search);
 
     } catch (error) {
       Alert.alert("Error", error.message);
     }
   };
 
-  const fetchShops = async (add1, add2) => {
+  const fetchShops = async (add1, add2, sea) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://bms-fs-api.azurewebsites.net/GetShop?add1=${encodeURIComponent(add1)}&add2=${encodeURIComponent(add2)}`, {
+      const response = await fetch(`https://bms-fs-api.azurewebsites.net/GetShop?add1=${encodeURIComponent(add1)}&add2=${encodeURIComponent(add2)}&search=${encodeURIComponent(sea)}`, {
         method: 'GET',
         headers: {
           'accept': '*/*',
@@ -292,7 +292,13 @@ const MapScreen = () => {
         onChangeText={setEndAddress}
         value={endAddress}
       />
-      <Button title="Lấy đường đi" onPress={handleGetRoute} />
+         <TextInput
+        style={styles.input}
+        placeholder="Search...."
+        onChangeText={setSearch}
+        value={search}
+      />
+      <Button title="Find Now" onPress={handleGetRoute} />
       {/* {duration && <Text>Thời gian dự kiến: {duration} giây</Text>} */}
       
       <View style={styles.mapContainer}>
