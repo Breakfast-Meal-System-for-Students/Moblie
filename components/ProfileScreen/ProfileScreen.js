@@ -174,11 +174,6 @@ export default function ProfileScreen() {
         <OptionItem icon="notifications-outline" title="Notification" />
         <OptionItem icon="card-outline" title="Payment" />
         <OptionItem icon="lock-closed-outline" title="Security" />
-        <OptionItem
-          icon="globe-outline"
-          title="Language & Region"
-          rightText="English (US)"
-        />
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>

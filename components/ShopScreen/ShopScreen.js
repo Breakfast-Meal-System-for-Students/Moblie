@@ -146,7 +146,7 @@ export default function ShopScreen() {
             /* Thêm logic cho nút */
           }}
         >
-          <View style={styles.iconTextContainer}>
+          {/* <View style={styles.iconTextContainer}>
             <Image
               source={{
                 uri: "https://i.pinimg.com/564x/e1/3e/03/e13e03f278ccc0d67cbeccc3a1a76e42.jpg",
@@ -154,7 +154,7 @@ export default function ShopScreen() {
               style={styles.icon}
             />
           </View>
-          <Text style={styles.buttonText}>Đặt đơn nhóm</Text>
+          <Text style={styles.buttonText}>Đặt đơn nhóm</Text> */}
         </TouchableOpacity>
 
         <TouchableOpacity
