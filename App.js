@@ -17,7 +17,7 @@ import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigati
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
 import MapScreen from "./components/MapScreen/MapScreen";
-// import Map from "./components/Map/Map";
+
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 import MyCart from "./components/MyCart/MyCart";
@@ -26,6 +26,7 @@ import Address from "./components/Address/Address";
 import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
+import Header from "./components/Header/Header";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -115,17 +116,16 @@ function App() {
           component={EditProfile}
           options={{ headerShown: false }}
         />
-            <Stack.Screen
+        <Stack.Screen
           name="MapScreen"
-          component={MapScreen}   
- options={{ headerShown: false }}
+          component={MapScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Feedback"
-          component={FeedbackScreen}   
-                options={{ headerShown: false }}
+          component={FeedbackScreen}
+          options={{ headerShown: false }}
         />
-      
       </Stack.Navigator>
       <Stack.Screen
         name="Cart"
@@ -156,6 +156,11 @@ function App() {
       <Stack.Screen
         name="Payment"
         component={Payment}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Header"
+        component={Header}
         options={{ headerShown: false }}
       />
     </NavigationContainer>
