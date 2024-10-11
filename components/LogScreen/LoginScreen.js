@@ -34,6 +34,15 @@ export default function Register() {
       return;
     }
 
+    // Danh sách email của shop không được phép đăng nhập
+    const shopEmails = ["shop@gmail.com", "shop1@gmail.com"]; // Thay thế bằng danh sách email thực tế
+
+    // Kiểm tra xem email có phải là email của shop không
+    if (shopEmails.includes(email)) {
+      Alert.alert("Error", "This email is not allowed to log in.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "https://bms-fs-api.azurewebsites.net/api/Auth/login",

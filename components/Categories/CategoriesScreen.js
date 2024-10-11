@@ -7,11 +7,14 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
+  SafeAreaView,
 } from "react-native";
 import axios from "axios";
 import { useRoute } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { Platform } from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+
 const CategoriesScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +41,7 @@ const CategoriesScreen = ({ navigation }) => {
       );
 
       if (response.data.isSuccess) {
-        setProducts(response.data.data.data); // Lấy danh sách sản phẩm từ phản hồi
+        setProducts(response.data.data.data);
       } else {
         setError("Failed to fetch products.");
       }
@@ -67,8 +70,8 @@ const CategoriesScreen = ({ navigation }) => {
       onPress={() =>
         navigation.navigate("ProductDetail", {
           productId: item.product.id,
-          cart: cart, // Truyền `cart` vào đây
-          setCart: setCart, // Truyền `setCart` nếu cần chỉnh sửa `cart`
+          cart: cart,
+          setCart: setCart,
         })
       }
     >
@@ -106,22 +109,23 @@ const CategoriesScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Ionicons name="arrow-back" size={28} color="#ffffff" />
-        <Text style={styles.backButtonText}>Back</Text>
-      </TouchableOpacity>
-
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Category </Text>
+      </View>
       <FlatList
         data={products}
         renderItem={renderProductItem}
-        keyExtractor={(item) => item.product.id}
+        keyExtractor={(item) => item.product.id.toString()}
         contentContainerStyle={styles.productList}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -129,32 +133,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-    padding: 10,
   },
-  backButton: {
+  headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
-    marginTop: Platform.OS === "ios" ? 38 : 30,
-    backgroundColor: "#00cc69",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    width: "100%",
     justifyContent: "flex-start",
+    paddingVertical: Platform.OS === "ios" ? 20 : 15,
+    paddingHorizontal: 15,
+    backgroundColor: "#00cc69",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+    marginTop: Platform.OS === "ios" ? 10 : 0,
   },
-  backButtonText: {
-    marginLeft: 10,
-    fontSize: 18,
+  backButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  headerTitle: {
     color: "#ffffff",
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 10,
   },
-
   productList: {
     paddingBottom: 20,
   },
@@ -171,6 +173,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    marginHorizontal: 10,
   },
   productImage: {
     width: 80,
@@ -186,16 +189,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     marginBottom: 5,
-  },
-  productPrice: {
-    fontSize: 15,
-    color: "#00cc69",
-    fontWeight: "600",
-  },
-  productQuantity: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#555",
   },
   productMeta: {
     flexDirection: "row",
@@ -225,6 +218,12 @@ const styles = StyleSheet.create({
   productDeliveryFee: {
     fontSize: 15,
     color: "#00cc69",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
   },
 });
 

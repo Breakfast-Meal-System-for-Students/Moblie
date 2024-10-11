@@ -7,19 +7,19 @@ import {
   Image,
   Modal,
   Alert,
-  Platform, // Import Platform
+  Platform,
+  SafeAreaView,
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome"; // Import FontAwesomeIcon
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons"; // Import the specific icons
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 const CartScreen = () => {
   const navigation = useNavigation();
-
   const [listData, setListData] = useState([]);
   const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
     useState(false);
@@ -88,9 +88,7 @@ const CartScreen = () => {
       const response = await axios.delete(
         `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCartItem`,
         {
-          params: {
-            cartItemId: cartItemId,
-          },
+          params: { cartItemId },
           headers: {
             Accept: "*/*",
             Authorization: `Bearer ${token}`,
@@ -157,32 +155,35 @@ const CartScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Thanh tiêu đề */}
-      <View style={styles.headerContainer}>
-        {/* Nút quay lại */}
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+      {/* Header */}
+      <SafeAreaView style={styles.headerContainer}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
 
-        {/* Tiêu đề */}
         <Text style={styles.headerTitle}>Order Summary</Text>
 
-        {/* Biểu tượng giỏ hàng */}
-        <TouchableOpacity style={styles.cartIconContainer}>
+        <TouchableOpacity style={styles.cartButton}>
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>0</Text>
           </View>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
 
+      {/* Product List */}
       <SwipeListView
         data={listData}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         rightOpenValue={-75}
+        style={styles.listView}
       />
 
+      {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
         <TouchableOpacity style={styles.orderButton}>
@@ -216,21 +217,48 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F4F6F9",
     flex: 1,
-    padding: 15,
   },
-
-  backButton: {
-    padding: 10,
-    marginBottom: 20,
+  headerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: Platform.OS === "ios" ? 15 : 9,
+    paddingHorizontal: 10,
+    backgroundColor: "#00cc69",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
-  sectionTitle: {
-    fontWeight: "700",
-    fontSize: 22,
-    color: "#003366",
-    marginBottom: 20,
+  backButton: {
+    padding: 10,
+  },
+  headerTitle: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "bold",
     textAlign: "center",
+    flex: 1,
+  },
+  cartButton: {
+    position: "relative",
+    padding: 10,
+  },
+  cartBadge: {
+    position: "absolute",
+    right: -5,
+    top: -5,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cartBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
   rowFront: {
     backgroundColor: "white",
@@ -286,37 +314,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#555",
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
-    paddingTop: 10,
-  },
-  totalText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "red",
-  },
-  orderButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: "#00cc69",
-    borderRadius: 30,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  orderButtonText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "600",
-  },
   rowBack: {
     alignItems: "center",
     backgroundColor: "#DD2C00",
@@ -339,9 +336,37 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
   },
-  backRightBtnRight: {
-    backgroundColor: "#DD2C00",
-    right: 0,
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+    paddingTop: 10,
+    paddingHorizontal: 15,
+  },
+  totalText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "red",
+  },
+  orderButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#00cc69",
+    borderRadius: 30,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  orderButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
   },
   successModalContainer: {
     flex: 1,
@@ -370,45 +395,6 @@ const styles = StyleSheet.create({
     color: "#DD2C00",
     textAlign: "center",
     marginVertical: 20,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: "#00cc69",
-    height: 70, // Chiều cao cố định cho cả iOS và Android
-    paddingTop: Platform.OS === "ios" ? 10 : 0, // Chỉ thêm paddingTop cho iOS để tránh việc trùng vào phần notch
-    marginTop: Platform.OS === "ios" ? 40 : 0,
-  },
-
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  cartIconContainer: {
-    position: "relative",
-  },
-
-  cartBadge: {
-    position: "absolute",
-    right: -6,
-    top: -6,
-    backgroundColor: "red",
-    borderRadius: 8,
-    width: 16,
-    height: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  cartBadgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
   },
 });
 

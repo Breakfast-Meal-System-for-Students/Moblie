@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: "#00cc69",
-    marginTop: Platform.OS === "ios" ? 49 : 20, // Thêm marginTop khác cho iOS
+    marginTop: Platform.OS === "ios" ? 59 : 20, // Thêm marginTop khác cho iOS
   },
   backButton: {
     padding: 10,
