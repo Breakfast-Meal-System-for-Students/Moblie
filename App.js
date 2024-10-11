@@ -17,16 +17,17 @@ import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigati
 import ProductDetailScreen from "./components/ProductDetailScreen/ProductDetailScreen";
 import CartScreen from "./components/CartScreen/CartScreen";
 import MapScreen from "./components/MapScreen/MapScreen";
-
+import OrderStatus from "./components/OrderStatus/OrderStatus";
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 import MyCart from "./components/MyCart/MyCart";
-import MyNotification from "./components/MyNotification/MyNotification";
+
 import Address from "./components/Address/Address";
 import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
+
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -68,7 +69,6 @@ function App() {
           component={ShopScreen}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="BottomNavigationBar"
           component={BottomNavigationBar}
@@ -98,14 +98,16 @@ function App() {
           component={ProductDetailScreen}
           options={{ headerShown: false }}
         />
-
-        {/* Di chuyển CartScreen vào trong Stack.Navigator */}
+        <Stack.Screen
+          name="Order"
+          component={OrderStatus}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Checkout"
           component={CartScreen}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="Logout"
           component={LogoutScreen}
@@ -126,43 +128,37 @@ function App() {
           component={FeedbackScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Cart"
+          component={CartScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MyCart"
+          component={MyCart}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Address"
+          component={Address}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Security"
+          component={Security}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Payment"
+          component={Payment}
+          options={{ headerShown: false }}
+        />
+        {/* <Stack.Screen
+          name="Header"
+          component={Header}
+          options={{ headerShown: false }}
+        /> */}
       </Stack.Navigator>
-      <Stack.Screen
-        name="Cart"
-        component={CartScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="MyCart"
-        component={MyCart}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="MyNotification"
-        component={MyNotification}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Address"
-        component={Address}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Security"
-        component={Security}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="Payment"
-        component={Payment}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Header"
-        component={Header}
-        options={{ headerShown: false }}
-      />
     </NavigationContainer>
   );
 }

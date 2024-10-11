@@ -16,7 +16,7 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
-
+import { faMap } from "@fortawesome/free-solid-svg-icons";
 export default function BottomNavigationBar() {
   const [activeTab, setActiveTab] = useState("Home");
   const navigation = useNavigation();
@@ -73,23 +73,23 @@ export default function BottomNavigationBar() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Nút Notifications */}
+      {/* Nút Map */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handlePress("MapScreen")} // Thay đổi từ "Notifications" thành "MapScreen"
+        onPress={() => handlePress("MapScreen")}
       >
         <FontAwesomeIcon
-          icon={faBell} // Có thể thay đổi icon nếu cần
+          icon={faMap} // Replace faBell with faMap for the map icon
           size={20}
-          color={activeTab === "MapScreen" ? "#00cc69" : "#707070"} // Cập nhật điều kiện cho MapScreen
+          color={activeTab === "MapScreen" ? "#00cc69" : "#707070"}
         />
         <Text
           style={[
             styles.label,
-            activeTab === "MapScreen" && styles.labelActive, // Cập nhật điều kiện cho MapScreen
+            activeTab === "MapScreen" && styles.labelActive,
           ]}
         >
-          MapScreen 
+          MapScreen
         </Text>
       </TouchableOpacity>
 

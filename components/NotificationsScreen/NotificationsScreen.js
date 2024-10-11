@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Platform, // Import Platform here
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
@@ -100,7 +101,7 @@ export default function NotificationsScreen() {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Notifications</Text>
       </View>
@@ -125,10 +126,10 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "row",
     justifyContent: "space-between",
     backgroundColor: "#00cc69",
-    padding: 16,
+    paddingTop: Platform.OS === "ios" ? 50 : 12, // Increased padding for iOS devices
   },
   backButton: {
     padding: 8,
@@ -137,7 +138,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    left: -200,
+    flex: 1,
+    textAlign: "center",
   },
   notificationItem: {
     flexDirection: "row",
