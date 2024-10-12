@@ -18,7 +18,7 @@ import { faMapPin, faStar } from "@fortawesome/free-solid-svg-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width } = Dimensions.get("window");
 
 function RestaurantCard({ item }) {
@@ -51,25 +51,21 @@ function RestaurantCard({ item }) {
 
 function FeaturedRow({ title, description, restaurants }) {
   return (
-    <View>
+    <View style={styles.featuredRowContainer}>
       <View style={styles.featuredHeaderContainer}>
         <Text style={styles.seeAllText}>{title}</Text>
       </View>
-      {/* Sử dụng FlatList với horizontal để cuộn ngang */}
       <FlatList
         data={restaurants}
-        horizontal // Cho phép cuộn ngang
-        showsHorizontalScrollIndicator={false} // Ẩn thanh cuộn ngang
+        horizontal
+        showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ paddingHorizontal: 15 }} // Đảm bảo padding bên trong danh sách
-        renderItem={({ item }) => (
-          <RestaurantCard item={item} /> // Hiển thị từng thẻ nhà hàng
-        )}
+        contentContainerStyle={styles.featuredContentContainer}
+        renderItem={({ item }) => <RestaurantCard item={item} />}
       />
     </View>
   );
 }
-
 export default function HomeScreen() {
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
@@ -77,6 +73,36 @@ export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0); // Thay thế biến currentIndex bằng useState
   const navigation = useNavigation();
   const flatListRef = useRef();
+  const [userProfile, setUserProfile] = useState({}); // Add state for user profile
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        const response = await fetch(
+          "https://bms-fs-api.azurewebsites.net/api/Account/my-profile",
+          {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (data.isSuccess) {
+          setUserProfile(data.data); // Set user profile data
+        } else {
+          console.error("Error fetching user profile:", data.messages);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []); // Empty dependency array to run once on mount
 
   // Fetch categories from the API
   useEffect(() => {
@@ -179,14 +205,15 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{
-            uri: "https://i.pinimg.com/564x/cf/f7/4e/cff74e044fe8eb2918424b53297bce18.jpg",
-          }}
+          source={{ uri: userProfile.avatar }} // Use avatar from user profile
           style={styles.profileImage}
         />
         <View>
           <Text style={styles.greetingText}>Good Morning 👋</Text>
-          <Text style={styles.userName}>Andrew Ainsley</Text>
+          <Text
+            style={styles.userName}
+          >{`${userProfile.firstName} ${userProfile.lastName}`}</Text>
+          {/* Display full name */}
         </View>
         <View style={styles.iconContainer}>
           <Ionicons name="notifications-outline" size={24} color="black" />
@@ -276,9 +303,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
-    paddingHorizontal: 10,
-    paddingTop: Platform.OS === "ios" ? 50 : 10, // Thêm khoảng cách cho iOS
-    marginTop: Platform.OS === "ios" ? 20 : 10, // Tùy chỉnh khoảng cách trên iOS và Android
+    paddingHorizontal: 15,
+    paddingTop: Platform.OS === "ios" ? 50 : 10,
+    marginTop: Platform.OS === "ios" ? 20 : 10,
   },
   profileImage: {
     width: 50,
@@ -286,12 +313,11 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   greetingText: {
-    fontSize: Platform.OS === "ios" ? 16 : 14, // Kích thước lớn hơn trên iOS
+    fontSize: Platform.OS === "ios" ? 16 : 14,
     color: "#888",
-    textAlign: Platform.OS === "ios" ? "center" : "left", // Căn giữa trên iOS
   },
   userName: {
-    fontSize: Platform.OS === "ios" ? 20 : 18, // Kích thước lớn hơn trên iOS
+    fontSize: Platform.OS === "ios" ? 20 : 18,
     fontWeight: "bold",
   },
   iconContainer: {
@@ -326,7 +352,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   featuredImage: {
-    width: width - 10,
+    width: width - 20,
     height: 190,
     borderRadius: 20,
     marginHorizontal: 10,
@@ -347,15 +373,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   categoryScrollView: {
-    paddingHorizontal: 1,
-    paddingVertical: 1,
-    width: width - 30,
+    paddingHorizontal: Platform.OS === "ios" ? 20 : 15,
+    paddingVertical: 10,
     height: 90,
   },
   categoryButton: {
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 15,
   },
   categoryImage: {
     width: 50,
@@ -372,8 +397,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 10,
     overflow: "hidden",
-    marginRight: 19,
-    width: 365,
+    marginRight: 15,
+    width: width - 60,
+    alignSelf: "center",
   },
   restaurantImage: {
     width: "100%",
@@ -413,5 +439,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#888",
     marginLeft: 5,
+  },
+  featuredRowContainer: {
+    marginVertical: 1,
+    paddingHorizontal: 20, // Increased padding for iOS
+  },
+  featuredHeaderContainer: {
+    paddingHorizontal: 10,
+    paddingBottom: 5,
+  },
+  seeAllText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  featuredContentContainer: {
+    paddingHorizontal: 10,
   },
 });

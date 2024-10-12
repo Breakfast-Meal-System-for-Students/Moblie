@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  SafeAreaView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-import * as ImagePicker from "expo-image-picker"; // Import thư viện ImagePicker
+import * as ImagePicker from "expo-image-picker";
 
 function OptionItem({ icon, title, onPress, rightText }) {
   return (
@@ -48,33 +50,14 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleUpdateProfile = async (firstName, lastName, phone) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const response = await axios.put(
-        "https://bms-fs-api.azurewebsites.net/api/Account/update-avatar", // Kiểm tra lại URL này
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log("Profile updated successfully:", response.data);
-    } catch (error) {
-      console.error("Failed to update profile", error);
-    }
-  };
-
   const handleUpdateAvatar = async (avatarUri) => {
     try {
       const token = await AsyncStorage.getItem("token");
       const formData = new FormData();
       formData.append("file", {
         uri: avatarUri,
-        type: "image/jpeg", // Đảm bảo đúng định dạng file
-        name: "avatar.jpg", // Đảm bảo tên file hợp lệ
+        type: "image/jpeg",
+        name: "avatar.jpg",
       });
 
       const response = await axios.put(
@@ -90,19 +73,17 @@ export default function ProfileScreen() {
 
       console.log("Avatar updated successfully:", response.data);
     } catch (error) {
-      console.error("Failed to update avatar", error); // Thêm thông tin chi tiết để debug
+      console.error("Failed to update avatar", error);
     }
   };
 
   const pickImage = async () => {
-    // Yêu cầu quyền truy cập vào thư viện ảnh
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       alert("Permission to access media library is required!");
       return;
     }
 
-    // Mở thư viện ảnh để người dùng chọn ảnh
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -111,7 +92,7 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled) {
-      handleUpdateAvatar(result.uri); // Gọi hàm cập nhật avatar
+      handleUpdateAvatar(result.uri);
     }
   };
 
@@ -125,12 +106,16 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    navigation.navigate("EditProfile", { data, handleUpdateProfile });
+    navigation.navigate("EditProfile", { data });
+  };
+
+  const handleGoToCart = () => {
+    navigation.navigate("Checkout"); // Navigate to CartScreen
   };
 
   return (
-    <View style={styles.container}>
-      {/* Thêm Header */}
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -143,7 +128,6 @@ export default function ProfileScreen() {
 
       <View style={styles.profileHeader}>
         <TouchableOpacity onPress={pickImage}>
-          {/* Thêm nút để cập nhật avatar */}
           <Image
             source={{
               uri:
@@ -163,28 +147,43 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView style={styles.profileOptions}>
-        <OptionItem icon="cart-outline" title="My Cart" />
-        <OptionItem icon="notifications-outline" title="My Notification" />
-        <OptionItem icon="location-outline" title="Address" />
+        <OptionItem
+          icon="cart-outline"
+          title="My Cart"
+          onPress={handleGoToCart}
+        />
+        <OptionItem
+          icon="notifications-outline"
+          title="My Notification"
+          onPress={() => navigation.navigate("Notifications")}
+        />
+        <OptionItem
+          icon="location-outline"
+          title="Address"
+          onPress={() => navigation.navigate("Address")}
+        />
         <OptionItem
           icon="person-outline"
           title="Edit Profile"
           onPress={handleEditProfile}
         />
-        <OptionItem icon="notifications-outline" title="Notification" />
-        <OptionItem icon="card-outline" title="Payment" />
-        <OptionItem icon="lock-closed-outline" title="Security" />
+
         <OptionItem
-          icon="globe-outline"
-          title="Language & Region"
-          rightText="English (US)"
+          icon="card-outline"
+          title="Payment"
+          onPress={() => navigation.navigate("Payment")}
+        />
+        <OptionItem
+          icon="lock-closed-outline"
+          title="Security"
+          onPress={() => navigation.navigate("Security")}
         />
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -198,7 +197,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#00cc69",
-    padding: 16,
+    paddingVertical: Platform.OS === "ios" ? 15 : 10,
+    paddingHorizontal: 15,
   },
   backButton: {
     padding: 8,
@@ -207,16 +207,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    left: -260,
+    textAlign: "row",
+    flex: 1,
   },
   profileHeader: {
     alignItems: "center",
     marginTop: 30,
-    marginBottom: 20,
+    marginBottom: 50,
   },
   profileImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 40,
     marginBottom: 10,
   },
@@ -254,15 +255,6 @@ const styles = StyleSheet.create({
   rightText: {
     fontSize: 16,
     color: "#888",
-  },
-  darkModeContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
   logoutButton: {
     backgroundColor: "#ff4d4d",

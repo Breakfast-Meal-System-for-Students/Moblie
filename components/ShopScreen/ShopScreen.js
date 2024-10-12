@@ -8,13 +8,14 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
+  Platform,
+  SafeAreaView,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -141,23 +142,6 @@ export default function ShopScreen() {
         </Text>
 
         <TouchableOpacity
-          style={styles.iconTextButton}
-          onPress={() => {
-            /* Thêm logic cho nút */
-          }}
-        >
-          <View style={styles.iconTextContainer}>
-            <Image
-              source={{
-                uri: "https://i.pinimg.com/564x/e1/3e/03/e13e03f278ccc0d67cbeccc3a1a76e42.jpg",
-              }}
-              style={styles.icon}
-            />
-          </View>
-          <Text style={styles.buttonText}>Đặt đơn nhóm</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={styles.cartButton}
           onPress={() => navigation.navigate("Checkout", { cart })}
         >
@@ -183,113 +167,88 @@ export default function ShopScreen() {
         <Text style={styles.productName}>{shopDetails.name}</Text>
         <View style={styles.productDetailsRow}>
           <FontAwesome name="star" size={18} color="#f1c40f" />
-          <Text style={styles.productDetailsText}>4.8 (1.2k reviews)</Text>
+          <Text style={styles.productDetailsText}>4.8 </Text>
+
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={() => navigation.navigate("Feedback", { shopId: id })}
+          >
+            <Text style={styles.feedbackButtonText}>(100+ Bình luận)</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.productDetailsRow}>
-          <FontAwesome name="map-marker" size={18} color="#00cc69" />
-          <Text style={styles.productDetailsText}>2.4 Km</Text>
-          <Text style={styles.productDetailsText}> | Deliver Now | $ 2.00</Text>
-        </View>
-        <Text style={styles.productDetailsText}>
-          {shopDetails.description || "No description available."}
-        </Text>
-        <View style={styles.productDetailsRow}>
-          <FontAwesome name="tag" size={18} color="#00cc69" />
-          <Text style={styles.productDetailsText}>Offers are available</Text>
-        </View>
-      </View>
-      <View>
-        {/* Other Shop Details */}
-        <TouchableOpacity
-          style={styles.feedbackButton}
-          onPress={() => navigation.navigate("Feedback", { shopId: id })}
-        >
-          <Text style={styles.feedbackButtonText}>View Feedback</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <FlatList
-      data={products}
-      ListHeaderComponent={renderShopDetails}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.productItem}
-          onPress={() => goToProductDetail(item)}
-        >
-          <Image
-            source={{
-              uri: item.images?.[0]?.url || "https://via.placeholder.com/150",
-            }}
-            style={styles.productImage}
-          />
-          <View style={styles.productInfo}>
-            <Text style={styles.productName}>
-              {item.name || "Unnamed Product"}
-            </Text>
-            <Text style={styles.productPrice}>${item.price || 0}</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      keyExtractor={(item) => item.id.toString()}
-      ListEmptyComponent={
-        <Text style={styles.errorText}>No products available.</Text>
-      }
-    />
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={products}
+        ListHeaderComponent={renderShopDetails}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.productItem}
+            onPress={() => goToProductDetail(item)}
+          >
+            <Image
+              source={{
+                uri: item.images?.[0]?.url || "https://via.placeholder.com/150",
+              }}
+              style={styles.productImage}
+            />
+            <View style={styles.productInfo}>
+              <Text style={styles.productName}>
+                {item.name || "Unnamed Product"}
+              </Text>
+              <Text style={styles.productPrice}>${item.price || 0}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
+          <Text style={styles.errorText}>No products available.</Text>
+        }
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    marginStart: Platform.OS === "ios" ? 0 : 1,
+    backgroundColor: "#f2f2f2",
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: Platform.OS === "ios" ? 20 : 15,
-    paddingHorizontal: Platform.OS === "ios" ? 15 : 10,
+    paddingVertical: Platform.OS === "ios" ? 15 : 9,
+    paddingHorizontal: 10,
     backgroundColor: "#00cc69",
-    marginTop: Platform.OS === "ios" ? 38 : 30,
-    width: "100%",
     shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
-
   backButton: {
     padding: 10,
-    marginLeft: Platform.OS === "ios" ? 10 : 0,
-    flexDirection: "row",
-    alignItems: "center",
   },
-
   shopName: {
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "bold",
-    flex: 1, // Giúp tên cửa hàng nằm giữa
     textAlign: "center",
-    marginLeft: Platform.OS === "ios" ? 10 : 0,
-    marginRight: Platform.OS === "ios" ? 10 : 0,
+    flex: 1,
   },
-
   cartButton: {
-    flexDirection: "row", // Sắp xếp icon và văn bản cạnh nhau
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
-    marginRight: Platform.OS === "ios" ? 1 : 0,
     position: "relative",
+    padding: 10,
   },
-
   cartItemCount: {
     position: "absolute",
-    top: -8, // Điều chỉnh vị trí phía trên icon giỏ hàng
-    right: -8, // Điều chỉnh vị trí bên phải icon giỏ hàng
+    top: -5,
+    right: -5,
     backgroundColor: "red",
     color: "#fff",
     borderRadius: 10,
@@ -298,97 +257,74 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
-    minWidth: 20, // Đảm bảo độ rộng tối thiểu để hiển thị số
-    minHeight: 20, // Đảm bảo độ cao tối thiểu để trông cân đối
+    minWidth: 20,
+    minHeight: 20,
   },
-
   shopImage: {
-    width: width,
-    height: 200,
+    width: "100%",
+    height: 300,
     resizeMode: "cover",
-    marginTop: 5,
   },
   productDescriptionContainer: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: "#f8f8f8",
-    marginTop: 2,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderColor: "#e0e0e0",
   },
   productName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 5,
+    color: "#333",
   },
   productDetailsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 5,
+    marginTop: 5,
   },
   productDetailsText: {
-    marginLeft: 10,
+    marginLeft: 9,
     fontSize: 16,
     color: "#7f8c8d",
-  },
-  productsSection: {
-    paddingHorizontal: 15,
-    marginTop: 20,
   },
   productItem: {
     flexDirection: "row",
     marginBottom: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderRadius: 10,
-    padding: 10,
+    padding: 15,
+    marginHorizontal: 10,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 5,
+    elevation: 3,
   },
   productImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: 90,
+    height: 90,
+    borderRadius: 10,
+    marginRight: 15,
   },
   productInfo: {
     flex: 1,
-    marginLeft: 10,
     justifyContent: "center",
   },
   productPrice: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "red",
+    color: "#e74c3c",
   },
   errorText: {
     color: "red",
     textAlign: "center",
     marginTop: 20,
+    fontSize: 16,
   },
-  buttonContainer: {
-    borderRadius: 25,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: Platform.OS === "ios" ? 60 : 1,
-    backgroundColor: "#fff", // hoặc "transparent" nếu muốn bỏ nền
+  feedbackButton: {
+    marginLeft: 10,
   },
-  iconTextContainer: {
-    flexDirection: "column", // Đặt icon nằm trên văn bản
-    alignItems: "center", // Căn giữa cả icon và văn bản theo chiều ngang
-    justifyContent: "center", // Căn giữa theo chiều dọc
-    paddingVertical: 1, // Thêm padding dọc nếu cần
-  },
-
-  icon: {
-    width: 20,
-    height: 20,
-    marginRight: 1,
-  },
-  buttonText: {
+  feedbackButtonText: {
+    color: "#FFB90F",
     fontSize: 14,
-    color: "#fff", // Màu chữ trắng để tương phản với nền
-    fontWeight: "bold",
   },
 });
