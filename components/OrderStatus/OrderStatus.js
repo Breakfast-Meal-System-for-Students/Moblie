@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons"; // Icon for back button
 
 export default function OrderStatus() {
   const [orders, setOrders] = useState([]);
@@ -24,7 +24,7 @@ export default function OrderStatus() {
   const [search, setSearch] = useState("");
   const [isDesc, setIsDesc] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Navigation hook
 
   const statusLabels = [
     { id: 1, label: "Draft", value: "DRAFT" },
@@ -63,7 +63,7 @@ export default function OrderStatus() {
 
       const data = await response.json();
       if (data.isSuccess) {
-        setOrders(data.data);
+        setOrders(data.data.data);
         setIsLastPage(data.data.isLastPage);
       } else {
         console.error("Error fetching orders:", data.messages);
@@ -160,6 +160,17 @@ export default function OrderStatus() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header with Back Button */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Order</Text>
+      </View>
+
       <FlatList
         horizontal
         data={statusLabels}
@@ -190,40 +201,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingHorizontal: 15,
     paddingTop: 10,
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 20,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
     backgroundColor: "#00cc69",
-    marginTop: Platform.OS === "ios" ? 44 : 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    width: "100%", // Full width
   },
   backButton: {
     padding: 5,
   },
   headerText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    color: "#fff",
+    marginLeft: 15,
   },
   horizontalScroll: {
     marginVertical: 10,
     paddingHorizontal: 10,
-    height: 40, // Giảm chiều cao
-    maxHeight: 50, // Đặt giới hạn chiều cao nếu cần
+    height: 40,
+    maxHeight: 50,
+    width: "100%", // Full width for the scroll area
   },
-
   tabButton: {
-    paddingVertical: 12, // Increased padding for a better touch area
+    paddingVertical: 12,
     paddingHorizontal: 20,
     backgroundColor: "#f0f0f0",
     alignItems: "center",
-    marginHorizontal: 8, // Adjusted spacing between the tabs
     borderRadius: 10,
+    marginRight: 8,
   },
   activeTab: {
     backgroundColor: "#00cc69",
@@ -234,7 +250,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tabText: {
-    fontSize: 19,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
   },
@@ -242,13 +258,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#fff",
     padding: 15,
-    marginVertical: 12,
+    marginBottom: 12,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: "100%", // Ensure the order card takes full width
   },
   shopImage: {
     width: 80,
