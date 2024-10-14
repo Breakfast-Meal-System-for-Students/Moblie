@@ -28,7 +28,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
+  const [shopId1, setShop1] = useState(null);
   const addToCart = async () => {
     const requestBody = {
       cartId: null,
@@ -42,7 +42,7 @@ export default function ProductDetailScreen({ route, navigation }) {
       const storedShopId = await AsyncStorage.getItem("shopId");
       const token = await AsyncStorage.getItem("token");
       const response = await fetch(
-        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${storedShopId}`,
+        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${shopId1}`,
         {
           method: "POST",
           headers: {
@@ -83,6 +83,7 @@ export default function ProductDetailScreen({ route, navigation }) {
         const data = await response.json();
         if (data.isSuccess) {
           setProduct(data.data);
+          setShop1(data.data.shopId);
         } else {
           console.error("Error fetching product details:", data.messages);
         }
