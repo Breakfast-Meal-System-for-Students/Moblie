@@ -114,9 +114,7 @@ const CartScreen = () => {
     <View style={styles.rowFront}>
       <Image
         source={{
-          uri:
-            data.item.img ||
-            "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
+          uri: data.item.images[0].url || "https://via.placeholder.com/150",
         }}
         style={styles.productImage}
       />
@@ -152,6 +150,39 @@ const CartScreen = () => {
       </TouchableOpacity>
     </View>
   );
+
+  const placeOrder = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await axios.post(
+        `https://bms-fs-api.azurewebsites.net/api/Order/PlaceOrder`,
+        {
+          items: listData,
+          totalPrice: totalPrice,
+        },
+        {
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        // Navigate to OrderStatus and pass the order details
+        navigation.navigate("OrderStatus", {
+          orderId: response.data.data.orderId, // Assuming the response contains orderId
+          totalPrice: totalPrice,
+          items: listData,
+        });
+      } else {
+        Alert.alert("Error", "Failed to place order.");
+      }
+    } catch (error) {
+      console.error("Place order error:", error);
+      Alert.alert("Error", "An error occurred while placing the order.");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -200,6 +231,11 @@ const CartScreen = () => {
             color="#4CAF50"
           />
           <Text style={styles.successTitle}>Order successful!</Text>
+          <TouchableOpacity
+            onPress={() => setPaymentSuccessModalVisible(false)}
+          >
+            <Text style={styles.closeButton}>Close</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
@@ -207,12 +243,14 @@ const CartScreen = () => {
         <View style={styles.failModalContainer}>
           <Ionicons name="close-circle-outline" size={100} color="#DD2C00" />
           <Text style={styles.failTitle}>Payment Failed!</Text>
+          <TouchableOpacity onPress={() => setPaymentFailModalVisible(false)}>
+            <Text style={styles.closeButton}>Close</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F4F6F9",

@@ -34,10 +34,7 @@ export default function Register() {
       return;
     }
 
-    // Danh sách email của shop không được phép đăng nhập
-    const shopEmails = ["shop@gmail.com", "shop1@gmail.com"]; // Thay thế bằng danh sách email thực tế
-
-    // Kiểm tra xem email có phải là email của shop không
+    const shopEmails = ["shop@gmail.com", "shop1@gmail.com"];
     if (shopEmails.includes(email)) {
       Alert.alert("Error", "This email is not allowed to log in.");
       return;
@@ -61,7 +58,11 @@ export default function Register() {
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);
-        navigation.navigate("Home");
+        // Reset the navigation stack to prevent going back to the login screen
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" }], // Navigate to the Home screen
+        });
       } else {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }

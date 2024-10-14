@@ -63,7 +63,7 @@ export default function OrderStatus() {
 
       const data = await response.json();
       if (data.isSuccess) {
-        setOrders(data.data);
+        setOrders(data.data.data);
         setIsLastPage(data.data.isLastPage);
       } else {
         console.error("Error fetching orders:", data.messages);

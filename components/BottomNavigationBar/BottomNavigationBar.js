@@ -89,7 +89,7 @@ export default function BottomNavigationBar() {
             activeTab === "MapScreen" && styles.labelActive,
           ]}
         >
-          MapScreen
+          Map
         </Text>
       </TouchableOpacity>
 
