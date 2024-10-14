@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -26,6 +27,8 @@ const CartScreen = () => {
   const [isPaymentFailModalVisible, setPaymentFailModalVisible] =
     useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     const fetchCartData = async () => {
@@ -63,7 +66,36 @@ const CartScreen = () => {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    setTotalPrice(total);
+    setTotalPrice(total - discount);
+  };
+  const applyVoucher = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Voucher/ApplyVoucher",
+        {
+          voucherCode: voucherCode,
+          totalPrice: totalPrice,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        const discountAmount = response.data.data.discountAmount;
+        setDiscount(discountAmount);
+        calculateTotal(listData); // Recalculate the total price
+        Alert.alert("Success", `Voucher applied! Discount: $${discountAmount}`);
+      } else {
+        Alert.alert("Error", "Invalid voucher code.");
+      }
+    } catch (error) {
+      console.error("Voucher error:", error);
+      Alert.alert("Error", "An error occurred while applying the voucher.");
+    }
   };
 
   const increaseQuantity = (index) => {
@@ -213,7 +245,18 @@ const CartScreen = () => {
         rightOpenValue={-75}
         style={styles.listView}
       />
-
+      {/* Voucher Input */}
+      <View style={styles.voucherContainer}>
+        <TextInput
+          style={styles.voucherInput}
+          placeholder="Enter Voucher Code"
+          value={voucherCode}
+          onChangeText={setVoucherCode}
+        />
+        <TouchableOpacity style={styles.applyButton} onPress={applyVoucher}>
+          <Text style={styles.applyButtonText}>Apply Voucher</Text>
+        </TouchableOpacity>
+      </View>
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
@@ -374,11 +417,35 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
   },
+  voucherContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginVertical: 15,
+  },
+  voucherInput: {
+    flex: 1,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginRight: 10,
+  },
+  applyButton: {
+    backgroundColor: "#00cc69",
+    padding: 10,
+    borderRadius: 5,
+  },
+  applyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 1,
     borderTopWidth: 1,
     borderColor: "#ddd",
     paddingTop: 10,
@@ -390,10 +457,10 @@ const styles = StyleSheet.create({
     color: "red",
   },
   orderButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 30,
     backgroundColor: "#00cc69",
-    borderRadius: 30,
+    borderRadius: 10,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
