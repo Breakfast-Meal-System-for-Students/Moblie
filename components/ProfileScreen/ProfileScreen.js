@@ -8,6 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
+  Button,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -110,7 +111,7 @@ export default function ProfileScreen() {
   };
 
   const handleGoToCart = () => {
-    navigation.navigate("Checkout"); // Navigate to CartScreen
+    navigation.navigate("CartMain"); // Navigate to CartMain
   };
 
   return (
