@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Dimensions,
   TextInput,
+
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -32,7 +33,8 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
-  const [note, setNote] = useState(""); // State for the note
+
+  const [note, setNote] = useState(""); // State for the note input
 
   const addToCart = async () => {
     const requestBody = {
@@ -40,11 +42,11 @@ export default function ProductDetailScreen({ route, navigation }) {
       productId: product.id,
       quantity: quantity,
       price: product.price,
-      note: note, // Include the note in the request body
+      note: note, // Use the note from the input
     };
 
     try {
-      const storedShopId = await AsyncStorage.getItem("shopId");
+    //  const storedShopId = await AsyncStorage.getItem("shopId");
       const token = await AsyncStorage.getItem("token");
       const response = await fetch(
         `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${shopId1}`,
@@ -169,6 +171,15 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productDescription}>
           {product?.description || "No description available."}
         </Text>
+
+        {/* Note Input */}
+        <TextInput
+          style={styles.noteInput}
+          placeholder="Add a note..."
+          value={note}
+          onChangeText={setNote}
+        />
+
       </View>
 
       <View style={styles.addButtonPriceContainer}>
@@ -381,5 +392,6 @@ const styles = StyleSheet.create({
 
   noteInputFocused: {
     borderColor: "#00cc69", // Change border color when focused
+
   },
 });

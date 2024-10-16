@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function FeedbackScreen({ route }) {
   const { shopId } = route.params || 0;
   const [feedbackList, setFeedbackList] = useState([]);
@@ -66,6 +67,9 @@ export default function FeedbackScreen({ route }) {
           {new Date(item.createDate).toLocaleDateString()}
         </Text>
       </View>
+      {item.userPic && (
+        <Image source={{ uri: item.userPic }} style={styles.shopImage} />
+      )}
     </View>
   );
 
@@ -77,7 +81,12 @@ export default function FeedbackScreen({ route }) {
       onEndReached={loadMoreFeedback}
       onEndReachedThreshold={0.5}
       ListFooterComponent={
-        loading ? <ActivityIndicator size="large" color="#00cc69" /> : null
+        loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#00cc69" />
+            <Text style={styles.loadingText}>Loading more feedback...</Text>
+          </View>
+        ) : null
       }
       ListEmptyComponent={
         !loading ? (
@@ -132,5 +141,13 @@ const styles = StyleSheet.create({
     color: "#555",
     fontSize: 16,
     marginTop: 20,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#555",
   },
 });
