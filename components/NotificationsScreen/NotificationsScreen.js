@@ -1,87 +1,59 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Platform, // Import Platform here
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
-
-const notifications = [
-  {
-    id: "1",
-    icon: "mail-outline",
-    message: "Kathryn sent you a message",
-    time: "2 months ago",
-  },
-  {
-    id: "2",
-    icon: "checkmark-circle-outline",
-    message: "Congratulations! Order Successful",
-    time: "2 months ago",
-    details: "You have successfully ordered a pizza. Enjoy the service!",
-  },
-  {
-    id: "3",
-    icon: "gift-outline",
-    message: "New Services Available!",
-    time: "2 months ago",
-    details:
-      "You can now make multiple orders at once. You can also cancel your order.",
-  },
-  {
-    id: "4",
-    icon: "pricetag-outline",
-    message: "Get 20% Discount for your next order!",
-    time: "2 months ago",
-    details: "For all orderings without requirements",
-  },
-  {
-    id: "5",
-    icon: "restaurant-outline",
-    message: "New Category foods available!",
-    time: "2 months ago",
-    details: "We have added new service. Enjoy our new service!",
-  },
-  {
-    id: "6",
-    icon: "card-outline",
-    message: "Credit card successfully connected!",
-    time: "2 months ago",
-    details: "Credit card has been successfully linked.",
-  },
-  {
-    id: "7",
-    icon: "mail-outline",
-    message: "Julia sent you a message",
-    time: "2 months ago",
-  },
-  {
-    id: "8",
-    icon: "mail-outline",
-    message: "Joanna sent you a message",
-    time: "2 months ago",
-  },
-  {
-    id: "9",
-    icon: "mail-outline",
-    message: "Lilia sent you a message",
-    time: "2 months ago",
-  },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation(); // Lấy navigation để điều hướng
+  const navigation = useNavigation();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const response = await fetch(
+          "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser",
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.isSuccess) {
+          setNotifications(data.data.data);
+        } else {
+          setError("Failed to load notifications");
+        }
+      } catch (error) {
+        setError("An error occurred while fetching notifications");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.notificationItem}>
       <View style={styles.iconContainer}>
-        <Ionicons name={item.icon} size={24} color="black" />
+        <Ionicons name="mail-outline" size={24} color="black" />
       </View>
       <View style={styles.notificationTextContainer}>
         <Text style={styles.notificationMessage}>{item.message}</Text>
@@ -93,9 +65,24 @@ export default function NotificationsScreen() {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00cc69" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Thêm Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -124,12 +111,26 @@ const styles = StyleSheet.create({
     padding: 1,
     backgroundColor: "#fff",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
+  },
   headerContainer: {
     flexDirection: "row",
-    alignItems: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#00cc69",
-    paddingTop: Platform.OS === "ios" ? 50 : 12, // Increased padding for iOS devices
+    paddingTop: Platform.OS === "ios" ? 50 : 12,
   },
   backButton: {
     padding: 8,
