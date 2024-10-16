@@ -49,12 +49,9 @@ function RestaurantCard({ item }) {
   );
 }
 
-function FeaturedRow({ title, description, restaurants }) {
+function FeaturedRow({ restaurants }) {
   return (
     <View style={styles.featuredRowContainer}>
-      <View style={styles.featuredHeaderContainer}>
-        <Text style={styles.seeAllText}>{title}</Text>
-      </View>
       <FlatList
         data={restaurants}
         horizontal
@@ -216,7 +213,11 @@ export default function HomeScreen() {
           {/* Display full name */}
         </View>
         <View style={styles.iconContainer}>
-          <Ionicons name="notifications-outline" size={24} color="black" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notifications")}
+          >
+            <Ionicons name="notifications-outline" size={24} color="black" />
+          </TouchableOpacity>
           <Ionicons name="heart-outline" size={24} color="black" />
         </View>
       </View>
@@ -254,6 +255,7 @@ export default function HomeScreen() {
         />
 
         {/* Categories */}
+        <Text style={styles.categories}>Categories</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -280,8 +282,9 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Featured Rows */}
+        <Text style={styles.recommended}>Recommended</Text>
         {featured.map((item) => (
-          <View key={item.id} style={{ marginTop: 20 }}>
+          <View key={item.id} style={{ marginTop: 10 }}>
             <FeaturedRow
               title={item.title}
               description={item.description}
@@ -352,10 +355,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   featuredImage: {
-    width: width - 20,
-    height: 190,
+    width: width - 30,
+    height: 200,
     borderRadius: 20,
-    marginHorizontal: 10,
+    marginHorizontal: 5,
   },
   imageOverlay: {
     position: "absolute",
@@ -415,7 +418,7 @@ const styles = StyleSheet.create({
   restaurantRatingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
+    marginTop: 1,
   },
   starIcon: {
     color: "#ffcc00",
@@ -433,7 +436,7 @@ const styles = StyleSheet.create({
   locationInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
+    marginTop: 1,
   },
   locationText: {
     fontSize: 12,
@@ -442,7 +445,7 @@ const styles = StyleSheet.create({
   },
   featuredRowContainer: {
     marginVertical: 1,
-    paddingHorizontal: 20, // Increased padding for iOS
+    paddingHorizontal: 20,
   },
   featuredHeaderContainer: {
     paddingHorizontal: 10,
@@ -454,5 +457,23 @@ const styles = StyleSheet.create({
   },
   featuredContentContainer: {
     paddingHorizontal: 10,
+  },
+  categories: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "left",
+    padding: 10,
+    borderRadius: 1,
+    marginVertical: 1,
+  },
+  recommended: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "left",
+    padding: 10,
+    borderRadius: 1,
+    marginVertical: 1,
   },
 });

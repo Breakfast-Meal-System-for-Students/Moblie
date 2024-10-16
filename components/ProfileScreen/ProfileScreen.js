@@ -169,11 +169,6 @@ export default function ProfileScreen() {
         />
 
         <OptionItem
-          icon="card-outline"
-          title="Payment"
-          onPress={() => navigation.navigate("Payment")}
-        />
-        <OptionItem
           icon="lock-closed-outline"
           title="Security"
           onPress={() => navigation.navigate("Security")}

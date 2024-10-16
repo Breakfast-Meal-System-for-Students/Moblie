@@ -13,7 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons"; // Icon for back button
-
+import Icon from "react-native-vector-icons/FontAwesome";
 export default function OrderStatus() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,15 +97,27 @@ export default function OrderStatus() {
     <View style={styles.orderCard}>
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
       <View style={styles.orderInfo}>
-        <Text style={styles.orderTitle}>Order ID: {item.id}</Text>
-        <Text>Status: {item.status}</Text>
-        <Text>Total Price: ${item.totalPrice.toFixed(2)}</Text>
-        <Text>Shop Name: {item.shopName}</Text>
-        <Text>
-          Customer: {item.firstName} {item.lastName}
+        <Text style={styles.orderTitle}>
+          <Icon name="file-text" size={20} color="#000" /> Order ID: {item.id}
         </Text>
         <Text>
-          Order Date:{" "}
+          <Icon name="info-circle" size={20} color="#000" /> Status:{" "}
+          {item.status}
+        </Text>
+        <Text>
+          <Icon name="dollar" size={20} color="#000" /> Total Price: $
+          {item.totalPrice.toFixed(2)}
+        </Text>
+        <Text>
+          <Icon name="shopping-cart" size={20} color="#000" /> Shop Name:{" "}
+          {item.shopName}
+        </Text>
+        <Text>
+          <Icon name="user" size={20} color="#000" /> Customer: {item.firstName}{" "}
+          {item.lastName}
+        </Text>
+        <Text>
+          <Icon name="calendar" size={20} color="#000" /> Order Date:{" "}
           {item.orderDate
             ? new Date(item.orderDate).toLocaleDateString()
             : "N/A"}
@@ -124,7 +136,7 @@ export default function OrderStatus() {
               <TouchableOpacity
                 key={`${orderItem.id}-${orderItem.productId}`}
                 style={styles.productItem}
-                onPress={() => goToProductDetail(orderItem.productId)}
+                onPress={() => orderItem.productId}
               >
                 <Image
                   source={{ uri: orderItem.productImages[0]?.url }}
@@ -211,11 +223,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: "#00cc69",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 8, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 5,
-    width: "100%", // Full width
+    width: "100%",
   },
   backButton: {
     padding: 5,
@@ -265,28 +277,31 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    width: "100%", // Ensure the order card takes full width
+    width: "100%",
   },
   shopImage: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 10,
   },
   orderInfo: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 10,
   },
   orderTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
+  },
+  title: {
+    marginBottom: 10,
   },
   cancelButton: {
     backgroundColor: "#ff4d4d",
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 17,
     borderRadius: 5,
-    marginTop: 12,
+    marginTop: 1,
   },
   reorderButton: {
     backgroundColor: "#00cc69",
@@ -318,8 +333,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   productImage: {
-    width: 50,
-    height: 50,
+    width: 66,
+    height: 69,
     borderRadius: 5,
   },
   productDetails: {
