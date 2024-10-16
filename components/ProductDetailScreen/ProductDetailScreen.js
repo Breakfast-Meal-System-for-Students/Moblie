@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   Dimensions,
+  TextInput, // Import TextInput
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -21,7 +22,7 @@ import { Platform } from "react-native";
 const { width } = Dimensions.get("window");
 
 export default function ProductDetailScreen({ route, navigation }) {
-  const { cart = {}, setCart = () => {} } = route.params || {}; // Đảm bảo giá trị mặc định cho `cart` và `setCart`
+  const { cart = {}, setCart = () => {} } = route.params || {};
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState("");
   const { productId } = route.params || {};
@@ -29,17 +30,19 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
+  const [note, setNote] = useState(""); // State for the note input
+
   const addToCart = async () => {
     const requestBody = {
       cartId: null,
       productId: product.id,
       quantity: quantity,
       price: product.price,
-      note: "string",
+      note: note, // Use the note from the input
     };
 
     try {
-      const storedShopId = await AsyncStorage.getItem("shopId");
+    //  const storedShopId = await AsyncStorage.getItem("shopId");
       const token = await AsyncStorage.getItem("token");
       const response = await fetch(
         `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${shopId1}`,
@@ -164,6 +167,15 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productDescription}>
           {product?.description || "No description available."}
         </Text>
+
+        {/* Note Input */}
+        <TextInput
+          style={styles.noteInput}
+          placeholder="Add a note..."
+          value={note}
+          onChangeText={setNote}
+        />
+
       </View>
 
       <View style={styles.addButtonPriceContainer}>
@@ -334,5 +346,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  noteInput: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginVertical: 10,
+    width: "100%",
   },
 });

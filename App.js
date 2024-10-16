@@ -27,7 +27,7 @@ import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
-
+import CartMain from "./components/CartMain/CartMain";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -146,6 +146,11 @@ function App() {
         <Stack.Screen
           name="Security"
           component={Security}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="CartMain"
+          component={CartMain}
           options={{ headerShown: false }}
         />
         <Stack.Screen
