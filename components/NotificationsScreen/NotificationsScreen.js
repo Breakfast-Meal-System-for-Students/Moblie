@@ -53,14 +53,16 @@ export default function NotificationsScreen() {
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.notificationItem}>
       <View style={styles.iconContainer}>
-        <Ionicons name="mail-outline" size={24} color="black" />
+        <Ionicons name="mail-outline" size={24} color="white" />
       </View>
       <View style={styles.notificationTextContainer}>
-        <Text style={styles.notificationMessage}>{item.message}</Text>
-        {item.details && (
-          <Text style={styles.notificationDetails}>{item.details}</Text>
-        )}
-        <Text style={styles.notificationTime}>{item.time}</Text>
+        <Text style={styles.notificationMessage}>{item.object}</Text>
+        <Text style={styles.notificationDetails}>
+          Order ID: {item.orderId} | Shop ID: {item.shopId}
+        </Text>
+        <Text style={styles.notificationTime}>
+          Status: {item.status} | Title: {item.title}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -91,12 +93,13 @@ export default function NotificationsScreen() {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Notifications</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <FlatList
         data={notifications}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.orderId}
       />
       <TouchableOpacity style={styles.clearButton}>
         <Text style={styles.clearText}>Clear All</Text>
@@ -108,8 +111,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
   },
   loadingContainer: {
     flex: 1,
@@ -131,6 +133,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#00cc69",
     paddingTop: Platform.OS === "ios" ? 50 : 12,
+    paddingBottom: 10,
+    paddingHorizontal: 16,
   },
   backButton: {
     padding: 8,
@@ -139,22 +143,28 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    flex: 1,
     textAlign: "center",
+    flex: 1,
   },
   notificationItem: {
     flexDirection: "row",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    marginVertical: 4,
+    marginHorizontal: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   iconContainer: {
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#00cc69",
+    backgroundColor: "#00cc69",
     borderRadius: 20,
     marginRight: 16,
   },
@@ -164,10 +174,11 @@ const styles = StyleSheet.create({
   notificationMessage: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#333",
   },
   notificationDetails: {
     fontSize: 14,
-    color: "#555",
+    color: "#666",
     marginTop: 4,
   },
   notificationTime: {
@@ -176,11 +187,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   clearButton: {
-    padding: 12,
+    padding: 16,
     alignItems: "center",
+    backgroundColor: "#00cc69",
+    margin: 16,
+    borderRadius: 10,
   },
   clearText: {
-    color: "#1E90FF",
+    color: "#fff",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });

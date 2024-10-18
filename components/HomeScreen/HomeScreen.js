@@ -156,6 +156,7 @@ export default function HomeScreen() {
             id: item.id,
             description: item.description,
             image: { uri: item.image || "default_image_url" },
+            title: item.name,
             restaurants: [
               {
                 id: item.id,
@@ -169,7 +170,18 @@ export default function HomeScreen() {
               },
             ],
           }));
-          setFeatured(formattedData);
+
+          // Prepend the custom image as the first item
+          const firstImage = {
+            id: "custom_image",
+            image: {
+              uri: "https://i.pinimg.com/736x/7d/8e/f1/7d8ef10c148ee4166d647e8a7ca19c06.jpg",
+            },
+
+            restaurants: [],
+          };
+
+          setFeatured([firstImage, ...formattedData]);
         } else {
           console.error("Error fetching featured data:", data.messages);
         }
@@ -202,9 +214,12 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: userProfile.avatar }} // Use avatar from user profile
+          source={{
+            uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
+          }}
           style={styles.profileImage}
         />
+
         <View>
           <Text style={styles.greetingText}>Good Morning 👋</Text>
           <Text
@@ -226,7 +241,11 @@ export default function HomeScreen() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color="#888" />
-          <TextInput placeholder="Search" style={styles.searchInput} />
+          <TextInput
+            placeholder="Search"
+            style={styles.searchInput}
+            onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
+          />
           <TouchableOpacity style={styles.filterButton}>
             <Ionicons name="options-outline" size={20} color="#fff" />
           </TouchableOpacity>

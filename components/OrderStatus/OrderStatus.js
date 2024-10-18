@@ -241,9 +241,9 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     marginVertical: 10,
     paddingHorizontal: 10,
-    height: 40,
+    height: 50,
     maxHeight: 50,
-    width: "100%", // Full width for the scroll area
+    width: "100%",
   },
   tabButton: {
     paddingVertical: 12,
@@ -262,9 +262,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#808080",
   },
   orderCard: {
     flexDirection: "row",

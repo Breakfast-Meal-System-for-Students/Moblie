@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import {
   View,
   Text,
@@ -9,20 +9,37 @@ import {
   ActivityIndicator,
   Dimensions,
   TextInput,
-
+  Alert,
+  Platform,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faArrowLeft,
-  faShoppingCart,
-  faPlus,
-  faMinus,
-  faStickyNote, // Import the note icon
+  faShoppingBag,
+  faPlusCircle,
+  faMinusCircle,
+  faStickyNote,
+  faClipboardCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
 
 const { width } = Dimensions.get("window");
+
+// Separate NoteInput component
+const NoteInput = memo(({ note, setNote }) => {
+  return (
+    <View style={styles.noteContainer}>
+      <FontAwesomeIcon icon={faStickyNote} size={29} color="#00cc69" />
+      <TextInput
+        style={styles.noteInput}
+        placeholder="Thêm ghi chú (tuỳ chọn)"
+        value={note}
+        onChangeText={setNote}
+        placeholderTextColor="#aaa"
+      />
+    </View>
+  );
+});
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { cart = {}, setCart = () => {} } = route.params || {};
@@ -33,7 +50,6 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
-
   const [note, setNote] = useState(""); // State for the note input
 
   const addToCart = async () => {
@@ -46,7 +62,6 @@ export default function ProductDetailScreen({ route, navigation }) {
     };
 
     try {
-    //  const storedShopId = await AsyncStorage.getItem("shopId");
       const token = await AsyncStorage.getItem("token");
       const response = await fetch(
         `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${shopId1}`,
@@ -122,7 +137,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           style={styles.cartButton}
           onPress={() => navigation.navigate("Checkout", { cart })}
         >
-          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <FontAwesomeIcon icon={faShoppingBag} size={24} color="#fff" />
           <Text style={styles.cartItemCount}>
             {cart && Object.keys(cart).length > 0
               ? Object.keys(cart).reduce(
@@ -171,15 +186,6 @@ export default function ProductDetailScreen({ route, navigation }) {
         <Text style={styles.productDescription}>
           {product?.description || "No description available."}
         </Text>
-
-        {/* Note Input */}
-        <TextInput
-          style={styles.noteInput}
-          placeholder="Add a note..."
-          value={note}
-          onChangeText={setNote}
-        />
-
       </View>
 
       <View style={styles.addButtonPriceContainer}>
@@ -190,7 +196,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             onPress={() => setQuantity(Math.max(1, quantity - 1))}
             style={styles.addButton}
           >
-            <FontAwesomeIcon icon={faMinus} size={16} color="#fff" />
+            <FontAwesomeIcon icon={faMinusCircle} size={20} color="#00cc69" />
           </TouchableOpacity>
 
           <Text style={styles.quantityText}>{quantity}</Text>
@@ -199,43 +205,33 @@ export default function ProductDetailScreen({ route, navigation }) {
             onPress={() => setQuantity(quantity + 1)}
             style={styles.addButton}
           >
-            <FontAwesomeIcon icon={faPlus} size={16} color="#fff" />
+            <FontAwesomeIcon icon={faPlusCircle} size={20} color="#00cc69" />
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Note Input Section */}
-      <View style={styles.noteContainer}>
-        <FontAwesomeIcon icon={faStickyNote} size={29} color="#00cc69" />
-        <TextInput
-          style={styles.noteInput}
-          placeholder="Thêm ghi chú (tuỳ chọn)"
-          value={note}
-          onChangeText={setNote}
-          placeholderTextColor="#aaa"
-        />
-      </View>
-
+      {/* Note input */}
+      <NoteInput note={note} setNote={setNote} />
       <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
+        <FontAwesomeIcon
+          icon={faClipboardCheck}
+          size={29}
+          color="#fff"
+          style={{ marginRight: 10 }}
+        />
         <Text style={styles.addToCartButtonText}>Add to Cart</Text>
       </TouchableOpacity>
-
-      {notification !== "" && (
-        <Text style={styles.notificationText}>{notification}</Text>
-      )}
     </View>
   );
 
   return (
     <FlatList
-      data={[]} // Empty data since comments are removed
+      data={[]} // Empty data
       keyExtractor={(item) => item.id.toString()}
       ListHeaderComponent={renderHeader}
-      renderItem={null} // No renderItem since comments are removed
+      renderItem={null} // No renderItem needed
     />
   );
 }
-
 const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
@@ -243,15 +239,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: "#00cc69",
+    backgroundColor: "#00cc69", // Giữ màu xanh lá cho thanh header
     marginTop: Platform.OS === "ios" ? 59 : 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   backButton: {
     padding: 10,
   },
   shopName: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
   },
   cartButton: {
@@ -272,12 +273,19 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     alignItems: "center",
+    backgroundColor: "#fff", // Nền trắng cho toàn bộ giao diện
   },
   productImageLarge: {
-    width: width * 1,
-    height: 370,
-    borderRadius: 10,
-    marginBottom: 15,
+    width: width, // Chiếm toàn bộ chiều rộng của màn hình
+    height: 320, // Điều chỉnh chiều cao để cân đối
+    borderRadius: 10, // Bo góc nhẹ hơn để không quá vuông
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 6,
+    backgroundColor: "#fff", // Nền trắng cho hình ảnh sản phẩm lớn
   },
   thumbnailContainer: {
     flexDirection: "row",
@@ -287,7 +295,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: 60,
     height: 60,
-    borderRadius: 5,
+    borderRadius: 10,
     marginHorizontal: 5,
     borderWidth: 1,
     borderColor: "#ddd",
@@ -299,15 +307,16 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 24,
     fontWeight: "bold",
-    marginVertical: 10,
+    marginVertical: 19,
     textAlign: "center",
+    color: "#333",
   },
   productPrice: {
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: "bold",
     color: "red",
-    marginBottom: 10,
-    textAlign: "center",
+    marginBottom: 29,
+    textAlign: "auto",
   },
   productDescription: {
     fontSize: 16,
@@ -322,13 +331,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: "#f8f8f8",
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 9,
   },
   addButton: {
-    backgroundColor: "#00cc69",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    backgroundColor: "#fff", // Màu trắng cho các nút
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 10,
     marginHorizontal: 5,
   },
   quantityText: {
@@ -341,22 +355,37 @@ const styles = StyleSheet.create({
     color: "#00cc69",
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 1,
+    marginTop: 10,
   },
   addButtonPriceContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginBottom: -8,
+    paddingHorizontal: 50,
+    backgroundColor: "#fff", // Set the background color to white
+    paddingVertical: 15, // Add padding to create space around elements
+    borderRadius: 15, // Optional: Add some border-radius for a soft look
+    shadowColor: "#000", // Optional: Add shadow for a slight 3D effect
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
+
   addToCartButton: {
-    backgroundColor: "#00cc69",
+    backgroundColor: "#00cc69", // Nút thêm vào giỏ hàng giữ màu xanh lá
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
-    marginVertical: 2,
-    marginHorizontal: 2,
+    flexDirection: "row",
+    marginVertical: 10,
+    marginHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   addToCartButtonText: {
     color: "#fff",
@@ -367,14 +396,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 1,
-    padding: 5,
-    backgroundColor: "#f9f9f9", // Light background for contrast
-    borderRadius: 10, // Rounded corners for the container
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 3, // Adds shadow for Android
+    elevation: 3,
     marginHorizontal: 2,
   },
 
@@ -382,16 +411,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     marginLeft: 10,
-    paddingVertical: 10, // Increased vertical padding for comfort
-    paddingHorizontal: 15, // Horizontal padding for spacing
-    borderRadius: 10, // Rounded corners for input field
-    borderColor: "#ccc", // Light border color
-    borderWidth: 1, // Border width
-    backgroundColor: "#fff", // White background for input
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    backgroundColor: "#fff",
   },
-
   noteInputFocused: {
-    borderColor: "#00cc69", // Change border color when focused
-
+    borderColor: "#00cc69",
   },
 });

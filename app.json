@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "BMS",
-    "slug": "BMS",
-    "version": "1.0.0",
+    "slug": "StickerSmash",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/LOGO.png",
     "userInterfaceStyle": "light",

@@ -111,7 +111,7 @@ export default function ProfileScreen() {
   };
 
   const handleGoToCart = () => {
-    navigation.navigate("CartMain"); // Navigate to CartMain
+    navigation.navigate("CartMain");
   };
 
   return (
@@ -169,11 +169,11 @@ export default function ProfileScreen() {
           onPress={handleEditProfile}
         />
 
-        <OptionItem
+        {/* <OptionItem
           icon="lock-closed-outline"
           title="Security"
           onPress={() => navigation.navigate("Security")}
-        />
+        /> */}
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
