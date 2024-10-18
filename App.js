@@ -28,6 +28,7 @@ import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
+import Search from "./components/Search/Search";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -148,7 +149,7 @@ function App() {
           component={Security}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="CartMain"
           component={CartMain}
           options={{ headerShown: false }}
@@ -163,6 +164,11 @@ function App() {
           component={Header}
           options={{ headerShown: false }}
         /> */}
+        <Stack.Screen
+          name="Search"
+          component={Search}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

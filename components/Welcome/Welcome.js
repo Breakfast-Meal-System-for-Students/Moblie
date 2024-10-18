@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: "#00cc69",
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     marginTop: 500,
   },
   button: {

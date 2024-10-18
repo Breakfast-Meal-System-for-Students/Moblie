@@ -6,32 +6,42 @@ import {
   ActivityIndicator,
   Image,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faArrowLeft, faStar } from "@fortawesome/free-solid-svg-icons";
+import { ScrollView } from "react-native";
 
 export default function FeedbackScreen({ route }) {
+  const navigation = useNavigation();
   const { shopId } = route.params || 0;
   const [feedbackList, setFeedbackList] = useState([]);
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5); // Customize the number of feedback items per page
   const [loading, setLoading] = useState(false);
   const [isLastPage, setIsLastPage] = useState(false);
+  const [activeRating, setActiveRating] = useState("All");
 
-  // Fetch feedback with pagination
-  const fetchFeedback = async (page = 1) => {
+  const ratings = ["All", 5, 4, 3, 2, 1];
+
+  const fetchFeedback = async (page = 1, rating = activeRating) => {
     setLoading(true);
+    let url = `https://bms-fs-api.azurewebsites.net/api/Feedback/${shopId}?pageIndex=${page}&pageSize=${pageSize}`;
+    if (rating !== "All") {
+      url += `&rating=${rating}`; // Append rating only if it's not "All"
+    }
+
     try {
-      const shopId2 = await AsyncStorage.getItem("shopId");
-      const response = await fetch(
-        `https://bms-fs-api.azurewebsites.net/api/Feedback/${shopId2}?pageIndex=${page}&pageSize=${pageSize}`,
-        {
-          method: "GET",
-          headers: { Accept: "*/*" },
-        }
-      );
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "*/*" },
+      });
       const data = await response.json();
       if (data.isSuccess) {
-        setFeedbackList((prevFeedback) => [...prevFeedback, ...data.data.data]);
+        setFeedbackList(
+          page === 1 ? data.data.data : [...feedbackList, ...data.data.data]
+        );
         setIsLastPage(data.data.isLastPage);
       } else {
         console.error("Error fetching feedback:", data.messages);
@@ -44,10 +54,13 @@ export default function FeedbackScreen({ route }) {
   };
 
   useEffect(() => {
+    fetchFeedback(1); // Always fetch the first page when rating changes
+  }, [activeRating]);
+
+  useEffect(() => {
     fetchFeedback(pageIndex);
   }, [pageIndex]);
 
-  // Load more feedback when reaching the end of the list
   const loadMoreFeedback = () => {
     if (!isLastPage && !loading) {
       setPageIndex(pageIndex + 1);
@@ -68,55 +81,166 @@ export default function FeedbackScreen({ route }) {
         </Text>
       </View>
       {item.userPic && (
-        <Image source={{ uri: item.userPic }} style={styles.shopImage} />
+        <Image source={{ uri: item.userPic }} style={styles.userImage} />
       )}
     </View>
   );
 
+  const RatingButton = ({ rating }) => {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.ratingButton,
+          activeRating === rating ? styles.activeRating : {},
+        ]}
+        onPress={() => {
+          setActiveRating(rating); // Update activeRating to the selected rating
+          setPageIndex(1); // Reset to page 1
+          setFeedbackList([]); // Clear feedback list before fetching new data
+        }}
+      >
+        <FontAwesomeIcon
+          icon={faStar}
+          color={activeRating === rating ? "white" : "black"}
+          size={16}
+        />
+        <Text style={styles.ratingText}>
+          {rating === "All" ? "All" : `${rating} Star`}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <FlatList
-      data={feedbackList}
-      renderItem={renderFeedbackItem}
-      keyExtractor={(item, index) => item.id || index.toString()} // Updated keyExtractor
-      onEndReached={loadMoreFeedback}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={
-        loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#00cc69" />
-            <Text style={styles.loadingText}>Loading more feedback...</Text>
-          </View>
-        ) : null
-      }
-      ListEmptyComponent={
-        !loading ? (
-          <Text style={styles.noFeedbackText}>No feedback available.</Text>
-        ) : null
-      }
-    />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Feedback</Text>
+      </View>
+      <View style={styles.ratingFilter}>
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          {ratings.map((rating) => (
+            <RatingButton key={rating.toString()} rating={rating} />
+          ))}
+        </ScrollView>
+      </View>
+
+      <FlatList
+        data={feedbackList}
+        renderItem={renderFeedbackItem}
+        keyExtractor={(item, index) =>
+          item.id ? `${item.id}-${index}` : index.toString()
+        }
+        onEndReached={loadMoreFeedback}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#00cc69" />
+              <Text style={styles.loadingText}>Loading more feedback...</Text>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !loading ? (
+            <Text style={styles.noFeedbackText}>No feedback available.</Text>
+          ) : null
+        }
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  feedbackItem: {
+  container: {
+    flex: 1,
+    backgroundColor: "#f2f2f2", // Light background to make content stand out
+  },
+  header: {
     flexDirection: "row",
-    padding: 10,
-    marginVertical: 5,
+    padding: 20,
+    alignItems: "center",
+    backgroundColor: "#00cc69",
+    justifyContent: "flex-start",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  headerTitle: {
+    marginLeft: 20,
+    fontSize: 22,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  ratingFilter: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingVertical: 10,
     backgroundColor: "#fff",
-    borderRadius: 8,
     shadowColor: "#000",
     shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 4,
+    marginBottom: 10,
+  },
+  ratingButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginHorizontal: 5,
+    backgroundColor: "#ddd",
+    borderRadius: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+    elevation: 4,
+  },
+  activeRating: {
+    backgroundColor: "#00cc69",
+    borderColor: "#fff",
+    borderWidth: 1,
+  },
+  ratingText: {
+    marginLeft: 8,
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  feedbackItem: {
+    flexDirection: "row",
+    padding: 15,
+    marginVertical: 8,
+    marginHorizontal: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
     elevation: 5,
   },
   shopImage: {
     width: 80,
     height: 80,
-    borderRadius: 8,
+    borderRadius: 10,
     marginRight: 10,
+  },
+  userImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginLeft: 10,
   },
   feedbackContent: {
     flex: 1,
+    justifyContent: "space-between",
   },
   userName: {
     fontSize: 16,
@@ -125,20 +249,22 @@ const styles = StyleSheet.create({
   },
   feedbackDescription: {
     fontSize: 14,
-    color: "#555",
+    color: "#666",
+    marginVertical: 4,
   },
   feedbackRate: {
     fontSize: 14,
     color: "#888",
+    marginTop: 4,
   },
   feedbackDate: {
     fontSize: 12,
-    color: "#888",
+    color: "#aaa",
     marginTop: 5,
   },
   noFeedbackText: {
     textAlign: "center",
-    color: "#555",
+    color: "#888",
     fontSize: 16,
     marginTop: 20,
   },
@@ -149,5 +275,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: "#555",
+    fontSize: 14,
   },
 });

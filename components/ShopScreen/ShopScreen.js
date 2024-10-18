@@ -173,7 +173,7 @@ export default function ShopScreen() {
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
           >
-            <Text style={styles.feedbackButtonText}>(1+ Bình luận)</Text>
+            <Text style={styles.feedbackButtonText}>(10+ Bình luận)</Text>
           </TouchableOpacity>
         </View>
       </View>
