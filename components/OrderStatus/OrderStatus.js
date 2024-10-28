@@ -8,34 +8,23 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons"; // Icon for back button
+import { Ionicons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
+
 export default function OrderStatus() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5);
   const [isLastPage, setIsLastPage] = useState(false);
-  const [status, setStatus] = useState(1); // Default to ORDERED
+  const [status, setStatus] = useState(1);
   const [search, setSearch] = useState("");
   const [isDesc, setIsDesc] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-  const navigation = useNavigation(); // Navigation hook
-
-  const statusLabels = [
-    { id: 1, label: "Draft", value: "DRAFT" },
-    { id: 2, label: "Ordered", value: "ORDERED" },
-    { id: 3, label: "Checking", value: "CHECKING" },
-    { id: 4, label: "Preparing", value: "PREPARING" },
-    { id: 5, label: "Prepared", value: "PREPARED" },
-    { id: 6, label: "Taken Over", value: "TAKENOVER" },
-    { id: 7, label: "Cancelled", value: "CANCEL" },
-    { id: 8, label: "Complete", value: "COMPLETE" },
-  ];
+  const navigation = useNavigation();
 
   const fetchOrders = async (selectedStatus) => {
     try {
@@ -63,7 +52,7 @@ export default function OrderStatus() {
 
       const data = await response.json();
       if (data.isSuccess) {
-        setOrders(data.data.data);
+        setOrders((prevOrders) => [...prevOrders, ...data.data.data]);
         setIsLastPage(data.data.isLastPage);
       } else {
         console.error("Error fetching orders:", data.messages);

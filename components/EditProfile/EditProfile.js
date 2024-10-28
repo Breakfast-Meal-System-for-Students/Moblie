@@ -8,8 +8,11 @@ import {
   Image,
   Alert,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 export default function EditProfile() {
   const navigation = useNavigation();
@@ -19,32 +22,46 @@ export default function EditProfile() {
   const [firstName, setFirstName] = useState(data?.firstName || "");
   const [lastName, setLastName] = useState(data?.lastName || "");
   const [phone, setPhone] = useState(data?.phone || "");
+  const [avatar, setAvatar] = useState(
+    data?.avatar || "https://via.placeholder.com/100"
+  );
 
-  const handleUpdateProfile = async (firstName, lastName, phone) => {
+  const handleUpdateProfile = async () => {
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     formData.append("phone", phone);
 
+    // If there's a new avatar, add it to the formData
+    if (avatar) {
+      const filename = avatar.split("/").pop();
+      const type = `image/${filename.split(".").pop()}`;
+      formData.append("request", { uri: avatar, name: filename, type });
+    }
+
     try {
-      const response = await fetch(
-        "https://bms-fs-api.azurewebsites.net/api/Account",
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.put(
+        "https://bms-fs-api.azurewebsites.net/api/Account/update-avatar",
+        formData,
         {
-          method: "PUT",
           headers: {
-            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-          body: formData,
         }
       );
 
-      if (!response.ok) {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Failed to update profile");
+      if (response.status === 200) {
+        Alert.alert("Success", "Profile updated successfully!");
+        // Pass the updated avatar back to ProfileScreen
+        navigation.navigate("Profile", { updatedAvatar: avatar });
       }
     } catch (error) {
-      throw error;
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to update profile"
+      );
     }
   };
 
@@ -53,19 +70,31 @@ export default function EditProfile() {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
+    await handleUpdateProfile();
+  };
 
-    try {
-      await handleUpdateProfile(firstName, lastName, phone);
-      Alert.alert("Success", "Profile updated successfully!");
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert("Error", error.message || "Failed to update profile");
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAvatar(result.assets[0].uri);
     }
   };
 
   return (
     <View style={styles.outerContainer}>
-      {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -76,19 +105,15 @@ export default function EditProfile() {
         <Text style={styles.headerText}>Edit Profile</Text>
       </View>
 
-      {/* Main Card Container */}
       <View style={styles.container}>
-        {/* Profile Picture */}
         <View style={styles.profileContainer}>
-          <Image
-            source={{ uri: data?.avatar || "https://via.placeholder.com/100" }}
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={pickImage}>
+            <Image source={{ uri: avatar }} style={styles.profileImage} />
+          </TouchableOpacity>
           <Text style={styles.profileName}>{`${firstName} ${lastName}`}</Text>
           <Text style={styles.profileEmail}>youremail@example.com</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>First Name</Text>
           <TextInput
@@ -128,7 +153,7 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     backgroundColor: "#f2f2f2",
-    paddingTop: 40, // Padding for header spacing
+    paddingTop: 40,
   },
   headerContainer: {
     flexDirection: "row",

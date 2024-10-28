@@ -14,6 +14,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Google from "expo-auth-session/providers/google";
+import { AntDesign } from "@expo/vector-icons"; // Import chỉ icon Google
 
 export default function Register() {
   const navigation = useNavigation();
@@ -27,6 +29,34 @@ export default function Register() {
   useEffect(() => {
     setIsFormValid(email.trim() !== "" && password.trim() !== "");
   }, [email, password]);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      handleGoogleLogin(authentication.accessToken);
+    }
+  }, [response]);
+
+  const handleGoogleLogin = async (accessToken) => {
+    try {
+      const userInfoResponse = await axios.get(
+        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
+      );
+
+      const user = userInfoResponse.data;
+      await AsyncStorage.setItem("userToken", accessToken);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to login with Google");
+    }
+  };
 
   const handleRegister = async () => {
     if (!isFormValid) {
@@ -57,17 +87,14 @@ export default function Register() {
 
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
-        console.log(response.data.data.token);
-        // Reset the navigation stack to prevent going back to the login screen
         navigation.reset({
           index: 0,
-          routes: [{ name: "Home" }], // Navigate to the Home screen
+          routes: [{ name: "Home" }],
         });
       } else {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }
     } catch (error) {
-      console.error("Login error:", error);
       Alert.alert("Error", "An error occurred during login. Please try again.");
     }
   };
@@ -136,6 +163,22 @@ export default function Register() {
             </TouchableOpacity>
           </View>
 
+          <Pressable style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Login</Text>
+          </Pressable>
+
+          <Text style={styles.orText}> Or sign in with </Text>
+
+          {/* Nút đăng nhập bằng Google */}
+          <View style={styles.socialLoginContainer}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => promptAsync()}
+              disabled={!request}
+            >
+              <AntDesign name="google" size={24} color="red" />
+            </TouchableOpacity>
+          </View>
           <View style={styles.policyContainer}>
             <TouchableOpacity
               onPress={() => navigation.navigate("ForgotPassword")}
@@ -145,11 +188,6 @@ export default function Register() {
               </Text>
             </TouchableOpacity>
           </View>
-
-          <Pressable style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Login</Text>
-          </Pressable>
-
           <TouchableOpacity onPress={() => navigation.navigate("Register")}>
             <Text style={styles.signInText}>
               Don’t have an account? Sign Up
@@ -259,5 +297,28 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     marginTop: 20,
+  },
+  orText: {
+    textAlign: "center",
+    color: "#fff",
+    marginVertical: 10,
+  },
+  socialLoginContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  socialButton: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
 });
