@@ -6,6 +6,7 @@ import LoginScreen from "./components/LogScreen/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen/RegisterScreen";
 import ForgotPasswordScreen from "./components/ForgotPasswordScreen/ForgotPasswordScreen";
 import OTPScreen from "./components/OTPScreen/OTPScreen";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 import WelcomeScreen from "./components/Welcome/Welcome";
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import ShopScreen from "./components/ShopScreen/ShopScreen";
@@ -58,6 +59,11 @@ function App() {
         <Stack.Screen
           name="OTPScreen"
           component={OTPScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPassword}
           options={{ headerShown: false }}
         />
         <Stack.Screen

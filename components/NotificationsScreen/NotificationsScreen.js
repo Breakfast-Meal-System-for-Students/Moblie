@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
   Platform,
   ActivityIndicator,
 } from "react-native";
@@ -51,17 +52,20 @@ export default function NotificationsScreen() {
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.notificationItem}>
-      <View style={styles.iconContainer}>
-        <Ionicons name="mail-outline" size={24} color="white" />
-      </View>
+    <TouchableOpacity
+      style={[
+        styles.notificationItem,
+        item.status === 1 ? styles.unreadNotification : styles.readNotification,
+      ]}
+    >
+      <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
       <View style={styles.notificationTextContainer}>
         <Text style={styles.notificationMessage}>{item.object}</Text>
         <Text style={styles.notificationDetails}>
-          Order ID: {item.orderId} | Shop ID: {item.shopId}
+          Order ID: {item.orderId} | Shop: {item.shopName}
         </Text>
         <Text style={styles.notificationTime}>
-          Status: {item.status} | Title: {item.title}
+          Status: {item.status === 1 ? "Unread" : "Read"} | Title: {item.title}
         </Text>
       </View>
     </TouchableOpacity>
@@ -151,21 +155,24 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 4,
     marginHorizontal: 10,
-    backgroundColor: "#fff",
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#00cc69",
-    borderRadius: 20,
+  },
+  unreadNotification: {
+    backgroundColor: "#e0f7e8", // Màu nền cho thông báo chưa đọc
+  },
+  readNotification: {
+    backgroundColor: "#ffffff", // Màu nền cho thông báo đã đọc
+  },
+  shopImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginRight: 16,
   },
   notificationTextContainer: {
