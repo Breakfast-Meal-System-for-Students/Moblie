@@ -49,12 +49,9 @@ function RestaurantCard({ item }) {
   );
 }
 
-function FeaturedRow({ title, description, restaurants }) {
+function FeaturedRow({ restaurants }) {
   return (
     <View style={styles.featuredRowContainer}>
-      <View style={styles.featuredHeaderContainer}>
-        <Text style={styles.seeAllText}>{title}</Text>
-      </View>
       <FlatList
         data={restaurants}
         horizontal
@@ -159,6 +156,7 @@ export default function HomeScreen() {
             id: item.id,
             description: item.description,
             image: { uri: item.image || "default_image_url" },
+            title: item.name,
             restaurants: [
               {
                 id: item.id,
@@ -172,7 +170,18 @@ export default function HomeScreen() {
               },
             ],
           }));
-          setFeatured(formattedData);
+
+          // Prepend the custom image as the first item
+          const firstImage = {
+            id: "custom_image",
+            image: {
+              uri: "https://i.pinimg.com/736x/7d/8e/f1/7d8ef10c148ee4166d647e8a7ca19c06.jpg",
+            },
+
+            restaurants: [],
+          };
+
+          setFeatured([firstImage, ...formattedData]);
         } else {
           console.error("Error fetching featured data:", data.messages);
         }
@@ -205,9 +214,12 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: userProfile.avatar }} // Use avatar from user profile
+          source={{
+            uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
+          }}
           style={styles.profileImage}
         />
+
         <View>
           <Text style={styles.greetingText}>Good Morning 👋</Text>
           <Text
@@ -216,7 +228,11 @@ export default function HomeScreen() {
           {/* Display full name */}
         </View>
         <View style={styles.iconContainer}>
-          <Ionicons name="notifications-outline" size={24} color="black" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notifications")}
+          >
+            <Ionicons name="notifications-outline" size={24} color="black" />
+          </TouchableOpacity>
           <Ionicons name="heart-outline" size={24} color="black" />
         </View>
       </View>
@@ -225,7 +241,11 @@ export default function HomeScreen() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color="#888" />
-          <TextInput placeholder="Search" style={styles.searchInput} />
+          <TextInput
+            placeholder="Search"
+            style={styles.searchInput}
+            onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
+          />
           <TouchableOpacity style={styles.filterButton}>
             <Ionicons name="options-outline" size={20} color="#fff" />
           </TouchableOpacity>
@@ -254,6 +274,7 @@ export default function HomeScreen() {
         />
 
         {/* Categories */}
+        <Text style={styles.categories}>Categories</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -280,8 +301,9 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Featured Rows */}
+        <Text style={styles.recommended}>Recommended</Text>
         {featured.map((item) => (
-          <View key={item.id} style={{ marginTop: 20 }}>
+          <View key={item.id} style={{ marginTop: 10 }}>
             <FeaturedRow
               title={item.title}
               description={item.description}
@@ -352,10 +374,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   featuredImage: {
-    width: width - 20,
-    height: 190,
+    width: width - 30,
+    height: 200,
     borderRadius: 20,
-    marginHorizontal: 10,
+    marginHorizontal: 5,
   },
   imageOverlay: {
     position: "absolute",
@@ -415,7 +437,7 @@ const styles = StyleSheet.create({
   restaurantRatingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
+    marginTop: 1,
   },
   starIcon: {
     color: "#ffcc00",
@@ -433,7 +455,7 @@ const styles = StyleSheet.create({
   locationInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
+    marginTop: 1,
   },
   locationText: {
     fontSize: 12,
@@ -442,7 +464,7 @@ const styles = StyleSheet.create({
   },
   featuredRowContainer: {
     marginVertical: 1,
-    paddingHorizontal: 20, // Increased padding for iOS
+    paddingHorizontal: 20,
   },
   featuredHeaderContainer: {
     paddingHorizontal: 10,
@@ -454,5 +476,23 @@ const styles = StyleSheet.create({
   },
   featuredContentContainer: {
     paddingHorizontal: 10,
+  },
+  categories: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "left",
+    padding: 10,
+    borderRadius: 1,
+    marginVertical: 1,
+  },
+  recommended: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "left",
+    padding: 10,
+    borderRadius: 1,
+    marginVertical: 1,
   },
 });

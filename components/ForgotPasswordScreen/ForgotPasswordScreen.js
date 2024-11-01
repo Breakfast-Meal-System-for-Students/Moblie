@@ -54,7 +54,7 @@ function ForgotPasswordScreen() {
 
           <Image
             source={{
-              uri: "https://i.pinimg.com/736x/f5/2d/6f/f52d6faabc235a88e5ba2df70ff7228c.jpg",
+              uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
             }}
             style={[
               styles.icon,

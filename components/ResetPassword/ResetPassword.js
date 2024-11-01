@@ -11,25 +11,51 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-function OTPScreen() {
+function ResetPassword() {
   const navigation = useNavigation();
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { width } = Dimensions.get("window");
 
-  const handleVerifyOtp = () => {
-    console.log("Verifying OTP:", otp);
+  // Hàm kiểm tra độ bảo mật của mật khẩu
+  const validatePassword = (password) => {
+    const errors = [];
 
-    if (otp === "123456") {
-      Alert.alert("Success", "OTP has been successfully verified!");
-      // Điều hướng đến trang Reset Password
-      navigation.navigate("ResetPassword");
-    } else {
-      Alert.alert("Error", "Your OTP is incorrect. Please try again.");
+    if (password.length < 6) {
+      errors.push("Password must be at least 6 characters long.");
     }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Password must include at least one lowercase letter.");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Password must include at least one uppercase letter.");
+    }
+    if (!/\d/.test(password)) {
+      errors.push("Password must include at least one number.");
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      errors.push(
+        "Password must include at least one special character (@$!%*?&)."
+      );
+    }
+
+    return errors;
   };
 
-  const handleResendOtp = () => {
-    Alert.alert("Success", "A new OTP has been sent to your email address.");
+  const handleResetPassword = () => {
+    if (!password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields.");
+    } else if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match!");
+    } else {
+      const passwordErrors = validatePassword(password);
+      if (passwordErrors.length > 0) {
+        Alert.alert("Password Error", passwordErrors.join("\n"));
+      } else {
+        Alert.alert("Success", "Your password has been reset successfully!");
+        navigation.navigate("Login"); // Quay lại trang Login sau khi thành công
+      }
+    }
   };
 
   return (
@@ -51,34 +77,29 @@ function OTPScreen() {
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
 
-          <Text style={styles.headerText}>Enter OTP</Text>
-
-          <Text style={styles.description}>
-            Please enter the OTP sent to your email address.
-          </Text>
+          <Text style={styles.headerText}>Reset Password</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Enter OTP"
+            placeholder="New Password"
             placeholderTextColor="#888"
-            value={otp}
-            onChangeText={setOtp}
-            keyboardType="numeric"
-            autoCapitalize="none"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-            <Text style={styles.buttonText}>Verify OTP</Text>
-          </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor="#888"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={true}
+          />
 
-          <View style={styles.linkContainer}>
-            <TouchableOpacity onPress={handleResendOtp}>
-              <Text style={styles.link}>Resend OTP</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.link}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+            <Text style={styles.buttonText}>Reset Password</Text>
+          </TouchableOpacity>
         </View>
       </ImageBackground>
     </View>
@@ -119,12 +140,6 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 20,
   },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-    color: "white",
-  },
   input: {
     width: "100%",
     height: 50,
@@ -149,16 +164,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  linkContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  link: {
-    color: "white",
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 10,
-  },
 });
 
-export default OTPScreen;
+export default ResetPassword;

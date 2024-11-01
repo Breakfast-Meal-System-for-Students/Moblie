@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -17,19 +17,42 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
 import { faMap } from "@fortawesome/free-solid-svg-icons";
+import { useNavigationState } from "@react-navigation/native";
+import { faQrcode } from "@fortawesome/free-solid-svg-icons";
 export default function BottomNavigationBar() {
   const [activeTab, setActiveTab] = useState("Home");
   const navigation = useNavigation();
   const scaleValue = useRef(new Animated.Value(1)).current;
-
   const handlePress = (screen) => {
-    setActiveTab(screen);
-    navigation.navigate(screen);
+    console.log("Navigating to:", screen); // Add this line for debugging
+    if (activeTab !== screen) {
+      setActiveTab(screen); // Set active tab
+      navigation.navigate(screen); // Navigate to the screen
+    }
   };
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      // Get the current route using useNavigationState
+      const currentRouteName =
+        navigation.getState().routes[navigation.getState().index].name;
+      if (currentRouteName) {
+        setActiveTab(currentRouteName);
+      }
+    });
+
+    // Cleanup the listener on unmount
+    return unsubscribe;
+  }, [navigation]);
+  const currentRouteName = useNavigationState(
+    (state) => state.routes[state.index].name
+  );
+  useEffect(() => {
+    setActiveTab(currentRouteName);
+  }, [currentRouteName]);
 
   return (
-    <View style={styles.container}>
-      {/* Nút Home */}
+    <View style={styles.container} key={activeTab}>
+      {/* Home button */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => handlePress("Home")}
@@ -63,13 +86,13 @@ export default function BottomNavigationBar() {
         </Text>
       </TouchableOpacity>
 
-      {/* Nút trung tâm (Plus) */}
+      {/* Nút trung tâm (Scan) */}
       <Animated.View style={[styles.centralButtonContainer]}>
         <TouchableOpacity
           style={styles.centralButton}
-          onPress={() => handlePress("GroupOrder")}
+          onPress={() => handlePress("Scan")}
         >
-          <FontAwesomeIcon icon={faPlus} size={28} color="#fff" />
+          <FontAwesomeIcon icon={faQrcode} size={28} color="#fff" />
         </TouchableOpacity>
       </Animated.View>
 
@@ -116,7 +139,7 @@ export default function BottomNavigationBar() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between", // Chia đều không gian giữa các nút
+    justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: Platform.OS === "ios" ? "#f8f8f8" : "#98FB98",
     paddingVertical: Platform.OS === "ios" ? 15 : 10,

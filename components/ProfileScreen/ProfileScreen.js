@@ -8,13 +8,11 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
-  Button,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
-import * as ImagePicker from "expo-image-picker";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 function OptionItem({ icon, title, onPress, rightText }) {
   return (
@@ -30,11 +28,9 @@ function OptionItem({ icon, title, onPress, rightText }) {
 }
 
 export default function ProfileScreen() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [data, setData] = useState([]);
   const navigation = useNavigation();
-
-  const toggleDarkMode = () => setIsDarkMode((previousState) => !previousState);
+  const route = useRoute();
 
   const handleGetUser = async () => {
     try {
@@ -51,56 +47,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleUpdateAvatar = async (avatarUri) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const formData = new FormData();
-      formData.append("file", {
-        uri: avatarUri,
-        type: "image/jpeg",
-        name: "avatar.jpg",
-      });
-
-      const response = await axios.put(
-        "https://bms-fs-api.azurewebsites.net/api/Account/update-avatar",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("Avatar updated successfully:", response.data);
-    } catch (error) {
-      console.error("Failed to update avatar", error);
-    }
-  };
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access media library is required!");
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      handleUpdateAvatar(result.uri);
-    }
-  };
-
-  useEffect(() => {
-    handleGetUser();
-  }, []);
-
   const handleLogout = async () => {
     await AsyncStorage.removeItem("token");
     navigation.navigate("Logout");
@@ -111,8 +57,22 @@ export default function ProfileScreen() {
   };
 
   const handleGoToCart = () => {
-    navigation.navigate("CartMain"); // Navigate to CartMain
+    navigation.navigate("CartMain");
   };
+
+  useEffect(() => {
+    handleGetUser();
+  }, []);
+
+  // Update the avatar if it was passed as a parameter
+  useEffect(() => {
+    if (route.params?.updatedAvatar) {
+      setData((prevData) => ({
+        ...prevData,
+        avatar: route.params.updatedAvatar,
+      }));
+    }
+  }, [route.params?.updatedAvatar]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -128,20 +88,17 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.profileHeader}>
-        <TouchableOpacity onPress={pickImage}>
-          <Image
-            source={{
-              uri:
-                data?.avatar ||
-                "https://i.pinimg.com/564x/cf/f7/4e/cff74e044fe8eb2918424b53297bce18.jpg",
-            }}
-            style={styles.profileImage}
-          />
-        </TouchableOpacity>
+        <Image
+          source={{
+            uri:
+              data?.avatar ||
+              "https://i.pinimg.com/564x/cf/f7/4e/cff74e044fe8eb2918424b53297bce18.jpg",
+          }}
+          style={styles.profileImage}
+        />
         <Text style={styles.profileName}>{`${data?.firstName || "no"} ${
           data?.lastName || "no"
         }`}</Text>
-
         <Text style={styles.profileEmail}>{`${
           data?.phone || "No phone available"
         }`}</Text>
@@ -159,27 +116,10 @@ export default function ProfileScreen() {
           onPress={() => navigation.navigate("Notifications")}
         />
         <OptionItem
-          icon="location-outline"
-          title="Address"
-          onPress={() => navigation.navigate("Address")}
-        />
-        <OptionItem
           icon="person-outline"
           title="Edit Profile"
           onPress={handleEditProfile}
         />
-
-        <OptionItem
-          icon="card-outline"
-          title="Payment"
-          onPress={() => navigation.navigate("Payment")}
-        />
-        <OptionItem
-          icon="lock-closed-outline"
-          title="Security"
-          onPress={() => navigation.navigate("Security")}
-        />
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
@@ -219,7 +159,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 100,
     height: 100,
-    borderRadius: 40,
+    borderRadius: 50,
     marginBottom: 10,
   },
   profileName: {

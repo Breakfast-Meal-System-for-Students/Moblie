@@ -6,6 +6,7 @@ import LoginScreen from "./components/LogScreen/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen/RegisterScreen";
 import ForgotPasswordScreen from "./components/ForgotPasswordScreen/ForgotPasswordScreen";
 import OTPScreen from "./components/OTPScreen/OTPScreen";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 import WelcomeScreen from "./components/Welcome/Welcome";
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import ShopScreen from "./components/ShopScreen/ShopScreen";
@@ -28,6 +29,7 @@ import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
+import Search from "./components/Search/Search";
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -57,6 +59,11 @@ function App() {
         <Stack.Screen
           name="OTPScreen"
           component={OTPScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPassword}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -148,7 +155,7 @@ function App() {
           component={Security}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="CartMain"
           component={CartMain}
           options={{ headerShown: false }}
@@ -163,6 +170,11 @@ function App() {
           component={Header}
           options={{ headerShown: false }}
         /> */}
+        <Stack.Screen
+          name="Search"
+          component={Search}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

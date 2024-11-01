@@ -99,7 +99,7 @@ export default function Register() {
 
           <Image
             source={{
-              uri: "https://i.pinimg.com/474x/fb/0d/bd/fb0dbd692b2033510852bfe63a89c268.jpg",
+              uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
             }}
             style={[
               styles.icon,
