@@ -2,158 +2,233 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Image,
-  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Alert,
 } from "react-native";
-import QRCode from "react-native-qrcode-svg"; // To display QR codes
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faArrowLeft,
+  faShoppingCart,
+  faPlus,
+  faUserFriends,
+} from "@fortawesome/free-solid-svg-icons";
 
-export default function GroupOrderScreen() {
-  const [qrVisible, setQrVisible] = useState(false);
-  const [groupParticipants, setGroupParticipants] = useState([
-    { name: "John", order: "Bánh mì ốp la", price: 50000 },
-    { name: "Tianjiao", order: "Bánh mì thịt", price: 55000 },
-  ]);
+const OrderGroupScreen = ({ navigation, route }) => {
+  const { cart = {}, setCart = () => {} } = route.params || {};
+  const [groupName, setGroupName] = useState("");
+  const [groupMembers, setGroupMembers] = useState([]);
+  const [newMemberName, setNewMemberName] = useState("");
 
-  //   const shareOptions = [
-  //     { name: "AirDrop", icon: require("./assets/airdrop.png") },
-  //     { name: "WhatsApp", icon: require("./assets/whatsapp.png") },
-  //     { name: "Instagram", icon: require("./assets/instagram.png") },
-  //     { name: "Twitter", icon: require("./assets/twitter.png") },
-  //   ];
+  const addMember = () => {
+    if (newMemberName.trim() !== "") {
+      setGroupMembers([...groupMembers, newMemberName.trim()]);
+      setNewMemberName("");
+    }
+  };
 
-  const showQRCode = () => {
-    setQrVisible(!qrVisible);
+  const removeMember = (index) => {
+    const updatedMembers = [...groupMembers];
+    updatedMembers.splice(index, 1);
+    setGroupMembers(updatedMembers);
+  };
+
+  const placeGroupOrder = async () => {
+    if (groupName.trim() === "") {
+      Alert.alert("Error", "Please enter a group name.");
+      return;
+    }
+
+    if (groupMembers.length < 2) {
+      Alert.alert("Error", "A group must have at least 2 members.");
+      return;
+    }
+
+    try {
+      // Here you would make a request to the server to place the group order
+      console.log("Group order placed:", {
+        groupName,
+        groupMembers,
+        cart,
+      });
+      Alert.alert("Success", "Group order placed successfully!");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Error", "Failed to place group order.");
+    }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
+    <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Bánh Mì Ngon</Text>
-      </View>
-
-      {/* Invite Participants Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Thiết lập đơn hàng nhóm của bạn</Text>
-        <Text style={styles.sectionText}>
-          Là trưởng nhóm, bạn được linh hoạt chọn giữa thanh toán cho mọi người
-          hoặc chia hóa đơn.
-        </Text>
-        <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.buttonText}>Mời thêm thành viên</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Order Group</Text>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate("Checkout", { cart })}
+        >
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* Share Options */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Chia sẻ</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {shareOptions.map((option, index) => (
-            <View key={index} style={styles.shareOption}>
-              <Image source={option.icon} style={styles.shareIcon} />
-              <Text>{option.name}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      <View style={styles.contentContainer}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Group Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter group name"
+            value={groupName}
+            onChangeText={setGroupName}
+          />
+        </View>
 
-      {/* QR Code Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tham gia đặt đơn nhóm</Text>
-        <TouchableOpacity style={styles.qrButton} onPress={showQRCode}>
-          <Text style={styles.qrButtonText}>Quét mã QR</Text>
-        </TouchableOpacity>
-        {qrVisible && (
-          <View style={styles.qrCodeContainer}>
-            <QRCode value="https://banhmignon.com/join" size={150} />
+        <View style={styles.membersContainer}>
+          <Text style={styles.inputLabel}>Group Members</Text>
+          <FlatList
+            data={groupMembers}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+              <View style={styles.memberItem}>
+                <Text style={styles.memberName}>{item}</Text>
+                <TouchableOpacity onPress={() => removeMember(index)}>
+                  <FontAwesomeIcon icon={faPlus} size={20} color="#ff0000" />
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={
+              <Text style={styles.emptyListText}>No members added yet</Text>
+            }
+            style={styles.membersList}
+          />
+          <View style={styles.addMemberContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Add member"
+              value={newMemberName}
+              onChangeText={setNewMemberName}
+            />
+            <TouchableOpacity onPress={addMember}>
+              <FontAwesomeIcon icon={faPlus} size={24} color="#00cc69" />
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
+        </View>
 
-      {/* Order Review Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Kiểm tra Đơn hàng</Text>
-        {groupParticipants.map((participant, index) => (
-          <View key={index} style={styles.participantOrder}>
-            <Text>{participant.name}</Text>
-            <Text>{participant.order}</Text>
-            <Text>{participant.price} VND</Text>
-          </View>
-        ))}
-        <TouchableOpacity style={styles.greenButton}>
-          <Text style={styles.buttonText}>Tiếp theo</Text>
+        <TouchableOpacity
+          style={styles.placeOrderButton}
+          onPress={placeGroupOrder}
+        >
+          <FontAwesomeIcon
+            icon={faUserFriends}
+            size={24}
+            color="#fff"
+            style={styles.placeOrderIcon}
+          />
+          <Text style={styles.placeOrderText}>Place Group Order</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#fff",
   },
   headerContainer: {
-    paddingVertical: 20,
+    flexDirection: "row",
     alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  section: {
-    marginVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  sectionText: {
-    fontSize: 14,
-    marginBottom: 10,
-  },
-  greenButton: {
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     backgroundColor: "#00cc69",
-    paddingVertical: 15,
-    borderRadius: 5,
-    alignItems: "center",
+    marginTop: Platform.OS === "ios" ? 59 : 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
-  buttonText: {
+  backButton: {
+    padding: 10,
+  },
+  headerText: {
     color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  cartButton: {
+    padding: 10,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
     fontSize: 16,
     fontWeight: "bold",
-  },
-  shareOption: {
-    alignItems: "center",
-    marginRight: 15,
-  },
-  shareIcon: {
-    width: 50,
-    height: 50,
     marginBottom: 5,
   },
-  qrButton: {
-    backgroundColor: "#00cc69",
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
     paddingVertical: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+  },
+  membersContainer: {
+    marginBottom: 20,
+  },
+  memberItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  memberName: {
+    fontSize: 16,
+  },
+  emptyListText: {
+    color: "#aaa",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  addMemberContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  placeOrderButton: {
+    backgroundColor: "#00cc69",
+    padding: 15,
     borderRadius: 5,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  qrButtonText: {
+  placeOrderIcon: {
+    marginRight: 10,
+  },
+  placeOrderText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
-  qrCodeContainer: {
-    alignItems: "center",
-    marginTop: 20,
-  },
-  participantOrder: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
 });
+
+export default OrderGroupScreen;

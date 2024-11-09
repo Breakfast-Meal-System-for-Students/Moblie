@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -18,7 +19,7 @@ export default function OrderStatus() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize] = useState(5);
+  const [pageSize] = useState(3);
   const [isLastPage, setIsLastPage] = useState(false);
   const [status, setStatus] = useState(1);
   const [search, setSearch] = useState("");
@@ -26,21 +27,26 @@ export default function OrderStatus() {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const navigation = useNavigation();
 
-  const fetchOrders = async (selectedStatus) => {
+  const statusLabels = [
+    { id: 1, label: "Draft", value: "DRAFT" },
+    { id: 2, label: "Ordered", value: "ORDERED" },
+    { id: 3, label: "Checking", value: "CHECKING" },
+    { id: 4, label: "Preparing", value: "PREPARING" },
+    { id: 5, label: "Prepared", value: "PREPARED" },
+    { id: 6, label: "Taken Over", value: "TAKENOVER" },
+    { id: 7, label: "Cancelled", value: "CANCEL" },
+    { id: 8, label: "Complete", value: "COMPLETE" },
+  ];
+
+  const fetchOrders = async (newPageIndex = 1, selectedStatus = status) => {
     try {
+      setLoading(true);
       const token = await AsyncStorage.getItem("userToken");
-      if (!token) {
-        throw new Error("User token is missing");
-      }
+      if (!token) throw new Error("User token is missing");
 
       const response = await fetch(
-        `https://bms-fs-api.azurewebsites.net/api/Order/GetOrderForUser?search=${search}&isDesc=${isDesc}&pageIndex=${pageIndex}&pageSize=${pageSize}&status=${selectedStatus}`,
-        {
-          headers: {
-            accept: "*/*",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `https://bms-fs-api.azurewebsites.net/api/Order/GetOrderForUser?search=${search}&isDesc=${isDesc}&pageIndex=${newPageIndex}&pageSize=${pageSize}&status=${selectedStatus}`,
+        { headers: { accept: "*/*", Authorization: `Bearer ${token}` } }
       );
 
       if (!response.ok) {
@@ -52,7 +58,7 @@ export default function OrderStatus() {
 
       const data = await response.json();
       if (data.isSuccess) {
-        setOrders((prevOrders) => [...prevOrders, ...data.data.data]);
+        setOrders(data.data.data);
         setIsLastPage(data.data.isLastPage);
       } else {
         console.error("Error fetching orders:", data.messages);
@@ -65,21 +71,75 @@ export default function OrderStatus() {
   };
 
   useEffect(() => {
-    fetchOrders(status);
+    fetchOrders(pageIndex, status);
   }, [pageIndex, status, search, isDesc]);
 
   const loadMoreOrders = () => {
     if (!isLastPage) {
-      setPageIndex((prevPage) => prevPage + 1);
+      const nextPage = pageIndex + 1;
+      setPageIndex(nextPage);
+      fetchOrders(nextPage, status);
     }
+  };
+
+  const handlePreviousPage = () => {
+    if (pageIndex > 1) {
+      const previousPage = pageIndex - 1;
+      setPageIndex(previousPage);
+      fetchOrders(previousPage, status);
+    }
+  };
+
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+    setPageIndex(1);
+    fetchOrders(1, newStatus);
   };
 
   const toggleOrderProducts = (orderId) => {
     setExpandedOrderId(orderId === expandedOrderId ? null : orderId);
   };
 
-  const goToProductDetail = (productId) => {
-    navigation.navigate("ProductDetail", { productId });
+  const changeOrderStatus = async (orderId) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) throw new Error("User token is missing");
+
+      const formData = new FormData();
+      formData.append("id", orderId);
+      formData.append("status", 6);
+
+      const response = await fetch(
+        "https://bms-fs-api.azurewebsites.net/api/Order/ChangeOrderStatus",
+        {
+          method: "POST",
+          headers: {
+            accept: "*/*",
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.messages[0]?.content || "Failed to change order status"
+        );
+      }
+
+      Alert.alert("Success", data.messages[0].content, [
+        {
+          text: "OK",
+          onPress: () => fetchOrders(pageIndex, status), // Tải lại dữ liệu sau khi nhấn OK
+        },
+      ]);
+    } catch (error) {
+      console.error("Error changing order status:", error.message);
+      Alert.alert("Error", error.message);
+    }
   };
 
   const renderOrderItem = ({ item }) => (
@@ -125,7 +185,11 @@ export default function OrderStatus() {
               <TouchableOpacity
                 key={`${orderItem.id}-${orderItem.productId}`}
                 style={styles.productItem}
-                onPress={() => orderItem.productId}
+                onPress={() =>
+                  navigation.navigate("ProductDetail", {
+                    productId: orderItem.productId,
+                  })
+                }
               >
                 <Image
                   source={{ uri: orderItem.productImages[0]?.url }}
@@ -142,26 +206,21 @@ export default function OrderStatus() {
             ))}
           </View>
         )}
+
+        {item.status === "PREPARED" && (
+          <TouchableOpacity
+            style={styles.takeOverButton}
+            onPress={() => changeOrderStatus(item.id)}
+          >
+            <Text style={styles.buttonText}>Take Over</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
 
-  const renderStatusTab = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.tabButton, status === item.id && styles.activeTab]}
-      onPress={() => setStatus(item.id)}
-    >
-      <Text style={styles.tabText}>{item.label}</Text>
-    </TouchableOpacity>
-  );
-
-  if (loading && pageIndex === 1) {
-    return <ActivityIndicator size="large" color="#00cc69" />;
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with Back Button */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -175,7 +234,14 @@ export default function OrderStatus() {
       <FlatList
         horizontal
         data={statusLabels}
-        renderItem={renderStatusTab}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.tabButton, status === item.id && styles.activeTab]}
+            onPress={() => handleStatusChange(item.id)}
+          >
+            <Text style={styles.tabText}>{item.label}</Text>
+          </TouchableOpacity>
+        )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
         style={styles.horizontalScroll}
@@ -185,8 +251,6 @@ export default function OrderStatus() {
         data={orders}
         renderItem={renderOrderItem}
         keyExtractor={(item, index) => `${item.id}-${index}`}
-        onEndReached={loadMoreOrders}
-        onEndReachedThreshold={0.5}
         ListFooterComponent={() =>
           !isLastPage && <ActivityIndicator size="small" color="#00cc69" />
         }
@@ -194,16 +258,34 @@ export default function OrderStatus() {
           <Text style={styles.noOrdersText}>No orders found</Text>
         )}
       />
+
+      <View style={styles.paginationControls}>
+        <TouchableOpacity
+          style={[
+            styles.paginationButton,
+            pageIndex === 1 && styles.disabledButton,
+          ]}
+          onPress={handlePreviousPage}
+          disabled={pageIndex === 1}
+        >
+          <Text style={styles.paginationText}>Previous</Text>
+        </TouchableOpacity>
+        <Text style={styles.pageInfo}>Page {pageIndex}</Text>
+
+        <TouchableOpacity
+          style={[styles.paginationButton, isLastPage && styles.disabledButton]}
+          onPress={loadMoreOrders}
+          disabled={isLastPage}
+        >
+          <Text style={styles.paginationText}>Next</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: 10,
-  },
+  container: { flex: 1, backgroundColor: "white" },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -218,9 +300,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: "100%",
   },
-  backButton: {
-    padding: 5,
-  },
+  backButton: { padding: 5 },
   headerText: {
     fontSize: 18,
     fontWeight: "bold",
@@ -235,11 +315,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   tabButton: {
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: "#f0f0f0",
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: 11,
     marginRight: 8,
   },
   activeTab: {
@@ -282,18 +362,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
-  title: {
-    marginBottom: 10,
-  },
-  cancelButton: {
-    backgroundColor: "#ff4d4d",
-    paddingVertical: 8,
-    paddingHorizontal: 17,
-    borderRadius: 5,
-    marginTop: 1,
-  },
   reorderButton: {
     backgroundColor: "#00cc69",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginTop: 12,
+  },
+  takeOverButton: {
+    backgroundColor: "#ff9800",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,
@@ -332,5 +409,38 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 14,
     fontWeight: "bold",
+  },
+  paginationControls: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 15,
+    backgroundColor: "#f8f8f8",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    marginTop: 10,
+  },
+  paginationButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    backgroundColor: "#00cc69",
+    borderRadius: 25,
+    marginHorizontal: 10,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#cccccc",
+  },
+  paginationText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  pageInfo: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    paddingHorizontal: 10,
   },
 });

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   ActivityIndicator,
   Dimensions,
   TextInput,
@@ -15,7 +15,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faArrowLeft,
-  faShoppingBag,
+  faShoppingCart,
   faPlusCircle,
   faMinusCircle,
   faStickyNote,
@@ -25,8 +25,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-// Separate NoteInput component
-const NoteInput = memo(({ note, setNote }) => {
+const NoteInput = ({ note, setNote }) => {
   return (
     <View style={styles.noteContainer}>
       <FontAwesomeIcon icon={faStickyNote} size={29} color="#00cc69" />
@@ -39,32 +38,43 @@ const NoteInput = memo(({ note, setNote }) => {
       />
     </View>
   );
-});
+};
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { cart = {}, setCart = () => {} } = route.params || {};
   const [loading, setLoading] = useState(true);
-  const [notification, setNotification] = useState("");
   const { productId } = route.params || {};
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
-  const [note, setNote] = useState(""); // State for the note input
+  const [note, setNote] = useState("");
+  const [cartItemCount, setCartItemCount] = useState(0); // New state for cart item count
 
-  const addToCart = async () => {
+  // Update cart item count whenever the cart changes
+  useEffect(() => {
+    const totalItems = Object.values(cart).reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    setCartItemCount(totalItems);
+  }, [cart]);
+
+  const addToCart = async (event) => {
+    event.persist(); // Keep the synthetic event around
     const requestBody = {
       cartId: null,
-      productId: product.id,
+      productId: productId,
       quantity: quantity,
-      price: product.price,
-      note: note, // Use the note from the input
+      price: product?.price || 0,
+      note: note,
+      shopId: shopId1,
     };
 
     try {
       const token = await AsyncStorage.getItem("token");
       const response = await fetch(
-        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${shopId1}`,
+        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${requestBody.shopId}`,
         {
           method: "POST",
           headers: {
@@ -119,12 +129,16 @@ export default function ProductDetailScreen({ route, navigation }) {
     fetchProductDetails();
   }, [productId]);
 
+  const handleSetNote = useCallback((text) => {
+    setNote(text);
+  }, []);
+
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
   }
 
-  const renderHeader = () => (
-    <View>
+  return (
+    <View style={{ flex: 1 }}>
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -137,101 +151,83 @@ export default function ProductDetailScreen({ route, navigation }) {
           style={styles.cartButton}
           onPress={() => navigation.navigate("Checkout", { cart })}
         >
-          <FontAwesomeIcon icon={faShoppingBag} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>
-            {cart && Object.keys(cart).length > 0
-              ? Object.keys(cart).reduce(
-                  (total, key) => total + (cart[key]?.quantity || 0),
-                  0
-                )
-              : 0}
-          </Text>
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <Text style={styles.cartItemCount}>{cartItemCount}</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.container}>
-        {/* Large Image */}
-        <Image
-          source={{
-            uri:
-              product?.images?.[selectedImageIndex]?.url ||
-              "https://yhg.vn/wp-content/uploads/2021/02/pizza-y.jpg",
-          }}
-          style={styles.productImageLarge}
-        />
+      <ScrollView>
+        <View style={styles.container}>
+          <Image
+            source={{
+              uri:
+                product?.images?.[selectedImageIndex]?.url ||
+                "https://yhg.vn/wp-content/uploads/2021/02/pizza-y.jpg",
+            }}
+            style={styles.productImageLarge}
+          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {product?.images?.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedImageIndex(index)}
+              >
+                <Image
+                  source={{
+                    uri: item.url || "https://via.placeholder.com/150",
+                  }}
+                  style={[
+                    styles.thumbnail,
+                    selectedImageIndex === index && styles.activeThumbnail,
+                  ]}
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-        {/* Thumbnails */}
-        <FlatList
-          data={product?.images || []}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
-              <Image
-                source={{ uri: item.url || "https://via.placeholder.com/150" }}
-                style={[
-                  styles.thumbnail,
-                  selectedImageIndex === index && styles.activeThumbnail,
-                ]}
-              />
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={styles.thumbnailContainer}
-        />
-
-        <Text style={styles.productName}>
-          {product?.name || "Default Product Name"}
-        </Text>
-        <Text style={styles.productDescription}>
-          {product?.description || "No description available."}
-        </Text>
-      </View>
-
-      <View style={styles.addButtonPriceContainer}>
-        <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
-
-        <View style={styles.addButtonContainer}>
-          <TouchableOpacity
-            onPress={() => setQuantity(Math.max(1, quantity - 1))}
-            style={styles.addButton}
-          >
-            <FontAwesomeIcon icon={faMinusCircle} size={20} color="#00cc69" />
-          </TouchableOpacity>
-
-          <Text style={styles.quantityText}>{quantity}</Text>
-
-          <TouchableOpacity
-            onPress={() => setQuantity(quantity + 1)}
-            style={styles.addButton}
-          >
-            <FontAwesomeIcon icon={faPlusCircle} size={20} color="#00cc69" />
-          </TouchableOpacity>
+          <Text style={styles.productName}>
+            {product?.name || "Default Product Name"}
+          </Text>
+          <Text style={styles.productDescription}>
+            {product?.description || "No description available."}
+          </Text>
         </View>
-      </View>
-      {/* Note input */}
-      <NoteInput note={note} setNote={setNote} />
-      <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
-        <FontAwesomeIcon
-          icon={faClipboardCheck}
-          size={29}
-          color="#fff"
-          style={{ marginRight: 10 }}
-        />
-        <Text style={styles.addToCartButtonText}>Add to Cart</Text>
-      </TouchableOpacity>
+
+        <View style={styles.addButtonPriceContainer}>
+          <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
+          <View style={styles.addButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              style={styles.addButton}
+            >
+              <FontAwesomeIcon icon={faMinusCircle} size={20} color="#00cc69" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{quantity}</Text>
+            <TouchableOpacity
+              onPress={() => setQuantity(quantity + 1)}
+              style={styles.addButton}
+            >
+              <FontAwesomeIcon icon={faPlusCircle} size={20} color="#00cc69" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Note input */}
+        <NoteInput note={note} setNote={handleSetNote} />
+        <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
+          <FontAwesomeIcon
+            icon={faClipboardCheck}
+            size={29}
+            color="#fff"
+            style={{ marginRight: 10 }}
+          />
+          <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
-
-  return (
-    <FlatList
-      data={[]} // Empty data
-      keyExtractor={(item) => item.id.toString()}
-      ListHeaderComponent={renderHeader}
-      renderItem={null} // No renderItem needed
-    />
-  );
 }
+
 const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
@@ -239,7 +235,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: "#00cc69", // Giữ màu xanh lá cho thanh header
+    backgroundColor: "#00cc69", // Header background color
     marginTop: Platform.OS === "ios" ? 59 : 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
@@ -273,19 +269,18 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     alignItems: "center",
-    backgroundColor: "#fff", // Nền trắng cho toàn bộ giao diện
+    backgroundColor: "#fff",
   },
   productImageLarge: {
-    width: width, // Chiếm toàn bộ chiều rộng của màn hình
-    height: 320, // Điều chỉnh chiều cao để cân đối
-    borderRadius: 10, // Bo góc nhẹ hơn để không quá vuông
+    width: width,
+    height: 320,
+    borderRadius: 10,
     marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 6,
-    backgroundColor: "#fff", // Nền trắng cho hình ảnh sản phẩm lớn
   },
   thumbnailContainer: {
     flexDirection: "row",
