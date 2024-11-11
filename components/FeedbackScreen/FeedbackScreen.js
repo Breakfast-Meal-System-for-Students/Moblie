@@ -15,7 +15,7 @@ import { ScrollView } from "react-native";
 
 export default function FeedbackScreen({ route }) {
   const navigation = useNavigation();
-  const { shopId } = route.params || 0;
+  const { shopId, token } = route.params || {}; // Receive shopId and token from route parameters
   const [feedbackList, setFeedbackList] = useState([]);
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5); // Customize the number of feedback items per page
@@ -29,13 +29,16 @@ export default function FeedbackScreen({ route }) {
     setLoading(true);
     let url = `https://bms-fs-api.azurewebsites.net/api/Feedback/${shopId}?pageIndex=${page}&pageSize=${pageSize}`;
     if (rating !== "All") {
-      url += `&rating=${rating}`; // Append rating only if it's not "All"
+      url += `&rating=${rating}`;
     }
 
     try {
       const response = await fetch(url, {
         method: "GET",
-        headers: { Accept: "*/*" },
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`, // Dynamically add token here
+        },
       });
       const data = await response.json();
       if (data.isSuccess) {
@@ -156,7 +159,7 @@ export default function FeedbackScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f2", // Light background to make content stand out
+    backgroundColor: "#f2f2f2",
   },
   header: {
     flexDirection: "row",

@@ -1,7 +1,6 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
 import LoginScreen from "./components/LogScreen/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen/RegisterScreen";
 import ForgotPasswordScreen from "./components/ForgotPasswordScreen/ForgotPasswordScreen";
@@ -22,7 +21,6 @@ import OrderStatus from "./components/OrderStatus/OrderStatus";
 import EditProfile from "./components/EditProfile/EditProfile";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 import MyCart from "./components/MyCart/MyCart";
-
 import Address from "./components/Address/Address";
 import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
@@ -30,11 +28,24 @@ import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
+
 const Stack = createNativeStackNavigator();
+
+const linking = {
+  prefixes: ["stickersmash://"],
+  config: {
+    screens: {
+      Main: "WelcomeScreen",
+      Login: "Login", // Trang login phai dinh nghia o day ne
+      Home: "Home", // Vi du them trang nao thi dinh nghia o day VD HOME
+      // Các màn hình khác
+    },
+  },
+};
 
 function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator initialRouteName="Main">
         <Stack.Screen
           name="Main"
@@ -165,11 +176,6 @@ function App() {
           component={Payment}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
-          name="Header"
-          component={Header}
-          options={{ headerShown: false }}
-        /> */}
         <Stack.Screen
           name="Search"
           component={Search}

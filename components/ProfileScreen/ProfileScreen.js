@@ -59,6 +59,17 @@ export default function ProfileScreen() {
   const handleGoToCart = () => {
     navigation.navigate("CartMain");
   };
+  const handleGoToPayment = () => {
+    navigation.navigate("Payment");
+  };
+
+  const handleGoToSettings = () => {
+    navigation.navigate("Settings");
+  };
+
+  const handleGoToHelpSupport = () => {
+    navigation.navigate("HelpSupport");
+  };
 
   useEffect(() => {
     handleGetUser();
@@ -119,6 +130,22 @@ export default function ProfileScreen() {
           icon="person-outline"
           title="Edit Profile"
           onPress={handleEditProfile}
+        />
+        <OptionItem
+          icon="card-outline"
+          title="Payment"
+          onPress={handleGoToPayment}
+        />
+
+        <OptionItem
+          icon="settings-outline"
+          title="Settings"
+          onPress={handleGoToSettings}
+        />
+        <OptionItem
+          icon="help-circle-outline"
+          title="Help & Support"
+          onPress={handleGoToHelpSupport}
         />
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>

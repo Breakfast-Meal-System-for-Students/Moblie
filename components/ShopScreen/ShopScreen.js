@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -129,32 +129,6 @@ export default function ShopScreen() {
 
   const renderShopDetails = () => (
     <View>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
-        </TouchableOpacity>
-
-        <Text style={styles.shopName}>
-          {shopDetails.name || "Shop Name Not Available"}
-        </Text>
-
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("Checkout", { cart })}
-        >
-          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>
-            {Object.keys(cart).reduce(
-              (total, key) => total + cart[key].quantity,
-              0
-            )}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <Image
         source={{
           uri:
@@ -168,7 +142,6 @@ export default function ShopScreen() {
         <View style={styles.productDetailsRow}>
           <FontAwesome name="star" size={18} color="#f1c40f" />
           <Text style={styles.productDetailsText}>4.8 </Text>
-
           <TouchableOpacity
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
@@ -182,6 +155,29 @@ export default function ShopScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.shopName}>
+          {shopDetails.name || "Shop Name Not Available"}
+        </Text>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate("Checkout", { cart })}
+        >
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <Text style={styles.cartItemCount}>
+            {Object.keys(cart).reduce(
+              (total, key) => total + cart[key].quantity,
+              0
+            )}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={products}
         ListHeaderComponent={renderShopDetails}

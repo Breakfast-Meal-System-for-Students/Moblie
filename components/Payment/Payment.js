@@ -5,23 +5,34 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import * as Linking from "expo-linking";
 
-export default function Payment() {
+export default function Payment({
+  fullName = "Guest",
+  orderInfo = "e2177a77-f0ca-4f0e-85cd-0aec4771ad1b",
+  orderType = "general",
+  description = "No description",
+  amount = 10000,
+}) {
   const navigation = useNavigation();
   const [selectedMethod, setSelectedMethod] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const paymentMethods = [
     {
       id: 1,
-      name: "Credit Card",
+      name: "VNPAY",
       icon: <MaterialIcons name="credit-card" size={24} color="#00cc69" />,
     },
     {
       id: 2,
-      name: "PayPal",
+      name: "PayOS",
       icon: <Ionicons name="logo-paypal" size={24} color="#00cc69" />,
     },
     {
@@ -31,9 +42,67 @@ export default function Payment() {
     },
   ];
 
+  const confirmPayment = async () => {
+    if (!selectedMethod) {
+      Alert.alert("Error", "Please select a payment method.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("Sending payment data:", {
+        orderInfo,
+        fullName,
+        orderType,
+        description,
+        amount,
+      });
+
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url",
+        {
+          orderInfo,
+          fullName,
+          orderType,
+          description,
+          amount,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "*/*",
+          },
+        }
+      );
+
+      console.log("API Response:", response.data);
+
+      const { isSuccess, data } = response.data;
+      if (isSuccess && data) {
+        Linking.openURL(data);
+      } else {
+        Alert.alert("Error", "Failed to initiate payment.");
+      }
+    } catch (error) {
+      if (error.response) {
+        Alert.alert(
+          "Error",
+          `Request failed with status ${
+            error.response.status
+          }: ${JSON.stringify(error.response.data)}`
+        );
+        console.error("Error details:", error.response.data);
+      } else {
+        Alert.alert("Error", "An error occurred while processing payment.");
+        console.error("Error:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header with Back Button */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -65,10 +134,12 @@ export default function Payment() {
           styles.confirmButton,
           selectedMethod ? styles.buttonActive : styles.buttonDisabled,
         ]}
-        onPress={() => selectedMethod && alert("Payment Confirmed!")}
-        disabled={!selectedMethod}
+        onPress={confirmPayment}
+        disabled={!selectedMethod || loading}
       >
-        <Text style={styles.buttonText}>Confirm Payment</Text>
+        <Text style={styles.buttonText}>
+          {loading ? "Processing..." : "Confirm Payment"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -95,13 +166,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
     textAlign: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 20,
-    color: "#333",
   },
   scrollContainer: {
     flexGrow: 1,
