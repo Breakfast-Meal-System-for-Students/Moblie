@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput, FlatList,
+  TextInput,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -36,7 +37,7 @@ const CartScreen = () => {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   useEffect(() => {
     const fetchCartData = async () => {
-      setLoading(true); // Set loading to true when starting to fetch
+      setLoading(true);
       try {
         const token = await AsyncStorage.getItem("userToken");
         const shopId = await AsyncStorage.getItem("shopId");
@@ -65,14 +66,14 @@ const CartScreen = () => {
 
             // Check if the cart is empty
             if (cartItems.length === 0) {
-             // Alert.alert("Info", "Your cart is empty.");
+              // Alert.alert("Info", "Your cart is empty.");
               setListData([]); // Ensure listData is set to an empty array
             } else {
               setListData(cartItems);
               calculateTotal(cartItems);
             }
           } else {
-         //   Alert.alert("Info", "Your cart is empty or not found.");
+            //   Alert.alert("Info", "Your cart is empty or not found.");
             setListData([]); // Ensure listData is set to an empty array
           }
         } else {
@@ -137,7 +138,6 @@ const CartScreen = () => {
         }
       );
 
-
       if (response.data.isSuccess) {
         setCoupons(response.data.data.data); // Set the coupons data
         console.log(response.data.data.data);
@@ -149,7 +149,6 @@ const CartScreen = () => {
     }
   };
   useEffect(() => {
-  
     fetchCoupons(); // Fetch coupons when the component mounts
   }, []);
 
@@ -273,52 +272,53 @@ const CartScreen = () => {
   // };
   const createOrder = async () => {
     try {
-        const token = await AsyncStorage.getItem("userToken");
-        const orderDate = new Date().toISOString(); // Current date in ISO format
+      const token = await AsyncStorage.getItem("userToken");
+      const orderDate = new Date().toISOString(); // Current date in ISO format
 
-        // Prepare the order data
-        const orderData = {
-            cartId: cartId,
-            orderDate: orderDate,
-        };
+      // Prepare the order data
+      const orderData = {
+        cartId: cartId,
+        orderDate: orderDate,
+      };
 
-        // Include couponId if a coupon is selected
-        if (selectedCoupon) {
-            orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
+      // Include couponId if a coupon is selected
+      if (selectedCoupon) {
+        orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
+      }
+      console.log(
+        "orderData" + orderData + orderData.voucherId + "hi" + orderData.cartId
+      );
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
+        orderData,
+        {
+          headers: {
+            accept: "*/*",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      console.log("orderData"+orderData+orderData.voucherId+"hi"+orderData.cartId);
-        const response = await axios.post(
-            "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
-            orderData,
-            {
-                headers: {
-                    accept: "*/*",
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+      );
 
-        if (response.data.isSuccess) {
-            setPaymentSuccessModalVisible(true);
-            // Optionally, you can navigate to the OrderStatus screen here
-        } else {
-            setPaymentFailModalVisible(true);
-            Alert.alert("Error", "Failed to create order.");
-        }
-    } catch (error) {
-        console.error("Create order error:", error);
-            // Check if the error response exists and has a detail message
-            if (error.response && error.response.data && error.response.data.detail) {
-              Alert.alert("Infor", error.response.data.detail); // Show detailed error message
-          } else {
-              Alert.alert("Error", "An error occurred while creating the order."); // Fallback error message
-          }
-  
+      if (response.data.isSuccess) {
+        setPaymentSuccessModalVisible(true);
+        // Optionally, you can navigate to the OrderStatus screen here
+      } else {
         setPaymentFailModalVisible(true);
-       
+        Alert.alert("Error", "Failed to create order.");
+      }
+    } catch (error) {
+      console.error("Create order error:", error);
+      // Check if the error response exists and has a detail message
+      if (error.response && error.response.data && error.response.data.detail) {
+        Alert.alert("Infor", error.response.data.detail); // Show detailed error message
+      } else {
+        Alert.alert("Error", "An error occurred while creating the order."); // Fallback error message
+      }
+
+      setPaymentFailModalVisible(true);
     }
-};
+  };
 
   // Render loading spinner or cart items
   return (
@@ -341,74 +341,83 @@ const CartScreen = () => {
           </View>
         </TouchableOpacity>
       </SafeAreaView>
-
       {/* Loading Spinner */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00cc69" />
           <Text>Loading...</Text>
         </View>
+      ) : // Product List
+      listData.length === 0 ? (
+        <View style={styles.emptyCartContainer}>
+          <Text style={styles.emptyCartText}>Your cart is empty.</Text>
+        </View>
       ) : (
-        // Product List
-        listData.length === 0 ? (
-          <View style={styles.emptyCartContainer}>
-            <Text style={styles.emptyCartText}>Your cart is empty.</Text>
-          </View>
-        ) : (
-          <SwipeListView
-            data={listData}
-            renderItem={renderItem}
-            renderHiddenItem={renderHiddenItem}
-            rightOpenValue={-75}
-            style={styles.listView}
-          />
-        )
+        <SwipeListView
+          data={listData}
+          renderItem={renderItem}
+          renderHiddenItem={renderHiddenItem}
+          rightOpenValue={-75}
+          style={styles.listView}
+        />
       )}
-
-<Text style={styles.couponsHeader}>Available Coupons:</Text>
+      <Text style={styles.couponsHeader}>Available Coupons:</Text>
       {/* Loading Spinner for Coupons */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00cc69" />
           <Text>Loading Coupons...</Text>
         </View>
+      ) : // Coupons List
+      Array.isArray(coupons) && coupons.length > 0 ? (
+        coupons.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.couponItem,
+              selectedCoupon &&
+                selectedCoupon.id === item.id &&
+                styles.selectedCoupon,
+            ]}
+            onPress={() => setSelectedCoupon(item)}
+          >
+            <Text style={styles.couponName}>{item.name}</Text>
+            <Text style={styles.couponDetails}>
+              Discount: {item.percentDiscount}% (Max: ${item.maxDiscount})
+            </Text>
+          </TouchableOpacity>
+        ))
       ) : (
-        // Coupons List
-        Array.isArray(coupons) && coupons.length > 0 ? (
-          coupons.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.couponItem,
-                selectedCoupon && selectedCoupon.id === item.id && styles.selectedCoupon,
-              ]}
-              onPress={() => setSelectedCoupon(item)}
-            >
-              <Text style={styles.couponName}>{item.name}</Text>
-              <Text style={styles.couponDetails}>
-                Discount: {item.percentDiscount}% (Max: ${item.maxDiscount})
-              </Text>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No coupons available.</Text>
-        )
+        <Text style={styles.emptyText}>No coupons available.</Text>
       )}
-
-
       {/* Apply Coupon Button */}
-      <TouchableOpacity style={styles.applyButton} >
+      <TouchableOpacity style={styles.applyButton}>
         <Text style={styles.applyButtonText}>Apply Selected Coupon</Text>
       </TouchableOpacity>
 
-      {/* Footer */}
+      {/* Proceed to Payment Button */}
+      {listData.length > 0 && (
+        <TouchableOpacity
+          style={styles.orderButton}
+          onPress={() => {
+            navigation.navigate("Payment", {
+              cartId: cartId,
+              totalAmount: totalPrice,
+              selectedCoupon: selectedCoupon,
+            });
+          }}
+        >
+          <Text style={styles.orderButtonText}>Proceed to Payment</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Total Section */}
       <View style={styles.footer}>
         <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
         <TouchableOpacity style={styles.orderButton} onPress={createOrder}>
           <Text style={styles.orderButtonText}>Place Order</Text>
         </TouchableOpacity>
       </View>
-
       {/* Payment Modals */}
       <Modal visible={isPaymentSuccessModalVisible} animationType="slide">
         <View style={styles.successModalContainer}>
@@ -431,7 +440,6 @@ const CartScreen = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-
       <Modal visible={isPaymentFailModalVisible} animationType="slide">
         <View style={styles.failModalContainer}>
           <Ionicons name="close-circle-outline" size={100} color="#DD2C00" />
@@ -590,9 +598,17 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   applyButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
     backgroundColor: "#00cc69",
-    padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    marginTop: 10,
   },
   applyButtonText: {
     color: "#fff",
@@ -615,7 +631,7 @@ const styles = StyleSheet.create({
     color: "red",
   },
   orderButton: {
-    paddingVertical: 20,
+    paddingVertical: 14,
     paddingHorizontal: 30,
     backgroundColor: "#00cc69",
     borderRadius: 10,
@@ -625,11 +641,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+    marginTop: 10,
   },
   orderButtonText: {
-    fontSize: 18,
+    fontSize: 19,
     color: "#fff",
     fontWeight: "600",
+    marginStart: 10,
   },
   successModalContainer: {
     flex: 1,
@@ -686,7 +704,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },couponItem: {
+  },
+  couponItem: {
     padding: 15,
     marginVertical: 5,
     backgroundColor: "#ffffff",
@@ -698,7 +717,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },
-
 
   selectedCoupon: {
     backgroundColor: "#e0f7fa", // Highlight selected coupon
@@ -728,9 +746,28 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     color: "#333",
   },
-
-
-
+  paymentButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  paymentButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  selectedPaymentContainer: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    margin: 10,
+  },
+  selectedPaymentText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default CartScreen;

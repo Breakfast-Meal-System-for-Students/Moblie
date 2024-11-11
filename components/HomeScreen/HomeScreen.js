@@ -233,7 +233,9 @@ export default function HomeScreen() {
           >
             <Ionicons name="notifications-outline" size={24} color="black" />
           </TouchableOpacity>
-          <Ionicons name="heart-outline" size={24} color="black" />
+          <TouchableOpacity onPress={() => navigation.navigate("Favorites")}>
+            <Ionicons name="heart-outline" size={24} color="black" />
+          </TouchableOpacity>
         </View>
       </View>
 

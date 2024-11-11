@@ -20,11 +20,16 @@
     "@react-navigation/native-stack": "^6.11.0",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.7.7",
+<<<<<<< HEAD
     "expo": "^51.0.38",
+=======
+    "expo": "~51.0.28",
+>>>>>>> d6dd469807886b241572af645ed44a9a046753da
     "expo-auth-session": "~5.5.2",
     "expo-constants": "~16.0.2",
     "expo-image-picker": "~15.0.7",
     "expo-linear-gradient": "~13.0.2",
+    "expo-linking": "^6.3.1",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -43,8 +48,14 @@
     "react-native-svg": "15.2.0",
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-toast-message": "^2.2.1",
+    "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
+<<<<<<< HEAD
     "react-native-web": "~0.19.10"
+=======
+    "react-native-web": "~0.19.10",
+    "react-native-webview": "^13.12.3"
+>>>>>>> d6dd469807886b241572af645ed44a9a046753da
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

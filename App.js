@@ -30,154 +30,171 @@ import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
+import * as Linking from "expo-linking";
+
 const Stack = createNativeStackNavigator();
 
-function App() {
+function MyStack() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
-        <Stack.Screen
-          name="Main"
-          component={WelcomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ForgotPassword"
-          component={ForgotPasswordScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="OTPScreen"
-          component={OTPScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ResetPassword"
-          component={ResetPassword}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Shop"
-          component={ShopScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="BottomNavigationBar"
-          component={BottomNavigationBar}
-        />
-        <Stack.Screen
-          name="CategoriesScreen"
-          component={CategoriesScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Favorites"
-          component={FavoritesScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Notifications"
-          component={NotificationsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProductDetail"
-          component={ProductDetailScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Order"
-          component={OrderStatus}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Checkout"
-          component={CartScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Logout"
-          component={LogoutScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="EditProfile"
-          component={EditProfile}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="MapScreen"
-          component={MapScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Feedback"
-          component={FeedbackScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Cart"
-          component={CartScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="MyCart"
-          component={MyCart}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Address"
-          component={Address}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Security"
-          component={Security}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="CartMain"
-          component={CartMain}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Payment"
-          component={Payment}
-          options={{ headerShown: false }}
-        />
-        {/* <Stack.Screen
+    <Stack.Navigator initialRouteName="Main">
+      <Stack.Screen
+        name="Main"
+        component={WelcomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="OTPScreen"
+        component={OTPScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPassword}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Shop"
+        component={ShopScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="BottomNavigationBar"
+        component={BottomNavigationBar}
+      />
+      <Stack.Screen
+        name="CategoriesScreen"
+        component={CategoriesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Order"
+        component={OrderStatus}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Checkout"
+        component={CartScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Logout"
+        component={LogoutScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MapScreen"
+        component={MapScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Feedback"
+        component={FeedbackScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyCart"
+        component={MyCart}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Address"
+        component={Address}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Security"
+        component={Security}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CartMain"
+        component={CartMain}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Payment"
+        component={Payment}
+        options={{ headerShown: false }}
+      />
+      {/* <Stack.Screen
           name="Header"
           component={Header}
           options={{ headerShown: false }}
         /> */}
-        <Stack.Screen
-          name="Search"
-          component={Search}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
+      <Stack.Screen
+        name="Search"
+        component={Search}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+const config = {
+  screens: {
+    WelcomeScreen: "Main",
+  },
+};
+
+const prefix = Linking.createURL("myapp://app");
+export default function App() {
+  return (
+    <NavigationContainer
+      linking={{
+        prefixes: [prefix],
+        config,
+      }}
+    >
+      <MyStack />
     </NavigationContainer>
   );
 }
-
-export default App;

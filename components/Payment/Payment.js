@@ -4,149 +4,273 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
   ScrollView,
+  Alert,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import * as Linking from "expo-linking";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faArrowLeft,
+  faCreditCard,
+  faWallet,
+  faMobile,
+} from "@fortawesome/free-solid-svg-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
-export default function Payment() {
-  const navigation = useNavigation();
+const PaymentScreen = ({ route, navigation }) => {
+  const { cartId, totalAmount, selectedCoupon } = route.params;
   const [selectedMethod, setSelectedMethod] = useState(null);
+  const Url_A = "myapp://app/Main";
 
   const paymentMethods = [
     {
-      id: 1,
-      name: "Credit Card",
-      icon: <MaterialIcons name="credit-card" size={24} color="#00cc69" />,
+      id: "1",
+      name: "Credit/Debit Card",
+      icon: faCreditCard,
+      description: "Pay securely with your card",
     },
     {
-      id: 2,
-      name: "PayPal",
-      icon: <Ionicons name="logo-paypal" size={24} color="#00cc69" />,
+      id: "2",
+      name: "VNPay",
+      icon: faWallet,
+      description: "Fast and secure payment with VNPay",
     },
     {
-      id: 3,
-      name: "Cash on Delivery",
-      icon: <Ionicons name="cash-outline" size={24} color="#00cc69" />,
+      id: "3",
+      name: "Mobile Banking",
+      icon: faMobile,
+      description: "Direct payment through your bank app",
     },
   ];
 
+  const createOrder = async () => {
+    if (!selectedMethod) {
+      Alert.alert("Error", "Please select a payment method");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const orderDate = new Date().toISOString();
+
+      const orderData = {
+        cartId: cartId,
+        orderDate: orderDate,
+        paymentMethod: selectedMethod.id,
+      };
+
+      if (selectedCoupon) {
+        orderData.voucherId = selectedCoupon.id;
+      }
+
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
+        orderData,
+        {
+          headers: {
+            accept: "*/*",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        Alert.alert("Success", "Order placed successfully!", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Home"),
+          },
+        ]);
+      } else {
+        Alert.alert("Error", "Failed to create order.");
+      }
+    } catch (error) {
+      console.error("Create order error:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.detail ||
+          "An error occurred while creating the order."
+      );
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header with Back Button */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Choose a Payment Method</Text>
+        <Text style={styles.headerTitle}>Payment Method</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* Payment Methods */}
+      <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Select Payment Method</Text>
+
         {paymentMethods.map((method) => (
           <TouchableOpacity
             key={method.id}
             style={[
-              styles.methodContainer,
-              selectedMethod === method.id && styles.selectedMethod,
+              styles.methodCard,
+              selectedMethod?.id === method.id && styles.selectedMethod,
             ]}
-            onPress={() => setSelectedMethod(method.id)}
+            onPress={() => setSelectedMethod(method)}
           >
-            {method.icon}
-            <Text style={styles.methodText}>{method.name}</Text>
-            {selectedMethod === method.id && (
-              <Ionicons name="checkmark" size={24} color="#00cc69" />
-            )}
+            <FontAwesomeIcon
+              icon={method.icon}
+              size={24}
+              color={selectedMethod?.id === method.id ? "#00cc69" : "#666"}
+            />
+            <View style={styles.methodInfo}>
+              <Text style={styles.methodName}>{method.name}</Text>
+              <Text style={styles.methodDescription}>{method.description}</Text>
+            </View>
           </TouchableOpacity>
         ))}
+
+        {/* Order Summary */}
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Order Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text>Total Amount:</Text>
+            <Text style={styles.amount}>${totalAmount.toFixed(2)}</Text>
+          </View>
+          {selectedCoupon && (
+            <View style={styles.summaryRow}>
+              <Text>Discount:</Text>
+              <Text style={styles.discount}>
+                -
+                {((totalAmount * selectedCoupon.percentDiscount) / 100).toFixed(
+                  2
+                )}
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={[
-          styles.confirmButton,
-          selectedMethod ? styles.buttonActive : styles.buttonDisabled,
-        ]}
-        onPress={() => selectedMethod && alert("Payment Confirmed!")}
-        disabled={!selectedMethod}
-      >
-        <Text style={styles.buttonText}>Confirm Payment</Text>
-      </TouchableOpacity>
-    </View>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.confirmButton}
+          onPress={() => Linking.openURL(Url_A)}
+        >
+          <Text style={styles.confirmButtonText}>Confirm Payment</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#F4F6F9",
   },
-  headerContainer: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#00cc69",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
   },
-  headerText: {
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
-    marginLeft: 10,
-    flex: 1,
-    textAlign: "center",
+    marginLeft: 16,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 20,
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
     color: "#333",
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  methodContainer: {
+  methodCard: {
     flexDirection: "row",
     alignItems: "center",
+    padding: 16,
     backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   selectedMethod: {
     borderColor: "#00cc69",
-    borderWidth: 2,
+    backgroundColor: "#F0FFF4",
   },
-  methodText: {
+  methodInfo: {
+    marginLeft: 16,
     flex: 1,
-    marginLeft: 15,
-    fontSize: 18,
+  },
+  methodName: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
   },
-  confirmButton: {
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 20,
+  methodDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
   },
-  buttonActive: {
-    backgroundColor: "#00cc69",
+  summaryContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 24,
   },
-  buttonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  buttonText: {
+  summaryTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#00cc69",
+  },
+  discount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF6B6B",
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  confirmButton: {
+    backgroundColor: "#00cc69",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  confirmButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
+
+export default PaymentScreen;
