@@ -63,6 +63,7 @@ export default function ProfileScreen() {
     navigation.navigate("Payment");
   };
 
+
   const handleGoToSettings = () => {
     navigation.navigate("Settings");
   };

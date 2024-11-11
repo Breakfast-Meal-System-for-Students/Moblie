@@ -29,6 +29,7 @@ import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
 
+
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -183,7 +184,25 @@ function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+
   );
 }
+const config = {
+  screens: {
+    WelcomeScreen: "Main",
+  },
+};
 
-export default App;
+const prefix = Linking.createURL("myapp://app");
+export default function App() {
+  return (
+    <NavigationContainer
+      linking={{
+        prefixes: [prefix],
+        config,
+      }}
+    >
+      <MyStack />
+    </NavigationContainer>
+  );
+}

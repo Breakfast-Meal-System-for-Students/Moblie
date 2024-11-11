@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
   ScrollView,
   Alert,
   ActivityIndicator,
@@ -34,11 +35,13 @@ export default function Payment({
       id: 2,
       name: "PayOS",
       icon: <Ionicons name="logo-paypal" size={24} color="#00cc69" />,
+
     },
     {
-      id: 3,
-      name: "Cash on Delivery",
-      icon: <Ionicons name="cash-outline" size={24} color="#00cc69" />,
+      id: "3",
+      name: "Mobile Banking",
+      icon: faMobile,
+      description: "Direct payment through your bank app",
     },
   ];
 
@@ -98,6 +101,7 @@ export default function Payment({
       }
     } finally {
       setLoading(false);
+
     }
   };
 
@@ -106,27 +110,55 @@ export default function Payment({
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
+
         </TouchableOpacity>
-        <Text style={styles.headerText}>Choose a Payment Method</Text>
+        <Text style={styles.headerTitle}>Payment Method</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* Payment Methods */}
+      <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Select Payment Method</Text>
+
         {paymentMethods.map((method) => (
           <TouchableOpacity
             key={method.id}
             style={[
-              styles.methodContainer,
-              selectedMethod === method.id && styles.selectedMethod,
+              styles.methodCard,
+              selectedMethod?.id === method.id && styles.selectedMethod,
             ]}
-            onPress={() => setSelectedMethod(method.id)}
+            onPress={() => setSelectedMethod(method)}
           >
-            {method.icon}
-            <Text style={styles.methodText}>{method.name}</Text>
-            {selectedMethod === method.id && (
-              <Ionicons name="checkmark" size={24} color="#00cc69" />
-            )}
+            <FontAwesomeIcon
+              icon={method.icon}
+              size={24}
+              color={selectedMethod?.id === method.id ? "#00cc69" : "#666"}
+            />
+            <View style={styles.methodInfo}>
+              <Text style={styles.methodName}>{method.name}</Text>
+              <Text style={styles.methodDescription}>{method.description}</Text>
+            </View>
           </TouchableOpacity>
         ))}
+
+        {/* Order Summary */}
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Order Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text>Total Amount:</Text>
+            <Text style={styles.amount}>${totalAmount.toFixed(2)}</Text>
+          </View>
+          {selectedCoupon && (
+            <View style={styles.summaryRow}>
+              <Text>Discount:</Text>
+              <Text style={styles.discount}>
+                -
+                {((totalAmount * selectedCoupon.percentDiscount) / 100).toFixed(
+                  2
+                )}
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <TouchableOpacity
@@ -142,30 +174,34 @@ export default function Payment({
         </Text>
       </TouchableOpacity>
     </View>
+
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#F4F6F9",
   },
-  headerContainer: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#00cc69",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
   },
-  headerText: {
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
-    marginLeft: 10,
+    marginLeft: 16,
+  },
+  content: {
     flex: 1,
-    textAlign: "center",
+    padding: 16,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -173,44 +209,77 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   methodContainer: {
+
     flexDirection: "row",
     alignItems: "center",
+    padding: 16,
     backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   selectedMethod: {
     borderColor: "#00cc69",
-    borderWidth: 2,
+    backgroundColor: "#F0FFF4",
   },
-  methodText: {
+  methodInfo: {
+    marginLeft: 16,
     flex: 1,
-    marginLeft: 15,
-    fontSize: 18,
+  },
+  methodName: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
   },
-  confirmButton: {
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 20,
+  methodDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
   },
-  buttonActive: {
-    backgroundColor: "#00cc69",
+  summaryContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 24,
   },
-  buttonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  buttonText: {
+  summaryTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#00cc69",
+  },
+  discount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF6B6B",
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  confirmButton: {
+    backgroundColor: "#00cc69",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  confirmButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
+
+export default PaymentScreen;

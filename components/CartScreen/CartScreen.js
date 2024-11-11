@@ -61,6 +61,7 @@ const CartScreen = () => {
             calculateTotal(cartItems);
           } else {
             setListData([]);
+
           }
         } else {
           Alert.alert("Error", "Failed to fetch cart data.");
@@ -133,7 +134,8 @@ const CartScreen = () => {
   };
 
   useEffect(() => {
-    fetchCoupons();
+
+    fetchCoupons(); // Fetch coupons when the component mounts
   }, []);
 
   const increaseQuantity = (index) => {
@@ -187,6 +189,7 @@ const CartScreen = () => {
         voucherId: selectedCoupon?.id,
       };
 
+
       const response = await axios.post(
         "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
         orderData,
@@ -201,6 +204,7 @@ const CartScreen = () => {
 
       if (response.data.isSuccess) {
         setPaymentSuccessModalVisible(true);
+
       } else {
         setPaymentFailModalVisible(true);
         Alert.alert("Error", "Failed to create order.");
@@ -212,6 +216,7 @@ const CartScreen = () => {
       } else {
         Alert.alert("Error", "An error occurred while creating the order.");
       }
+
       setPaymentFailModalVisible(true);
     }
   };
@@ -242,8 +247,29 @@ const CartScreen = () => {
       ) : listData.length === 0 ? (
         <View style={styles.emptyCartContainer}>
           <Text style={styles.emptyCartText}>Your cart is empty.</Text>
+
         </View>
+      ) : // Coupons List
+      Array.isArray(coupons) && coupons.length > 0 ? (
+        coupons.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.couponItem,
+              selectedCoupon &&
+                selectedCoupon.id === item.id &&
+                styles.selectedCoupon,
+            ]}
+            onPress={() => setSelectedCoupon(item)}
+          >
+            <Text style={styles.couponName}>{item.name}</Text>
+            <Text style={styles.couponDetails}>
+              Discount: {item.percentDiscount}% (Max: ${item.maxDiscount})
+            </Text>
+          </TouchableOpacity>
+        ))
       ) : (
+
         <SwipeListView
           data={listData}
           renderItem={({ item, index }) => (
@@ -293,6 +319,7 @@ const CartScreen = () => {
         />
       )}
 
+
       <View style={styles.footer}>
         <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
         <TouchableOpacity style={styles.applyButton} onPress={applyVoucher}>
@@ -302,6 +329,7 @@ const CartScreen = () => {
           <Text style={styles.orderButtonText}>Place Order</Text>
         </TouchableOpacity>
       </View>
+
 
       <Modal
         visible={isPaymentSuccessModalVisible}
@@ -336,6 +364,7 @@ const CartScreen = () => {
               <Text style={styles.modalButtonText}>Try Again</Text>
             </TouchableOpacity>
           </View>
+
         </View>
       </Modal>
     </View>
@@ -421,17 +450,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   applyButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
     backgroundColor: "#00cc69",
+
     padding: 10,
     borderRadius: 5,
+
     alignItems: "center",
     marginBottom: 10,
   },
   applyButtonText: { color: "#fff", fontWeight: "bold" },
   orderButton: {
+
     backgroundColor: "#00cc69",
     padding: 15,
     borderRadius: 5,
+
     alignItems: "center",
   },
   orderButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
@@ -462,7 +497,9 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
   },
+
   modalButtonText: { color: "#fff", fontWeight: "bold" },
+
 });
 
 export default CartScreen;
