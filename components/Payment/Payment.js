@@ -7,35 +7,35 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import * as Linking from "expo-linking";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import {
-  faArrowLeft,
-  faCreditCard,
-  faWallet,
-  faMobile,
-} from "@fortawesome/free-solid-svg-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import * as Linking from "expo-linking";
 
-const PaymentScreen = ({ route, navigation }) => {
-  const { cartId, totalAmount, selectedCoupon } = route.params;
+export default function Payment({
+  fullName = "Guest",
+  orderInfo = "e2177a77-f0ca-4f0e-85cd-0aec4771ad1b",
+  orderType = "general",
+  description = "No description",
+  amount = 10000,
+}) {
+  const navigation = useNavigation();
   const [selectedMethod, setSelectedMethod] = useState(null);
-  const Url_A = "myapp://app/Main";
+  const [loading, setLoading] = useState(false);
 
   const paymentMethods = [
     {
-      id: "1",
-      name: "Credit/Debit Card",
-      icon: faCreditCard,
-      description: "Pay securely with your card",
+      id: 1,
+      name: "VNPAY",
+      icon: <MaterialIcons name="credit-card" size={24} color="#00cc69" />,
     },
     {
-      id: "2",
-      name: "VNPay",
-      icon: faWallet,
-      description: "Fast and secure payment with VNPay",
+      id: 2,
+      name: "PayOS",
+      icon: <Ionicons name="logo-paypal" size={24} color="#00cc69" />,
+
     },
     {
       id: "3",
@@ -45,67 +45,72 @@ const PaymentScreen = ({ route, navigation }) => {
     },
   ];
 
-  const createOrder = async () => {
+  const confirmPayment = async () => {
     if (!selectedMethod) {
-      Alert.alert("Error", "Please select a payment method");
+      Alert.alert("Error", "Please select a payment method.");
       return;
     }
 
+    setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("userToken");
-      const orderDate = new Date().toISOString();
-
-      const orderData = {
-        cartId: cartId,
-        orderDate: orderDate,
-        paymentMethod: selectedMethod.id,
-      };
-
-      if (selectedCoupon) {
-        orderData.voucherId = selectedCoupon.id;
-      }
+      console.log("Sending payment data:", {
+        orderInfo,
+        fullName,
+        orderType,
+        description,
+        amount,
+      });
 
       const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
-        orderData,
+        "https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url",
+        {
+          orderInfo,
+          fullName,
+          orderType,
+          description,
+          amount,
+        },
         {
           headers: {
-            accept: "*/*",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Accept: "*/*",
           },
         }
       );
 
-      if (response.data.isSuccess) {
-        Alert.alert("Success", "Order placed successfully!", [
-          {
-            text: "OK",
-            onPress: () => navigation.navigate("Home"),
-          },
-        ]);
+      console.log("API Response:", response.data);
+
+      const { isSuccess, data } = response.data;
+      if (isSuccess && data) {
+        Linking.openURL(data);
       } else {
-        Alert.alert("Error", "Failed to create order.");
+        Alert.alert("Error", "Failed to initiate payment.");
       }
     } catch (error) {
-      console.error("Create order error:", error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.detail ||
-          "An error occurred while creating the order."
-      );
+      if (error.response) {
+        Alert.alert(
+          "Error",
+          `Request failed with status ${
+            error.response.status
+          }: ${JSON.stringify(error.response.data)}`
+        );
+        console.error("Error details:", error.response.data);
+      } else {
+        Alert.alert("Error", "An error occurred while processing payment.");
+        console.error("Error:", error);
+      }
+    } finally {
+      setLoading(false);
+
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#000" />
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Payment Method</Text>
       </View>
@@ -156,16 +161,20 @@ const PaymentScreen = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={() => Linking.openURL(Url_A)}
-        >
-          <Text style={styles.confirmButtonText}>Confirm Payment</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <TouchableOpacity
+        style={[
+          styles.confirmButton,
+          selectedMethod ? styles.buttonActive : styles.buttonDisabled,
+        ]}
+        onPress={confirmPayment}
+        disabled={!selectedMethod || loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Processing..." : "Confirm Payment"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+
   );
 };
 
@@ -194,13 +203,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-    color: "#333",
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  methodCard: {
+  methodContainer: {
+
     flexDirection: "row",
     alignItems: "center",
     padding: 16,

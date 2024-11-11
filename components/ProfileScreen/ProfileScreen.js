@@ -62,9 +62,7 @@ export default function ProfileScreen() {
   const handleGoToPayment = () => {
     navigation.navigate("Payment");
   };
-  const handleGoToOrders = () => {
-    navigation.navigate("MyOrders");
-  };
+
 
   const handleGoToSettings = () => {
     navigation.navigate("Settings");
@@ -139,11 +137,7 @@ export default function ProfileScreen() {
           title="Payment"
           onPress={handleGoToPayment}
         />
-        <OptionItem
-          icon="list-outline"
-          title="My Orders"
-          onPress={handleGoToOrders}
-        />
+
         <OptionItem
           icon="settings-outline"
           title="Settings"
