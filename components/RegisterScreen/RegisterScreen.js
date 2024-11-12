@@ -60,6 +60,8 @@ export default function Register() {
         }
       );
 
+      console.log(response);
+
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
         console.log(response.data.data.token);

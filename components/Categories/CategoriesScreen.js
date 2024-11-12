@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Platform,
   SafeAreaView,
+  StatusBar,
 } from "react-native";
 import axios from "axios";
 import { useRoute } from "@react-navigation/native";
@@ -58,15 +59,42 @@ const CategoriesScreen = ({ navigation }) => {
   }, [categoryId]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#00cc69" />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00cc69" />
+        <Text style={styles.loadingText}>Đang tải sản phẩm...</Text>
+      </View>
+    );
   }
 
   if (error) {
-    return <Text>{error}</Text>;
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchProducts}>
+          <Text style={styles.retryButtonText}>Thử lại</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Không có sản phẩm nào.</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Quay lại</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
+      style={styles.productTouchable}
       onPress={() =>
         navigation.navigate("ProductDetail", {
           productId: item.product.id,
@@ -86,22 +114,29 @@ const CategoriesScreen = ({ navigation }) => {
           style={styles.productImage}
         />
         <View style={styles.productDetails}>
-          <Text style={styles.productName}>{item.product.name}</Text>
+          <Text style={styles.productName} numberOfLines={2}>
+            {item.product.name}
+          </Text>
           <View style={styles.productMeta}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>⭐ {item.product.rating}</Text>
+              <Text style={styles.ratingCount}>
+                ({item.product.ratingCount})
+              </Text>
+            </View>
             <Text style={styles.productDistance}>
-              {item.product.distance} km
-            </Text>
-            <Text style={styles.productRating}>
-              ⭐ {item.product.rating} ({item.product.ratingCount})
+              📍 {item.product.distance} km
             </Text>
           </View>
           <View style={styles.productPriceContainer}>
             <Text style={styles.productPrice}>
               ${item.product.price.toFixed(2)}
             </Text>
-            <Text style={styles.productDeliveryFee}>
-              🚚 ${item.product.deliveryFee}
-            </Text>
+            <View style={styles.deliveryContainer}>
+              <Text style={styles.productDeliveryFee}>
+                🚚 ${item.product.deliveryFee}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -110,20 +145,22 @@ const CategoriesScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#00cc69" />
       <View style={styles.headerContainer}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={styles.headerBackButton}
           onPress={() => navigation.goBack()}
         >
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+          <FontAwesomeIcon icon={faArrowLeft} size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Category </Text>
+        <Text style={styles.headerTitle}>Category</Text>
       </View>
       <FlatList
         data={products}
         renderItem={renderProductItem}
         keyExtractor={(item) => item.product.id.toString()}
         contentContainerStyle={styles.productList}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
@@ -132,98 +169,154 @@ const CategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f5f5f5",
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    paddingVertical: Platform.OS === "ios" ? 20 : 15,
-    paddingHorizontal: 15,
+    paddingVertical: Platform.OS === "ios" ? 15 : 12,
+    paddingHorizontal: 16,
     backgroundColor: "#00cc69",
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
     elevation: 5,
-    marginTop: Platform.OS === "ios" ? 10 : 0,
+    marginBottom: 8,
   },
-  backButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+  headerBackButton: {
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 12,
   },
   headerTitle: {
     color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 10,
+    fontSize: 20,
+    fontWeight: "700",
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#666",
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    color: "#ff4444",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: "#00cc69",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 16,
   },
   productList: {
-    paddingBottom: 20,
+    padding: 8,
+  },
+  productTouchable: {
+    marginBottom: 12,
+    marginHorizontal: 8,
   },
   productContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
     backgroundColor: "#ffffff",
-    marginBottom: 10,
-    borderRadius: 10,
+    borderRadius: 16,
+    padding: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
     elevation: 3,
-    marginHorizontal: 10,
   },
   productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#f0f0f0",
   },
   productDetails: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 12,
+    justifyContent: "space-between",
   },
   productName: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: 8,
+    lineHeight: 22,
   },
   productMeta: {
+    marginBottom: 8,
+  },
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 5,
+    marginBottom: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: "#ffa500",
+    marginRight: 4,
+  },
+  ratingCount: {
+    fontSize: 14,
+    color: "#666",
   },
   productDistance: {
     fontSize: 14,
-    color: "#555",
-    marginRight: 10,
-  },
-  productRating: {
-    fontSize: 14,
-    color: "#ffa500",
+    color: "#666",
   },
   productPriceContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
+    justifyContent: "space-between",
   },
   productPrice: {
-    fontSize: 15,
+    fontSize: 18,
+    fontWeight: "700",
     color: "#00cc69",
-    fontWeight: "600",
-    marginRight: 10,
+  },
+  deliveryContainer: {
+    backgroundColor: "#f5f5f5",
+    padding: 4,
+    borderRadius: 6,
   },
   productDeliveryFee: {
-    fontSize: 15,
-    color: "#00cc69",
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
+    fontSize: 14,
+    color: "#666",
   },
 });
 
