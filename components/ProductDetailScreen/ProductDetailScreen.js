@@ -49,9 +49,8 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
   const [note, setNote] = useState("");
-  const [cartItemCount, setCartItemCount] = useState(0); // New state for cart item count
+  const [cartItemCount, setCartItemCount] = useState(0);
 
-  // Update cart item count whenever the cart changes
   useEffect(() => {
     const totalItems = Object.values(cart).reduce(
       (sum, item) => sum + item.quantity,
@@ -61,7 +60,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   }, [cart]);
 
   const addToCart = async (event) => {
-    event.persist(); // Keep the synthetic event around
+    event.persist();
     const requestBody = {
       cartId: null,
       productId: productId,
@@ -212,7 +211,6 @@ export default function ProductDetailScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* Note input */}
         <NoteInput note={note} setNote={handleSetNote} />
         <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
           <FontAwesomeIcon
@@ -235,7 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: "#00cc69", // Header background color
+    backgroundColor: "#00cc69",
     marginTop: Platform.OS === "ios" ? 59 : 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
@@ -334,7 +332,7 @@ const styles = StyleSheet.create({
     elevation: 9,
   },
   addButton: {
-    backgroundColor: "#fff", // Màu trắng cho các nút
+    backgroundColor: "#fff",
     paddingHorizontal: 13,
     paddingVertical: 9,
     borderRadius: 10,
@@ -346,30 +344,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     color: "#000",
   },
-  notificationText: {
-    color: "#00cc69",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 10,
-  },
   addButtonPriceContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: -8,
     paddingHorizontal: 50,
-    backgroundColor: "#fff", // Set the background color to white
-    paddingVertical: 15, // Add padding to create space around elements
-    borderRadius: 15, // Optional: Add some border-radius for a soft look
-    shadowColor: "#000", // Optional: Add shadow for a slight 3D effect
+    backgroundColor: "#fff",
+    paddingVertical: 15,
+    borderRadius: 15,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
   },
-
   addToCartButton: {
-    backgroundColor: "#00cc69", // Nút thêm vào giỏ hàng giữ màu xanh lá
+    backgroundColor: "#00cc69",
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
@@ -390,7 +381,7 @@ const styles = StyleSheet.create({
   noteContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 1,
+    marginVertical: 10,
     padding: 10,
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -401,7 +392,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginHorizontal: 2,
   },
-
   noteInput: {
     flex: 1,
     fontSize: 16,

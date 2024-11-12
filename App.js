@@ -25,10 +25,8 @@ import Address from "./components/Address/Address";
 import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
-import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
-
 
 const Stack = createNativeStackNavigator();
 
@@ -37,9 +35,9 @@ const linking = {
   config: {
     screens: {
       Main: "WelcomeScreen",
-      Login: "Login", // Trang login phai dinh nghia o day ne
-      Home: "Home", // Vi du them trang nao thi dinh nghia o day VD HOME
-      // Các màn hình khác
+      Login: "Login",
+      Home: "Home",
+      // Other screens can be added here
     },
   },
 };
@@ -184,25 +182,7 @@ function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
-
   );
 }
-const config = {
-  screens: {
-    WelcomeScreen: "Main",
-  },
-};
 
-const prefix = Linking.createURL("myapp://app");
-export default function App() {
-  return (
-    <NavigationContainer
-      linking={{
-        prefixes: [prefix],
-        config,
-      }}
-    >
-      <MyStack />
-    </NavigationContainer>
-  );
-}
+export default App;
