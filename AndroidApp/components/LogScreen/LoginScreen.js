@@ -11,7 +11,7 @@ import {
   ImageBackground,
   Dimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
@@ -19,11 +19,12 @@ import { AntDesign } from "@expo/vector-icons"; // Import chỉ icon Google
 
 export default function Register() {
   const navigation = useNavigation();
+  const route = useRoute();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-
+  const { shopId, cardId, accessToken} = route.params || {};
   const { width, height } = Dimensions.get("window");
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function Register() {
     }
   };
 
-  const handleRegister = async () => {
+  const handleLoginSubmit = async () => {
     if (!isFormValid) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
@@ -87,10 +88,22 @@ export default function Register() {
 
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Home" }],
-        });
+        if (shopId && cardId && accessToken){
+          navigation.reset({
+            index: 0, // Đặt màn hình này làm màn hình đầu tiên
+            routes: [
+              {
+                name: "Shop",
+                params: { id: shopId, cardId, accessToken }, // Truyền các tham số
+              },
+            ],
+          });
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Home" }],
+          });
+        }
       } else {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }
@@ -163,7 +176,7 @@ export default function Register() {
             </TouchableOpacity>
           </View>
 
-          <Pressable style={styles.button} onPress={handleRegister}>
+          <Pressable style={styles.button} onPress={handleLoginSubmit}>
             <Text style={styles.buttonText}>Login</Text>
           </Pressable>
 

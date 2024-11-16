@@ -42,6 +42,8 @@ const linking = {
         path: "Shop/:id",
         parse: {
           id: (id) => `${id}`,
+          accessToken: (accessToken) => `${accessToken}`,
+          cardId: (cardId) => `${cardId}`,
         },
       },
     },

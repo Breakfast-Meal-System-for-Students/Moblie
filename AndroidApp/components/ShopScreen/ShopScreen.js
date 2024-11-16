@@ -22,7 +22,7 @@ const { width } = Dimensions.get("window");
 export default function ShopScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id } = route.params || {};
+  const { id, cardId, accessToken } = route.params || {};
   const [cart, setCart] = useState({});
   const [shopDetails, setShopDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,6 +62,16 @@ export default function ShopScreen() {
   };
 
   useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        navigation.navigate("Login", { shopId: id, cardId, accessToken });
+      } else {
+        fetchShopDetails();
+        fetchProducts();
+      }
+    }
+
     const fetchShopDetails = async () => {
       try {
         const response = await fetch(
@@ -110,9 +120,7 @@ export default function ShopScreen() {
         setLoading(false);
       }
     };
-
-    fetchShopDetails();
-    fetchProducts();
+    checkLogin();
   }, [id]);
 
   if (loading) {
@@ -153,12 +161,20 @@ export default function ShopScreen() {
     </View>
   );
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Home");
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
         >
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
@@ -206,6 +222,11 @@ export default function ShopScreen() {
           <Text style={styles.errorText}>No products available.</Text>
         }
       />
+      {/* Fixed Button */}
+      <TouchableOpacity
+        style={styles.fixedButton}
+        onPress={() => console.log("Button pressed")}
+      ></TouchableOpacity>
     </SafeAreaView>
   );
 }

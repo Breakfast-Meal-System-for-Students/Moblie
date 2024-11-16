@@ -6,16 +6,16 @@ import React, { Suspense } from "react";
 const PageContent = () => {
   const searchParams = useSearchParams();
   const shopId = searchParams.get('shopId');
+  const cardId = searchParams.get('cardId');
+  const accessToken = searchParams.get('accessToken');
 
   const handleOpenApp = () => {
     if (shopId) {
       const result = confirm("Open BMS App in your device?");
       if (result) {
-        const appLink = `stickersmash://Shop/${shopId}`;
+        const appLink = `stickersmash://Shop/${shopId}?cardId=${cardId}&accessToken=${accessToken}`;
         const playStoreLink = "https://play.google.com/store/apps/details?id=com.xuanthu.bmsv2&hl=en-US&ah=8Np4znPlTOddZfhCWlz5Oa420Ng";
-
         window.location.href = appLink;
-
         setTimeout(() => {
           window.location.href = playStoreLink;
         }, 2000); // 2 seconds delay
