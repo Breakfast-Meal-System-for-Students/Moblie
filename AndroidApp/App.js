@@ -38,6 +38,12 @@ const linking = {
       Login: "Login",
       Home: "Home",
       // Other screens can be added here
+      Shop: {
+        path: "Shop/:id",
+        parse: {
+          id: (id) => `${id}`,
+        },
+      },
     },
   },
 };
