@@ -20,15 +20,19 @@ import { faUsers } from '@fortawesome/free-solid-svg-icons'; // Icon nhóm ngư�
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from 'react-native';
 const { width } = Dimensions.get("window");
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biểu tượng 'X'
 
 export default function ShopScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { id, cardId, accessToken } = route.params || {};
+  const [cartId, setCartId] = useState(cardId);
   const [cart, setCart] = useState({});
   const [shopDetails, setShopDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
+  const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
 
   const goToProductDetail = (item) => {
     navigation.navigate("ProductDetail", { productId: item.id });
@@ -63,12 +67,34 @@ export default function ShopScreen() {
     });
   };
 
+  const checkIsCreatorOfGroup = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`,{
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      const creatorUserId = resBody.data.customerId;
+      if (resBody.data.isGroup) {
+        if (userId == creatorUserId) {
+          setCartId(resBody.data.id);
+          setIsCreatorCartGroup(true);
+        } else if (cardId && accessToken) {
+          await AsyncStorage.setItem("cartGroupId", cardId);
+          await AsyncStorage.setItem("accessTokenGroupId", accessToken);
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     const checkLogin = async () => {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) {
         navigation.navigate("Login", { shopId: id, cardId, accessToken });
       } else {
+        checkIsCreatorOfGroup();
         fetchShopDetails();
         fetchProducts();
       }
@@ -171,6 +197,24 @@ export default function ShopScreen() {
     }
   }
 
+  const handleClickCancelOrder = async () => { 
+    if (cartId) {
+      const token = await AsyncStorage.getItem("userToken");
+      const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      const resBody = await result.json();
+      if (resBody.isSuccess) {
+        handleBack();
+      }
+    } else {
+      alert("cart id invalid: " + cardId);
+    }
+  }
+
   const handleClickOrderForGroup = async () => {
     const token = await AsyncStorage.getItem("userToken");
     const formData = new FormData();
@@ -184,12 +228,14 @@ export default function ShopScreen() {
     });
     const resBody = await response.json();
     if (resBody.isSuccess) {
-      const cardId = resBody.data.cardId;
+      const cartId = resBody.data.cartId;
       const accessToken = resBody.data.accessToken;
-      const url = `http://192.168.1.15:3000/OrderGroupLink?shopId=${id}&cardId=${cardId}&accessToken=${accessToken}`;
+      const url = `https://bms1dl-ujj3.vercel.app/OrderGroupLink?shopId=${id}&cardId=${cartId}&accessToken=${accessToken}`;
       // copy url to clipboard and alert to noti for user
       Clipboard.setString(url);
       Alert.alert("URL has been copied", "Please share this link with your friends");
+      setCartId(cartId);
+      setIsCreatorCartGroup(true);
     } else {
       Alert.alert("Failed to create Order Group");
     }
@@ -249,7 +295,17 @@ export default function ShopScreen() {
         }
       />
       {/* Fixed Button */}
-      {!cardId && !accessToken && (
+      {isCreatorCartGroup && (
+        <TouchableOpacity
+          style={styles.fixedButtonCancel}
+          onPress={handleClickCancelOrder}
+        >
+          <View style={styles.buttonContent}>
+            <FontAwesomeIcon icon={faTimes} size={20} color="#fff" />
+            <Text style={styles.buttonText}>Cancel Order</Text>
+          </View>
+        </TouchableOpacity>
+      ) || !cardId && !accessToken && (
         <TouchableOpacity
           style={styles.fixedButton}
           onPress={handleClickOrderForGroup}
@@ -392,6 +448,22 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 5, // Bóng trên Android
     width: 200, // Đặt width nếu muốn kiểm soát chính xác chiều rộng
+    height: 50, // Đặt height nếu muốn kiểm soát chính xác chiều cao
+  },
+  fixedButtonCancel: {
+    position: "absolute",
+    bottom: 20, // khoảng cách từ đáy màn hình
+    right: 20, // khoảng cách từ cạnh phải
+    backgroundColor: "red", // Màu nền của button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15, // Góc bo tròn
+    shadowColor: "#000", // Bóng
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5, // Bóng trên Android
+    width: 180, // Đặt width nếu muốn kiểm soát chính xác chiều rộng
     height: 50, // Đặt height nếu muốn kiểm soát chính xác chiều cao
   },
   buttonContent: {

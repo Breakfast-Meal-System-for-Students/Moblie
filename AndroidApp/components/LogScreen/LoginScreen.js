@@ -16,12 +16,13 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
 import { AntDesign } from "@expo/vector-icons"; // Import chỉ icon Google
+import { jwtDecode } from "jwt-decode";
 
 export default function Register() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("user@gmail.com");
+  const [password, setPassword] = useState("User123@");
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   const { shopId, cardId, accessToken} = route.params || {};
@@ -88,6 +89,9 @@ export default function Register() {
 
       if (response.data.isSuccess) {
         await AsyncStorage.setItem("userToken", response.data.data.token);
+        const decodedToken = jwtDecode(response.data.data.token);
+        const userId = decodedToken.nameid;
+        await AsyncStorage.setItem("userId", userId);
         if (shopId && cardId && accessToken){
           navigation.reset({
             index: 0, // Đặt màn hình này làm màn hình đầu tiên
@@ -108,6 +112,7 @@ export default function Register() {
         Alert.alert("Error", "Login failed. Please check your credentials.");
       }
     } catch (error) {
+      console.log(error);
       Alert.alert("Error", "An error occurred during login. Please try again.");
     }
   };

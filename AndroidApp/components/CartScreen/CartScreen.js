@@ -39,23 +39,31 @@ const CartScreen = () => {
     const fetchCartData = async () => {
       setLoading(true);
       try {
+        const cartGroupId = await AsyncStorage.getItem("cartGroupId");
+        const accessTokenGroupId = await AsyncStorage.getItem("accessTokenGroupId");
         const token = await AsyncStorage.getItem("userToken");
         const shopId = await AsyncStorage.getItem("shopId");
-        const response = await axios.get(
-          `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
-          {
-            headers: {
-              accept: "*/*",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        // Log the response for debugging
-        console.log("Cart fetch response:", response.data);
-
-        if (response.data.isSuccess) {
-          const cartData = response.data.data; // Store the data in a variable
+        var result = null;
+        if (cartGroupId && accessTokenGroupId) {
+          result = await fetch(
+            `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`
+          );
+        } else {
+          result = await fetch(
+            `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
+            {
+              headers: {
+                accept: "*/*",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        }
+       
+       
+        const resBody = await result.json();
+        if (resBody.isSuccess) {
+          const cartData = resBody.data; // Store the data in a variable
 
           // Check if cartData is not null and has cartDetails
           if (cartData && Array.isArray(cartData.cartDetails)) {
@@ -383,7 +391,9 @@ const CartScreen = () => {
                 <Image
                   source={{
                     uri:
-                      item.images[0].url || "https://via.placeholder.com/150",
+                    item.images && item.images[0] && item.images[0].url
+                      ? item.images[0].url
+                      : "https://via.placeholder.com/150",
                   }}
                   style={styles.productImage}
                 />
