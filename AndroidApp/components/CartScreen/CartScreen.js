@@ -35,6 +35,7 @@ const CartScreen = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [coupons, setCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [isMemberGroup, setIsMemberGroup] = useState(false);
   useEffect(() => {
     const fetchCartData = async () => {
       setLoading(true);
@@ -45,6 +46,7 @@ const CartScreen = () => {
         const shopId = await AsyncStorage.getItem("shopId");
         var result = null;
         if (cartGroupId && accessTokenGroupId) {
+          setIsMemberGroup(true);
           result = await fetch(
             `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`
           );
@@ -59,8 +61,8 @@ const CartScreen = () => {
             }
           );
         }
-       
-       
+
+
         const resBody = await result.json();
         if (resBody.isSuccess) {
           const cartData = resBody.data; // Store the data in a variable
@@ -85,6 +87,7 @@ const CartScreen = () => {
             setListData([]); // Ensure listData is set to an empty array
           }
         } else {
+          console.log(resBody);
           Alert.alert("Error", "Failed to fetch cart data.");
         }
       } catch (error) {
@@ -148,7 +151,6 @@ const CartScreen = () => {
 
       if (response.data.isSuccess) {
         setCoupons(response.data.data.data); // Set the coupons data
-        console.log(response.data.data.data);
       } else {
         console.error("Failed to fetch coupons:", response.data.messages);
       }
@@ -160,20 +162,46 @@ const CartScreen = () => {
     fetchCoupons(); // Fetch coupons when the component mounts
   }, []);
 
-  const increaseQuantity = (index) => {
+  const fetchApiUpdateCartItemQuantity = async (data, quantity) => {
+    const shopId = await AsyncStorage.getItem("shopId");
+    const jsonBody = {
+      shopId: shopId,
+      cartId: data.cartId,
+      productId: data.productId,
+      quantity: quantity,
+      price: data.price,
+      note: data.note
+    }
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', 
+      },
+      body: JSON.stringify(jsonBody)
+    })
+    const resBody = await result.json();
+    if (!resBody.isSuccess) {
+      console.log(resBody);
+      Alert.alert("Update cart quantity failed!");
+    }
+  }
+
+  const increaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
     updatedItems[index].quantity += 1;
     setListData(updatedItems);
     calculateTotal(updatedItems);
-  };
+    await fetchApiUpdateCartItemQuantity(data, updatedItems[index].quantity);
+  }
 
-  const decreaseQuantity = (index) => {
+  const decreaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
     if (updatedItems[index].quantity > 1) {
       updatedItems[index].quantity -= 1;
       setListData(updatedItems);
       calculateTotal(updatedItems);
     }
+    await fetchApiUpdateCartItemQuantity(data, updatedItems[index].quantity);
   };
 
   const deleteItem = async (cartItemId) => {
@@ -220,14 +248,14 @@ const CartScreen = () => {
       <View style={styles.quantityContainer}>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => decreaseQuantity(data.index)}
+          onPress={() => decreaseQuantity(data, data.index)}
         >
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{data.item.quantity}</Text>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => increaseQuantity(data.index)}
+          onPress={() => increaseQuantity(data, data.index)}
         >
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
@@ -321,7 +349,6 @@ const CartScreen = () => {
           },
         }
       );
-      console.log(response);
       if (response.data.isSuccess) {
         setPaymentSuccessModalVisible(true);
         // Optionally, you can navigate to the OrderStatus screen here
@@ -391,9 +418,9 @@ const CartScreen = () => {
                 <Image
                   source={{
                     uri:
-                    item.images && item.images[0] && item.images[0].url
-                      ? item.images[0].url
-                      : "https://via.placeholder.com/150",
+                      item.images && item.images[0] && item.images[0].url
+                        ? item.images[0].url
+                        : "https://via.placeholder.com/150",
                   }}
                   style={styles.productImage}
                 />
@@ -407,14 +434,14 @@ const CartScreen = () => {
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => decreaseQuantity(index)}
+                    onPress={() => decreaseQuantity(item, index)}
                   >
                     <Text style={styles.quantityButtonText}>−</Text>
                   </TouchableOpacity>
                   <Text style={styles.quantityText}>{item.quantity}</Text>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => increaseQuantity(index)}
+                    onPress={() => increaseQuantity(item, index)}
                   >
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
@@ -494,13 +521,14 @@ const CartScreen = () => {
                 ).toFixed(2)}
               </Text>
             </View>
-
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={handleCreateOrder}
-            >
-              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-            </TouchableOpacity>
+            {!isMemberGroup && (
+              <TouchableOpacity
+                style={styles.checkoutButton}
+                onPress={handleCreateOrder}
+              >
+                <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </>
       )}

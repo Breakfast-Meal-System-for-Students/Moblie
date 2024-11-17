@@ -61,8 +61,9 @@ export default function ProductDetailScreen({ route, navigation }) {
 
   const addToCart = async (event) => {
     event.persist();
+    const cartGroupId = await AsyncStorage.getItem("cartGroupId");
     const requestBody = {
-      cartId: null,
+      cartId: cartGroupId ?? null,
       productId: productId,
       quantity: quantity,
       price: product?.price || 0,
@@ -72,19 +73,34 @@ export default function ProductDetailScreen({ route, navigation }) {
 
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(
-        `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${requestBody.shopId}`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
+      var response = null;
+      if (cartGroupId) {
+        response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetailForGroup`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "*/*",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      } else {
+        response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/Cart/AddCartDetail?shopId=${requestBody.shopId}`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "*/*",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      }
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
@@ -92,8 +108,8 @@ export default function ProductDetailScreen({ route, navigation }) {
         );
       }
 
-      const data = await response.json();
-      Alert.alert("Success", data.messages[0].content);
+      // const data = await response.json();
+      Alert.alert("Success", "Item has been added to cart successfully!");
     } catch (error) {
       Alert.alert("Error", error.message);
     }

@@ -70,21 +70,34 @@ export default function ShopScreen() {
   const checkIsCreatorOfGroup = async () => {
     const userId = await AsyncStorage.getItem("userId");
     const token = await AsyncStorage.getItem("userToken");
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`,{
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    var result = null;
+    if (cardId && accessToken) {
+      result = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cardId}?access_token=${accessToken}`
+      );
+    } else {
+      console.log("checkIsCreatorOfGroup shopId: " + id);
+      result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`,{
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
     const resBody = await result.json();
     if (resBody.isSuccess) {
-      const creatorUserId = resBody.data.customerId;
-      if (resBody.data.isGroup) {
-        if (userId == creatorUserId) {
-          setCartId(resBody.data.id);
-          setIsCreatorCartGroup(true);
-        } else if (cardId && accessToken) {
-          await AsyncStorage.setItem("cartGroupId", cardId);
-          await AsyncStorage.setItem("accessTokenGroupId", accessToken);
+      if(resBody.data) {
+        const creatorUserId = resBody.data.customerId;
+        if (resBody.data.isGroup) {
+          if (userId == creatorUserId) {
+            setCartId(resBody.data.id);
+            setIsCreatorCartGroup(true);
+          } else if (cardId && accessToken) {
+            await AsyncStorage.setItem("cartGroupId", cardId);
+            await AsyncStorage.setItem("accessTokenGroupId", accessToken);
+          }
         }
       }
+    } else {
+      Alert.alert("This Order has been cancel!");
+      navigation.navigate("Home");
     }
   }
 
@@ -149,7 +162,7 @@ export default function ShopScreen() {
       }
     };
     checkLogin();
-  }, [id]);
+  }, [id, cardId]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
@@ -208,6 +221,8 @@ export default function ShopScreen() {
       });
       const resBody = await result.json();
       if (resBody.isSuccess) {
+        await AsyncStorage.removeItem("cartGroupId");
+        await AsyncStorage.removeItem("accessTokenGroupId");
         handleBack();
       }
     } else {
