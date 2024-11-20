@@ -47,9 +47,12 @@ const CartScreen = () => {
         var result = null;
         if (cartGroupId && accessTokenGroupId) {
           setIsMemberGroup(true);
-          result = await fetch(
-            `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`
-          );
+          result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`, {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          });
         } else {
           result = await fetch(
             `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
@@ -61,7 +64,6 @@ const CartScreen = () => {
             }
           );
         }
-
 
         const resBody = await result.json();
         if (resBody.isSuccess) {
@@ -164,22 +166,26 @@ const CartScreen = () => {
 
   const fetchApiUpdateCartItemQuantity = async (data, quantity) => {
     const shopId = await AsyncStorage.getItem("shopId");
+    const cartGroupId = await AsyncStorage.getItem("cartGroupId");
     const jsonBody = {
       shopId: shopId,
-      cartId: data.cartId,
+      cartId: cartGroupId ?? data.cartId,
       productId: data.productId,
       quantity: quantity,
       price: data.price,
       note: data.note
     }
+    console.log(jsonBody);
     const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`, {
       method: 'POST',
       headers: {
+        'Accept': '*/*', // Thêm header Accept
         'Content-Type': 'application/json', 
       },
       body: JSON.stringify(jsonBody)
-    })
+    });
     const resBody = await result.json();
+    console.log(resBody);
     if (!resBody.isSuccess) {
       console.log(resBody);
       Alert.alert("Update cart quantity failed!");
@@ -308,64 +314,46 @@ const CartScreen = () => {
   // };
 
   const handleCreateOrder = () => {
+    createOrder();
+  };
+
+  const navigateToPayment = async (orderId) => {
+    const shopId = await AsyncStorage.getItem("shopId");
     navigation.navigate("Payment", {
       fullName: "User Name", // Replace this with the actual user’s name if available
       // orderInfo: `Order-${cartId}`, // Example order info using cart ID
-      orderInfo: `${cartId}`, // Example order info using cart ID
+      orderInfo: `${orderId}`, // Example order info using cart ID
       orderType: "general", // Set your order type
       description: "Order description", // Set a description if needed
       amount: totalPrice, // Send total price
-      cartId: cartId, // Pass the cart ID for reference
+      shopId, // Pass the cart ID for reference
       selectedCoupon: selectedCoupon, // Pass selected coupon if available
     });
-  };
+  }
 
   const createOrder = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const orderDate = new Date().toISOString(); // Current date in ISO format
-
-      // Prepare the order data
-      const orderData = {
-        cartId: cartId,
-        orderDate: orderDate,
-      };
-
-      // Include couponId if a coupon is selected
-      if (selectedCoupon) {
-        orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
+    const token = await AsyncStorage.getItem("userToken");
+    const orderDate = new Date().toISOString(); 
+    const orderData = {
+      cartId: cartId,
+      orderDate: orderDate,
+    };
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",{
+        method: 'POST',
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
       }
-      console.log(
-        "orderData" + orderData + orderData.voucherId + "hi" + orderData.cartId
-      );
-      const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
-        orderData,
-        {
-          headers: {
-            accept: "*/*",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.isSuccess) {
-        setPaymentSuccessModalVisible(true);
-        // Optionally, you can navigate to the OrderStatus screen here
-      } else {
-        setPaymentFailModalVisible(true);
-        Alert.alert("Error", "Failed to create order.");
-      }
-    } catch (error) {
-      console.error("Create order error:", error);
-      // Check if the error response exists and has a detail message
-      if (error.response && error.response.data && error.response.data.detail) {
-        Alert.alert("Infor", error.response.data.detail); // Show detailed error message
-      } else {
-        Alert.alert("Error", "An error occurred while creating the order."); // Fallback error message
-      }
-
-      setPaymentFailModalVisible(true);
+    );
+    const resBody = await response.json();
+    console.log(resBody);
+    if (resBody.isSuccess) {
+      navigateToPayment(resBody.data);
+    } else {
+      Alert.alert("Failed when create order!!!");
     }
   };
 

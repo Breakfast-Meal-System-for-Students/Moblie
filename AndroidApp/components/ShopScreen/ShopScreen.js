@@ -26,7 +26,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biá»ƒu tÆ
 export default function ShopScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id, cardId, accessToken } = route.params || {};
+  const { id, cardId, accessToken, orderIdSuccess } = route.params || {};
   const [cartId, setCartId] = useState(cardId);
   const [cart, setCart] = useState({});
   const [shopDetails, setShopDetails] = useState(null);
@@ -77,16 +77,17 @@ export default function ShopScreen() {
       );
     } else {
       console.log("checkIsCreatorOfGroup shopId: " + id);
-      result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`,{
+      result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
     const resBody = await result.json();
     if (resBody.isSuccess) {
-      if(resBody.data) {
+      if (resBody.data) {
         const creatorUserId = resBody.data.customerId;
         if (resBody.data.isGroup) {
           if (userId == creatorUserId) {
+            console.log("set cart id: " + resBody.data.id);
             setCartId(resBody.data.id);
             setIsCreatorCartGroup(true);
           } else if (cardId && accessToken) {
@@ -110,8 +111,28 @@ export default function ShopScreen() {
         checkIsCreatorOfGroup();
         fetchShopDetails();
         fetchProducts();
+        fetchChangeStatusOrder();
       }
     }
+
+    const fetchChangeStatusOrder = async () => {
+      if (orderIdSuccess) {
+        const url = `https://bms-fs-api.azurewebsites.net/api/Order/${orderIdSuccess}?id=${encodeURIComponent(orderIdSuccess)}&status=ORDERED`;
+        const result = await fetch(url, {
+          headers: {
+            accept: "*/*",
+          },
+          method: "PUT",
+        });
+        if (result.ok) {
+          Alert.alert("Payment is successffully!!!");
+        } else {
+          Alert.alert("An error occurs in payment");
+        }
+      } else {
+        Alert.alert("An error occurs in payment");
+      }
+    };
 
     const fetchShopDetails = async () => {
       try {
@@ -162,7 +183,7 @@ export default function ShopScreen() {
       }
     };
     checkLogin();
-  }, [id, cardId]);
+  }, [id, cardId, orderIdSuccess]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
@@ -210,8 +231,11 @@ export default function ShopScreen() {
     }
   }
 
-  const handleClickCancelOrder = async () => { 
+  const handleClickCancelOrder = async () => {
+    console.log("handleClickCancelOrder: " + cartId);
+
     if (cartId) {
+      console.log("handleClickCancelOrder: step 1");
       const token = await AsyncStorage.getItem("userToken");
       const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`, {
         method: "DELETE",
@@ -219,12 +243,15 @@ export default function ShopScreen() {
           'Authorization': `Bearer ${token}`
         },
       });
+      console.log("handleClickCancelOrder: step 2");
+      console.log(result);
       const resBody = await result.json();
       if (resBody.isSuccess) {
         await AsyncStorage.removeItem("cartGroupId");
         await AsyncStorage.removeItem("accessTokenGroupId");
         handleBack();
       }
+      console.log("handleClickCancelOrder: step 3");
     } else {
       alert("cart id invalid: " + cardId);
     }

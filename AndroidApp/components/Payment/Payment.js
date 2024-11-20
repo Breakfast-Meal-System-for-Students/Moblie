@@ -22,8 +22,9 @@ const Payment = ({ route, navigation }) => {
     orderType = "",
     description = "",
     amount = 0,
-    cartId = "",
+    shopId,
   } = route.params || {};
+
 
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -48,14 +49,16 @@ const Payment = ({ route, navigation }) => {
     try {
       // token cua user dau
       const token = await AsyncStorage.getItem("userToken");
+      const amountTotal = amount < 1000 ? amount * 10000 : amount
       const jsonBody = {
         orderInfo,
         fullName,
         orderType,
         description,
-        amount,
+        amount: amountTotal,
+        returnUrl: `https://bms1dl-ujj3.vercel.app/OrderGroupLink/PaymentCartReturn?shopId=${shopId}&orderId=${orderInfo}`
       };
-      // console.log(jsonBody);
+      console.log(jsonBody);
       const response = await axios.post(apiEndpoint, jsonBody, {
         headers: {
           "Content-Type": "application/json",
@@ -88,12 +91,12 @@ const Payment = ({ route, navigation }) => {
         >
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Phương thức thanh toán</Text>
+        <Text style={styles.headerTitle}>Payment Method</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Chọn phương thức thanh toán</Text>
+        <Text style={styles.sectionTitle}>Choose payment method</Text>
         <View style={styles.methodsContainer}>
           {paymentMethods.map((method) => (
             <TouchableOpacity
@@ -127,19 +130,19 @@ const Payment = ({ route, navigation }) => {
         </View>
 
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Chi tiết thanh toán</Text>
+          <Text style={styles.summaryTitle}>Payement Details</Text>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Số tiền</Text>
+            <Text style={styles.summaryLabel}>Amount: </Text>
             <Text style={styles.summaryAmount}>
               {amount.toLocaleString("vi-VN")} VNĐ
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tên khách hàng</Text>
+            <Text style={styles.summaryLabel}>Customer Name: </Text>
             <Text style={styles.summaryText}>{fullName}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Mã đơn hàng</Text>
+            <Text style={styles.summaryLabel}>Order Code: </Text>
             <Text style={styles.summaryText}>{orderInfo}</Text>
           </View>
         </View>
@@ -157,7 +160,7 @@ const Payment = ({ route, navigation }) => {
           {loading ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.paymentButtonText}>Xác nhận thanh toán</Text>
+            <Text style={styles.paymentButtonText}>CONFIRM PAYMENT</Text>
           )}
         </TouchableOpacity>
       </View>
