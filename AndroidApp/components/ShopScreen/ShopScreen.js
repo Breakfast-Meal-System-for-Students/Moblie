@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,18 +16,24 @@ import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { faUsers } from '@fortawesome/free-solid-svg-icons'; // Icon nhóm người
+import * as Clipboard from 'expo-clipboard';
+import { Alert } from 'react-native';
 const { width } = Dimensions.get("window");
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biểu tượng 'X'
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ShopScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id } = route.params || {};
+  const { id, cardId, accessToken, orderIdSuccess } = route.params || {};
+  const [cartId, setCartId] = useState(cardId);
   const [cart, setCart] = useState({});
   const [shopDetails, setShopDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
-
+  const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
   const goToProductDetail = (item) => {
     navigation.navigate("ProductDetail", { productId: item.id });
   };
@@ -61,7 +67,79 @@ export default function ShopScreen() {
     });
   };
 
+  const checkIsCreatorOfGroup = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    const token = await AsyncStorage.getItem("userToken");
+    var result = null;
+    if (cardId && accessToken) {
+      result = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cardId}?access_token=${accessToken}`
+      );
+    } else {
+      result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      if (resBody.data) {
+        const creatorUserId = resBody.data.customerId;
+        if (resBody.data.isGroup) {
+          if (userId == creatorUserId) {
+            setCartId(resBody.data.id);
+            setIsCreatorCartGroup(true);
+          } else if (cardId && accessToken) {
+            await AsyncStorage.setItem("cartGroupId", cardId);
+            await AsyncStorage.setItem("accessTokenGroupId", accessToken);
+          }
+        }
+      }
+    } else {
+      Alert.alert("This Order has been cancel!");
+      navigation.navigate("Home");
+    }
+  }
+   
+  useFocusEffect(
+      useCallback(() => {
+    const fetchChangeStatusOrder = async () => {
+      if (orderIdSuccess) {
+        const url = `https://bms-fs-api.azurewebsites.net/api/Order/${orderIdSuccess}?id=${encodeURIComponent(orderIdSuccess)}&status=ORDERED`;
+        const result = await fetch(url, {
+          headers: {
+            accept: "*/*",
+          },
+          method: "PUT",
+        });
+        if (result.ok) {
+          Alert.alert("Payment is successfully!!!");
+          setCart('');
+          setCartId('');
+          setIsCreatorCartGroup(false);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
+        } else {
+          Alert.alert("An error occurs in payment");
+        }
+        handleBack();
+      }
+    };
+    fetchChangeStatusOrder();
+  }, [orderIdSuccess])
+  );
+
   useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        navigation.navigate("Login", { shopId: id, cardId, accessToken });
+      } else {
+        checkIsCreatorOfGroup();
+        fetchShopDetails();
+        fetchProducts();
+      }
+    }
+
     const fetchShopDetails = async () => {
       try {
         const response = await fetch(
@@ -110,10 +188,11 @@ export default function ShopScreen() {
         setLoading(false);
       }
     };
+    
+    checkLogin();
+  }, [id, cardId]);
 
-    fetchShopDetails();
-    fetchProducts();
-  }, [id]);
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
@@ -153,12 +232,69 @@ export default function ShopScreen() {
     </View>
   );
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Home");
+    }
+  }
+
+  const handleClickCancelOrder = async () => {
+    if (cartId) {
+      const token = await AsyncStorage.getItem("userToken");
+      const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      console.log(result);
+      const resBody = await result.json();
+      if (!resBody.isSuccess) {
+        console.log("Error: An error occur when click cancel");
+        console.log(result);
+      }
+      await AsyncStorage.removeItem("cartGroupId");
+      await AsyncStorage.removeItem("accessTokenGroupId");
+      handleBack();
+    } else {
+      alert("cart id invalid: " + cardId);
+    }
+  }
+
+  const handleClickOrderForGroup = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const formData = new FormData();
+    formData.append("shopId", id);
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Cart/ChangeCartToGroup", {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+    const resBody = await response.json();
+    if (resBody.isSuccess) {
+      const cartId = resBody.data.cartId;
+      const accessToken = resBody.data.accessToken;
+      const url = `https://bms1dl-ujj3.vercel.app/OrderGroupLink?shopId=${id}&cardId=${cartId}&accessToken=${accessToken}`;
+      // copy url to clipboard and alert to noti for user
+      Clipboard.setString(url);
+      Alert.alert("URL has been copied", "Please share this link with your friends");
+      setCartId(cartId);
+      setIsCreatorCartGroup(true);
+    } else {
+      Alert.alert("Failed to create Order Group");
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
         >
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
@@ -206,6 +342,29 @@ export default function ShopScreen() {
           <Text style={styles.errorText}>No products available.</Text>
         }
       />
+      {/* Fixed Button */}
+      {isCreatorCartGroup && (
+        <TouchableOpacity
+          style={styles.fixedButtonCancel}
+          onPress={handleClickCancelOrder}
+        >
+          <View style={styles.buttonContent}>
+            <FontAwesomeIcon icon={faTimes} size={20} color="#fff" />
+            <Text style={styles.buttonText}>Cancel Order</Text>
+          </View>
+        </TouchableOpacity>
+      ) || !cardId && !accessToken && (
+        <TouchableOpacity
+          style={styles.fixedButton}
+          onPress={handleClickOrderForGroup}
+        >
+          <View style={styles.buttonContent}>
+            <FontAwesomeIcon icon={faUsers} size={20} color="#fff" />
+            <Text style={styles.buttonText}>Order for Group</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -322,5 +481,49 @@ const styles = StyleSheet.create({
   feedbackButtonText: {
     color: "#FFB90F",
     fontSize: 14,
+  },
+  fixedButton: {
+    position: "absolute",
+    bottom: 20, // khoảng cách từ đáy màn hình
+    right: 20, // khoảng cách từ cạnh phải
+    backgroundColor: "#00cc69", // Màu nền của button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15, // Góc bo tròn
+    shadowColor: "#000", // Bóng
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5, // Bóng trên Android
+    width: 200, // Đặt width nếu muốn kiểm soát chính xác chiều rộng
+    height: 50, // Đặt height nếu muốn kiểm soát chính xác chiều cao
+  },
+  fixedButtonCancel: {
+    position: "absolute",
+    bottom: 20, // khoảng cách từ đáy màn hình
+    right: 20, // khoảng cách từ cạnh phải
+    backgroundColor: "red", // Màu nền của button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15, // Góc bo tròn
+    shadowColor: "#000", // Bóng
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5, // Bóng trên Android
+    width: 180, // Đặt width nếu muốn kiểm soát chính xác chiều rộng
+    height: 50, // Đặt height nếu muốn kiểm soát chính xác chiều cao
+  },
+  buttonContent: {
+    flexDirection: "row", // Đặt icon và text nằm ngang
+    alignItems: "center", // Căn giữa icon và text
+  },
+  buttonText: {
+    marginLeft: 10,
+    color: "#fff", // Màu chữ trắng
+    fontSize: 18, // Kích thước chữ
+    fontWeight: "bold", // Đậm chữ
+    textAlign: "center", // Căn giữa chữ
+    lineHeight: 30, // Căn giữa chữ theo chiều dọc trong nút
   },
 });

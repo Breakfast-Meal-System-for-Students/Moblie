@@ -25,7 +25,7 @@ function RestaurantCard({ item }) {
   const navigation = useNavigation();
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Shop", { id: item.id })}
+      onPress={() => navigation.navigate("Shop", { id: item.id, orderIdSuccess: null })}
     >
       <View style={styles.restaurantCard}>
         <Image style={styles.restaurantImage} source={item.image} />

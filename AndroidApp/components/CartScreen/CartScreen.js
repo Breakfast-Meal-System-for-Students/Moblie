@@ -35,27 +35,47 @@ const CartScreen = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [coupons, setCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [isMemberGroup, setIsMemberGroup] = useState(false);
   useEffect(() => {
     const fetchCartData = async () => {
       setLoading(true);
       try {
+        const cartGroupId = await AsyncStorage.getItem("cartGroupId");
+        const accessTokenGroupId = await AsyncStorage.getItem("accessTokenGroupId");
         const token = await AsyncStorage.getItem("userToken");
         const shopId = await AsyncStorage.getItem("shopId");
-        const response = await axios.get(
-          `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
-          {
+        const userId = await AsyncStorage.getItem("userId");
+        var result = null;
+        if (cartGroupId && accessTokenGroupId) {
+          setIsMemberGroup(true);
+          result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`, {
             headers: {
               accept: "*/*",
               Authorization: `Bearer ${token}`,
             },
+          });
+        } else {
+          result = await fetch(
+            `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
+            {
+              headers: {
+                accept: "*/*",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        }
+
+        const resBody = await result.json();
+        if (resBody.isSuccess) {
+          if (resBody.data) {
+            const creatorUserId = resBody.data.customerId;
+            if (userId == creatorUserId) {
+              setIsMemberGroup(false);
+            }
           }
-        );
-
-        // Log the response for debugging
-        console.log("Cart fetch response:", response.data);
-
-        if (response.data.isSuccess) {
-          const cartData = response.data.data; // Store the data in a variable
+      
+          const cartData = resBody.data; // Store the data in a variable
 
           // Check if cartData is not null and has cartDetails
           if (cartData && Array.isArray(cartData.cartDetails)) {
@@ -77,6 +97,9 @@ const CartScreen = () => {
             setListData([]); // Ensure listData is set to an empty array
           }
         } else {
+          console.log(resBody);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
           Alert.alert("Error", "Failed to fetch cart data.");
         }
       } catch (error) {
@@ -140,7 +163,6 @@ const CartScreen = () => {
 
       if (response.data.isSuccess) {
         setCoupons(response.data.data.data); // Set the coupons data
-        console.log(response.data.data.data);
       } else {
         console.error("Failed to fetch coupons:", response.data.messages);
       }
@@ -152,20 +174,50 @@ const CartScreen = () => {
     fetchCoupons(); // Fetch coupons when the component mounts
   }, []);
 
-  const increaseQuantity = (index) => {
+  const fetchApiUpdateCartItemQuantity = async (data, quantity) => {
+    const shopId = await AsyncStorage.getItem("shopId");
+    const cartGroupId = await AsyncStorage.getItem("cartGroupId");
+    const jsonBody = {
+      shopId: shopId,
+      cartId: cartGroupId ?? data.cartId,
+      productId: data.productId,
+      quantity: quantity,
+      price: data.price,
+      note: data.note
+    }
+    console.log(jsonBody);
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`, {
+      method: 'POST',
+      headers: {
+        'Accept': '*/*', // Thêm header Accept
+        'Content-Type': 'application/json', 
+      },
+      body: JSON.stringify(jsonBody)
+    });
+    const resBody = await result.json();
+    console.log(resBody);
+    if (!resBody.isSuccess) {
+      console.log(resBody);
+      Alert.alert("Update cart quantity failed!");
+    }
+  }
+
+  const increaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
     updatedItems[index].quantity += 1;
     setListData(updatedItems);
     calculateTotal(updatedItems);
-  };
+    await fetchApiUpdateCartItemQuantity(data, updatedItems[index].quantity);
+  }
 
-  const decreaseQuantity = (index) => {
+  const decreaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
     if (updatedItems[index].quantity > 1) {
       updatedItems[index].quantity -= 1;
       setListData(updatedItems);
       calculateTotal(updatedItems);
     }
+    await fetchApiUpdateCartItemQuantity(data, updatedItems[index].quantity);
   };
 
   const deleteItem = async (cartItemId) => {
@@ -212,14 +264,14 @@ const CartScreen = () => {
       <View style={styles.quantityContainer}>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => decreaseQuantity(data.index)}
+          onPress={() => decreaseQuantity(data, data.index)}
         >
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{data.item.quantity}</Text>
         <TouchableOpacity
           style={styles.quantityButton}
-          onPress={() => increaseQuantity(data.index)}
+          onPress={() => increaseQuantity(data, data.index)}
         >
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
@@ -272,65 +324,46 @@ const CartScreen = () => {
   // };
 
   const handleCreateOrder = () => {
+    createOrder();
+  };
+
+  const navigateToPayment = async (orderId) => {
+    const shopId = await AsyncStorage.getItem("shopId");
     navigation.navigate("Payment", {
       fullName: "User Name", // Replace this with the actual user’s name if available
       // orderInfo: `Order-${cartId}`, // Example order info using cart ID
-      orderInfo: `${cartId}`, // Example order info using cart ID
+      orderInfo: `${orderId}`, // Example order info using cart ID
       orderType: "general", // Set your order type
       description: "Order description", // Set a description if needed
       amount: totalPrice, // Send total price
-      cartId: cartId, // Pass the cart ID for reference
+      shopId, // Pass the cart ID for reference
       selectedCoupon: selectedCoupon, // Pass selected coupon if available
     });
-  };
+  }
 
   const createOrder = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const orderDate = new Date().toISOString(); // Current date in ISO format
-
-      // Prepare the order data
-      const orderData = {
-        cartId: cartId,
-        orderDate: orderDate,
-      };
-
-      // Include couponId if a coupon is selected
-      if (selectedCoupon) {
-        orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
+    const token = await AsyncStorage.getItem("userToken");
+    const orderDate = new Date().toISOString(); 
+    const orderData = {
+      cartId: cartId,
+      orderDate: orderDate,
+    };
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",{
+        method: 'POST',
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
       }
-      console.log(
-        "orderData" + orderData + orderData.voucherId + "hi" + orderData.cartId
-      );
-      const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
-        orderData,
-        {
-          headers: {
-            accept: "*/*",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    );
+    const resBody = await response.json();
+    if (resBody.isSuccess) {
+      navigateToPayment(resBody.data);
+    } else {
       console.log(response);
-      if (response.data.isSuccess) {
-        setPaymentSuccessModalVisible(true);
-        // Optionally, you can navigate to the OrderStatus screen here
-      } else {
-        setPaymentFailModalVisible(true);
-        Alert.alert("Error", "Failed to create order.");
-      }
-    } catch (error) {
-      console.error("Create order error:", error);
-      // Check if the error response exists and has a detail message
-      if (error.response && error.response.data && error.response.data.detail) {
-        Alert.alert("Infor", error.response.data.detail); // Show detailed error message
-      } else {
-        Alert.alert("Error", "An error occurred while creating the order."); // Fallback error message
-      }
-
-      setPaymentFailModalVisible(true);
+      Alert.alert("Failed when create order!!!");
     }
   };
 
@@ -383,7 +416,9 @@ const CartScreen = () => {
                 <Image
                   source={{
                     uri:
-                      item.images[0].url || "https://via.placeholder.com/150",
+                      item.images && item.images[0] && item.images[0].url
+                        ? item.images[0].url
+                        : "https://via.placeholder.com/150",
                   }}
                   style={styles.productImage}
                 />
@@ -397,14 +432,14 @@ const CartScreen = () => {
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => decreaseQuantity(index)}
+                    onPress={() => decreaseQuantity(item, index)}
                   >
                     <Text style={styles.quantityButtonText}>−</Text>
                   </TouchableOpacity>
                   <Text style={styles.quantityText}>{item.quantity}</Text>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => increaseQuantity(index)}
+                    onPress={() => increaseQuantity(item, index)}
                   >
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
@@ -484,13 +519,14 @@ const CartScreen = () => {
                 ).toFixed(2)}
               </Text>
             </View>
-
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={handleCreateOrder}
-            >
-              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-            </TouchableOpacity>
+            {!isMemberGroup && (
+              <TouchableOpacity
+                style={styles.checkoutButton}
+                onPress={handleCreateOrder}
+              >
+                <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </>
       )}
