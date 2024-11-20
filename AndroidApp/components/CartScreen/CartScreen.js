@@ -44,6 +44,7 @@ const CartScreen = () => {
         const accessTokenGroupId = await AsyncStorage.getItem("accessTokenGroupId");
         const token = await AsyncStorage.getItem("userToken");
         const shopId = await AsyncStorage.getItem("shopId");
+        const userId = await AsyncStorage.getItem("userId");
         var result = null;
         if (cartGroupId && accessTokenGroupId) {
           setIsMemberGroup(true);
@@ -67,6 +68,10 @@ const CartScreen = () => {
 
         const resBody = await result.json();
         if (resBody.isSuccess) {
+          const creatorUserId = resBody.data.customerId;
+          if (userId == creatorUserId) {
+            setIsMemberGroup(false);
+          }
           const cartData = resBody.data; // Store the data in a variable
 
           // Check if cartData is not null and has cartDetails
@@ -349,10 +354,10 @@ const CartScreen = () => {
       }
     );
     const resBody = await response.json();
-    console.log(resBody);
     if (resBody.isSuccess) {
       navigateToPayment(resBody.data);
     } else {
+      console.log(response);
       Alert.alert("Failed when create order!!!");
     }
   };

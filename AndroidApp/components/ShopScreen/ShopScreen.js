@@ -129,8 +129,6 @@ export default function ShopScreen() {
         } else {
           Alert.alert("An error occurs in payment");
         }
-      } else {
-        Alert.alert("An error occurs in payment");
       }
     };
 

@@ -47,7 +47,6 @@ const Payment = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-      // token cua user dau
       const token = await AsyncStorage.getItem("userToken");
       const amountTotal = amount < 1000 ? amount * 10000 : amount
       const jsonBody = {
