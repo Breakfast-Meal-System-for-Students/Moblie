@@ -68,10 +68,13 @@ const CartScreen = () => {
 
         const resBody = await result.json();
         if (resBody.isSuccess) {
-          const creatorUserId = resBody.data.customerId;
-          if (userId == creatorUserId) {
-            setIsMemberGroup(false);
+          if (resBody.data) {
+            const creatorUserId = resBody.data.customerId;
+            if (userId == creatorUserId) {
+              setIsMemberGroup(false);
+            }
           }
+      
           const cartData = resBody.data; // Store the data in a variable
 
           // Check if cartData is not null and has cartDetails
@@ -95,6 +98,8 @@ const CartScreen = () => {
           }
         } else {
           console.log(resBody);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
           Alert.alert("Error", "Failed to fetch cart data.");
         }
       } catch (error) {

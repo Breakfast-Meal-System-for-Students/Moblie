@@ -50,6 +50,7 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("token");
     await AsyncStorage.removeItem("userToken");
+    await AsyncStorage.removeItem("userId");
     navigation.navigate("Logout");
   };
 

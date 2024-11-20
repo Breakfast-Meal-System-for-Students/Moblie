@@ -55,7 +55,7 @@ const Payment = ({ route, navigation }) => {
         orderType,
         description,
         amount: amountTotal,
-        returnUrl: `https://bms1dl-ujj3.vercel.app/OrderGroupLink/PaymentCartReturn?shopId=${shopId}&orderId=${orderInfo}`
+        returnUrl: `https://bms1dl-ujj3.vercel.app/PaymentCartReturn?shopId=${shopId}&orderId=${orderInfo}`
       };
       console.log(jsonBody);
       const response = await axios.post(apiEndpoint, jsonBody, {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { Alert } from 'react-native';
 const { width } = Dimensions.get("window");
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biểu tượng 'X'
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ShopScreen() {
   const navigation = useNavigation();
@@ -33,7 +34,6 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
-
   const goToProductDetail = (item) => {
     navigation.navigate("ProductDetail", { productId: item.id });
   };
@@ -76,7 +76,6 @@ export default function ShopScreen() {
         `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cardId}?access_token=${accessToken}`
       );
     } else {
-      console.log("checkIsCreatorOfGroup shopId: " + id);
       result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -87,7 +86,6 @@ export default function ShopScreen() {
         const creatorUserId = resBody.data.customerId;
         if (resBody.data.isGroup) {
           if (userId == creatorUserId) {
-            console.log("set cart id: " + resBody.data.id);
             setCartId(resBody.data.id);
             setIsCreatorCartGroup(true);
           } else if (cardId && accessToken) {
@@ -101,20 +99,9 @@ export default function ShopScreen() {
       navigation.navigate("Home");
     }
   }
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const token = await AsyncStorage.getItem("userToken");
-      if (!token) {
-        navigation.navigate("Login", { shopId: id, cardId, accessToken });
-      } else {
-        checkIsCreatorOfGroup();
-        fetchShopDetails();
-        fetchProducts();
-        fetchChangeStatusOrder();
-      }
-    }
-
+   
+  useFocusEffect(
+      useCallback(() => {
     const fetchChangeStatusOrder = async () => {
       if (orderIdSuccess) {
         const url = `https://bms-fs-api.azurewebsites.net/api/Order/${orderIdSuccess}?id=${encodeURIComponent(orderIdSuccess)}&status=ORDERED`;
@@ -125,12 +112,33 @@ export default function ShopScreen() {
           method: "PUT",
         });
         if (result.ok) {
-          Alert.alert("Payment is successffully!!!");
+          Alert.alert("Payment is successfully!!!");
+          setCart('');
+          setCartId('');
+          setIsCreatorCartGroup(false);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
         } else {
           Alert.alert("An error occurs in payment");
         }
+        handleBack();
       }
     };
+    fetchChangeStatusOrder();
+  }, [orderIdSuccess])
+  );
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        navigation.navigate("Login", { shopId: id, cardId, accessToken });
+      } else {
+        checkIsCreatorOfGroup();
+        fetchShopDetails();
+        fetchProducts();
+      }
+    }
 
     const fetchShopDetails = async () => {
       try {
@@ -180,8 +188,11 @@ export default function ShopScreen() {
         setLoading(false);
       }
     };
+    
     checkLogin();
-  }, [id, cardId, orderIdSuccess]);
+  }, [id, cardId]);
+
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
@@ -230,10 +241,7 @@ export default function ShopScreen() {
   }
 
   const handleClickCancelOrder = async () => {
-    console.log("handleClickCancelOrder: " + cartId);
-
     if (cartId) {
-      console.log("handleClickCancelOrder: step 1");
       const token = await AsyncStorage.getItem("userToken");
       const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`, {
         method: "DELETE",
@@ -241,15 +249,15 @@ export default function ShopScreen() {
           'Authorization': `Bearer ${token}`
         },
       });
-      console.log("handleClickCancelOrder: step 2");
       console.log(result);
       const resBody = await result.json();
-      if (resBody.isSuccess) {
-        await AsyncStorage.removeItem("cartGroupId");
-        await AsyncStorage.removeItem("accessTokenGroupId");
-        handleBack();
+      if (!resBody.isSuccess) {
+        console.log("Error: An error occur when click cancel");
+        console.log(result);
       }
-      console.log("handleClickCancelOrder: step 3");
+      await AsyncStorage.removeItem("cartGroupId");
+      await AsyncStorage.removeItem("accessTokenGroupId");
+      handleBack();
     } else {
       alert("cart id invalid: " + cardId);
     }
