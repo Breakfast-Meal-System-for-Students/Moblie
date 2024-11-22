@@ -27,41 +27,55 @@ export default function EditProfile() {
   );
 
   const handleUpdateProfile = async () => {
+    const token = await AsyncStorage.getItem("userToken");
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     formData.append("phone", phone);
+    const response = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Account`,{
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData
+      }
+    );
+    if (response.status != 200) {
+      console.log(response);
+      Alert.alert("Failed to update profile");
+      return;
+    }
 
     // If there's a new avatar, add it to the formData
     if (avatar) {
       const filename = avatar.split("/").pop();
       const type = `image/${filename.split(".").pop()}`;
+      const formData = new FormData();
       formData.append("request", { uri: avatar, name: filename, type });
-    }
-
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const response = await axios.put(
-        "https://bms-fs-api.azurewebsites.net/api/Account/update-avatar",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+      try {
+        const response = await axios.put(
+          "https://bms-fs-api.azurewebsites.net/api/Account/update-avatar",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+  
+        if (response.status === 200) {
+          Alert.alert("Success", "Profile updated successfully!");
+          // Pass the updated avatar back to ProfileScreen
+          navigation.navigate("Profile", { updatedAvatar: avatar });
         }
-      );
-
-      if (response.status === 200) {
-        Alert.alert("Success", "Profile updated successfully!");
-        // Pass the updated avatar back to ProfileScreen
-        navigation.navigate("Profile", { updatedAvatar: avatar });
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          error.response?.data?.message || "Failed to update profile"
+        );
       }
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Failed to update profile"
-      );
     }
   };
 
