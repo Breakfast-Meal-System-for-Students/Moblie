@@ -139,7 +139,7 @@ export default function ShopScreen() {
       });
       const resBody = await result.json();
       if (resBody.isSuccess) {
-        Alert.alert("Payment is successfully!!!");
+        Alert.alert("Success","Payment is completelly");
         setCart('');
         setCartId('');
         setIsCreatorCartGroup(false);
