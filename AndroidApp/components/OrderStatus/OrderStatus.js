@@ -142,6 +142,10 @@ export default function OrderStatus() {
     }
   };
 
+  const handleOpenFeedback = (orderId) => {
+    navigation.navigate("CreateFeedback", { orderId });
+  }
+
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderCard}>
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
@@ -171,7 +175,14 @@ export default function OrderStatus() {
             ? new Date(item.orderDate).toLocaleDateString()
             : "N/A"}
         </Text>
-
+        {status == 8 && (
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={() => handleOpenFeedback(item.id)}
+          >
+            <Text style={styles.buttonText}>Feedback</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.reorderButton}
           onPress={() => toggleOrderProducts(item.id)}
@@ -364,6 +375,13 @@ const styles = StyleSheet.create({
   },
   reorderButton: {
     backgroundColor: "#00cc69",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginTop: 12,
+  },
+  feedbackButton: {
+    backgroundColor: "#0099FF",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,

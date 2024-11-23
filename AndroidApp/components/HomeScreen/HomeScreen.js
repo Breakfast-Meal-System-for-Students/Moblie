@@ -148,7 +148,7 @@ export default function HomeScreen() {
     const fetchFeaturedData = async () => {
       try {
         const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=PENDING&pageIndex=1&pageSize=5"
+          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=ACCEPTED&pageIndex=1&pageSize=5"
         );
         const data = await response.json();
         if (data.isSuccess) {
