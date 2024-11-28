@@ -102,29 +102,56 @@ export default function ShopScreen() {
    
   useFocusEffect(
       useCallback(() => {
-    const fetchChangeStatusOrder = async () => {
-      if (orderIdSuccess) {
-        const url = `https://bms-fs-api.azurewebsites.net/api/Order/${orderIdSuccess}?id=${encodeURIComponent(orderIdSuccess)}&status=ORDERED`;
-        const result = await fetch(url, {
-          headers: {
-            accept: "*/*",
-          },
-          method: "PUT",
-        });
-        if (result.ok) {
-          Alert.alert("Payment is successfully!!!");
-          setCart('');
-          setCartId('');
-          setIsCreatorCartGroup(false);
-          await AsyncStorage.removeItem("cartGroupId");
-          await AsyncStorage.removeItem("accessTokenGroupId");
-        } else {
-          Alert.alert("An error occurs in payment");
+      const fetchOrderById = async () => {
+        if (orderIdSuccess) {
+          const token = await AsyncStorage.getItem("userToken");
+          const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderIdSuccess}`, {
+            method: 'GET',
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`
+            },
+          });
+          const resBody = await result.json();
+          if (resBody.isSuccess) {
+            const order = resBody.data;
+            await fetchChangeStatusOrder(order, token);
+          } else {
+            Alert.alert("Error","Can not to get order detail!!!");
+          }
         }
-        handleBack();
       }
+    const fetchChangeStatusOrder = async (order, token) => {
+      const jsonBody = {
+        vnp_Amount: order.totalPrice + "",
+        vnp_OrderInfo: order.id + "",
+        vnp_ResponseCode: "00"
+      };
+      const url = `https://bms-fs-api.azurewebsites.net/api/Payment/payment-callback`;
+      const result = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json', 
+          accept: "*/*", 
+          Authorization: `Bearer ${token}` 
+        },
+        method: "POST",
+        body: JSON.stringify(jsonBody)
+      });
+      const resBody = await result.json();
+      if (resBody.isSuccess) {
+        Alert.alert("Success","Payment is completelly");
+        setCart('');
+        setCartId('');
+        setIsCreatorCartGroup(false);
+        await AsyncStorage.removeItem("cartGroupId");
+        await AsyncStorage.removeItem("accessTokenGroupId");
+      } else {
+        console.log(resBody)
+        Alert.alert("An error occurs in payment");
+      }
+      handleBack();
     };
-    fetchChangeStatusOrder();
+    fetchOrderById();
   }, [orderIdSuccess])
   );
 
