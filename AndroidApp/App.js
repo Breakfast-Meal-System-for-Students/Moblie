@@ -27,6 +27,7 @@ import Payment from "./components/Payment/Payment";
 import Security from "./components/Security/Security";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
+import ScanQRScreen from "./components/ScanQRScreen/ScanQRScreen";
 import CreateFeedback from "./components/CreateFeedbackScreen/CreateFeedback";
 
 const Stack = createNativeStackNavigator();
@@ -152,6 +153,11 @@ function App() {
         <Stack.Screen
           name="Feedback"
           component={FeedbackScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Scan"
+          component={ScanQRScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
