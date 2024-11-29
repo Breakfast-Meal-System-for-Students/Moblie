@@ -208,7 +208,7 @@ const CartScreen = () => {
       <View style={styles.productDetails}>
         <Text style={styles.textStyle}>{data.item.name}</Text>
         <Text style={styles.textStyle}>{data.item.note}</Text>
-        <Text style={styles.priceStyle}>${data.item.price.toFixed(2)}</Text>
+        <Text style={styles.priceStyle}>{data.item.price.toFixed(2)}₫</Text>
       </View>
       <View style={styles.quantityContainer}>
         <TouchableOpacity
@@ -239,6 +239,7 @@ const CartScreen = () => {
     </View>
   );
 
+<<<<<<< Updated upstream
   // const placeOrder = async () => {
   //   try {
   //     const token = await AsyncStorage.getItem("userToken");
@@ -272,6 +273,9 @@ const CartScreen = () => {
   //   }
   // };
   const createOrder = async () => {
+=======
+  const handleCreateOrder = async () => {
+>>>>>>> Stashed changes
     try {
         const token = await AsyncStorage.getItem("userToken");
         const orderDate = new Date().toISOString(); // Current date in ISO format
@@ -282,6 +286,7 @@ const CartScreen = () => {
             orderDate: orderDate,
         };
 
+<<<<<<< Updated upstream
         // Include couponId if a coupon is selected
         if (selectedCoupon) {
             orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
@@ -317,10 +322,50 @@ const CartScreen = () => {
   
         setPaymentFailModalVisible(true);
        
+=======
+      // Include couponId if a coupon is selected
+      if (selectedCoupon) {
+        orderData.voucherId = selectedCoupon.id; // Add couponId to the order data
+      }
+
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
+        orderData,
+        {
+          headers: {
+            accept: "*/*",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        const orderId = response.data.data;
+        navigation.navigate("Payment", {
+          fullName: "User Name",
+          orderInfo: orderId,
+          orderType: "general",
+          description: "Order description",
+          amount: totalPrice,
+          cartId: cartId,
+          selectedCoupon: selectedCoupon,
+        });
+      } else {
+        Alert.alert("Error", "Failed to create order.");
+      }
+    } catch (error) {
+      console.error("Create order error:", error);
+
+      if (error.response && error.response.data && error.response.data.detail) {
+        Alert.alert("Info", error.response.data.detail);
+      } else {
+        Alert.alert("Error", "An error occurred while creating the order.");
+      }
+>>>>>>> Stashed changes
     }
 };
 
-  // Render loading spinner or cart items
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -357,12 +402,130 @@ const CartScreen = () => {
         ) : (
           <SwipeListView
             data={listData}
+<<<<<<< Updated upstream
             renderItem={renderItem}
             renderHiddenItem={renderHiddenItem}
+=======
+            renderItem={({ item, index }) => (
+              <View style={styles.cartItem}>
+                <Image
+                  source={{
+                    uri:
+                      item.images[0].url || "https://via.placeholder.com/150",
+                  }}
+                  style={styles.productImage}
+                />
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{item.name}</Text>
+                  <Text style={styles.productNote}>{item.note}</Text>
+                  <Text style={styles.productPrice}>
+                    {item.price.toFixed(2)}₫
+                  </Text>
+                </View>
+                <View style={styles.quantityControls}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => decreaseQuantity(index)}
+                  >
+                    <Text style={styles.quantityButtonText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{item.quantity}</Text>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => increaseQuantity(index)}
+                  >
+                    <Text style={styles.quantityButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+            renderHiddenItem={(data) => (
+              <View style={styles.hiddenItem}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteItem(data.item.id)}
+                >
+                  <Ionicons name="trash" size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+            )}
+>>>>>>> Stashed changes
             rightOpenValue={-75}
             style={styles.listView}
           />
+<<<<<<< Updated upstream
         )
+=======
+
+          {/* Coupons Section */}
+          <View style={styles.couponsSection}>
+            <Text style={styles.sectionTitle}>Available Coupons</Text>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={coupons}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.couponCard,
+                    selectedCoupon?.id === item.id && styles.selectedCouponCard,
+                  ]}
+                  onPress={() => setSelectedCoupon(item)}
+                >
+                  <Text style={styles.couponDiscount}>
+                    {item.percentDiscount}% OFF
+                  </Text>
+                  <Text style={styles.couponName}>{item.name}</Text>
+                  <Text style={styles.couponLimit}>
+                    Up to {item.maxDiscount} ₫
+                  </Text>
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.couponsList}
+            />
+          </View>
+
+          {/* Order Summary */}
+          <View style={styles.summary}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>{totalPrice.toFixed(2)}₫</Text>
+            </View>
+            {selectedCoupon && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Discount</Text>
+                <Text style={styles.discountValue}>
+                  -₫
+                  {(
+                    (totalPrice * selectedCoupon.percentDiscount) /
+                    100
+                  ).toFixed(2)}
+                </Text>
+              </View>
+            )}
+            <View style={[styles.summaryRow, styles.totalRow]}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {(
+                  totalPrice -
+                  (selectedCoupon
+                    ? (totalPrice * selectedCoupon.percentDiscount) / 100
+                    : 0)
+                ).toFixed(2)}
+                ₫
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={handleCreateOrder}
+            >
+              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+>>>>>>> Stashed changes
       )}
 
 <Text style={styles.couponsHeader}>Available Coupons:</Text>

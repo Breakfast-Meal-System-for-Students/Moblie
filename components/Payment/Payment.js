@@ -6,8 +6,24 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+<<<<<<< Updated upstream
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+=======
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import * as Linking from "expo-linking";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const Payment = ({ route, navigation }) => {
+  const {
+    fullName = "Guest",
+    orderInfo = "",
+    orderType = "",
+    description = "",
+    amount = 0,
+  } = route.params || {};
+>>>>>>> Stashed changes
 
 export default function Payment() {
   const navigation = useNavigation();
@@ -31,6 +47,52 @@ export default function Payment() {
     },
   ];
 
+<<<<<<< Updated upstream
+=======
+  const apiEndpoint =
+    "https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url";
+
+  const handlePayment = async () => {
+    if (!selectedMethod) {
+      Alert.alert("Thông báo", "Vui lòng chọn phương thức thanh toán");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const jsonBody = {
+        orderInfo,
+        fullName,
+        orderType,
+        description,
+        amount,
+      };
+
+      const response = await axios.post(apiEndpoint, jsonBody, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { isSuccess, data } = response.data;
+      if (isSuccess && data) {
+        await Linking.openURL(data);
+      } else {
+        console.error(response);
+        Alert.alert("Lỗi", "Không thể khởi tạo thanh toán");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Đã có lỗi xảy ra trong quá trình xử lý thanh toán");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+>>>>>>> Stashed changes
   return (
     <View style={styles.container}>
       {/* Header with Back Button */}
@@ -144,9 +206,54 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: "#ccc",
   },
+<<<<<<< Updated upstream
   buttonText: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
+=======
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  summaryAmount: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  summaryText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: "#FFF",
+  },
+  paymentButton: {
+    backgroundColor: "#00CC69",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#B0BEC5",
+  },
+  paymentButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+>>>>>>> Stashed changes
   },
 });

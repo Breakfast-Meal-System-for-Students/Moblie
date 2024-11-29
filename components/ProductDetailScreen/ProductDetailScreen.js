@@ -160,6 +160,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           style={styles.productImageLarge}
         />
 
+<<<<<<< Updated upstream
         {/* Thumbnails */}
         <FlatList
           data={product?.images || []}
@@ -174,12 +175,31 @@ export default function ProductDetailScreen({ route, navigation }) {
                   selectedImageIndex === index && styles.activeThumbnail,
                 ]}
               />
+=======
+          <Text style={styles.productName}>
+            {product?.name || "Default Product Name"}
+          </Text>
+          <Text style={styles.productDescription}>
+            {product?.description || "No description available."}
+          </Text>
+        </View>
+
+        <View style={styles.addButtonPriceContainer}>
+          <Text style={styles.productPrice}>{product?.price || "0.00"}₫</Text>
+          <View style={styles.addButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              style={styles.addButton}
+            >
+              <FontAwesomeIcon icon={faMinusCircle} size={20} color="#00cc69" />
+>>>>>>> Stashed changes
             </TouchableOpacity>
           )}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.thumbnailContainer}
         />
 
+<<<<<<< Updated upstream
         <Text style={styles.productName}>
           {product?.name || "Default Product Name"}
         </Text>
@@ -211,6 +231,11 @@ export default function ProductDetailScreen({ route, navigation }) {
       </View>
       {/* Note input */}
       <NoteInput note={note} setNote={setNote} />
+=======
+        <NoteInput note={note} setNote={handleSetNote} />
+      </ScrollView>
+
+>>>>>>> Stashed changes
       <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
         <FontAwesomeIcon
           icon={faClipboardCheck}

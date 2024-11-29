@@ -61,11 +61,14 @@ export default function Register() {
       );
 
       if (response.data.isSuccess) {
-        await AsyncStorage.setItem("userToken", response.data.data.token);
-        console.log(response.data.data.token);
-        Alert.alert("Success", "Registration successful!", [
-          { text: "OK", onPress: () => navigation.navigate("Login") },
-        ]);
+        if (response.data.data && response.data.data.token) {
+          await AsyncStorage.setItem("userToken", response.data.data.token);
+          Alert.alert("Success", "Registration successful!", [
+            { text: "OK", onPress: () => navigation.navigate("Login") },
+          ]);
+        } else {
+          Alert.alert("Error", "Registration failed. No token received.");
+        }
       } else {
         Alert.alert("Error", "Registration failed. Please check your details.");
       }

@@ -12,10 +12,16 @@ import {
   SafeAreaView,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import {
+  faShoppingCart,
+  faArrowLeft,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Linking } from "react-native";
+import * as Clipboard from "expo-clipboard";
 
 const { width } = Dimensions.get("window");
 
@@ -59,6 +65,17 @@ export default function ShopScreen() {
       }
       return prevCart;
     });
+  };
+
+  const handleGroupOrder = () => {
+    // Tạo đường dẫn deeplink với id
+    const deeplink = `exp://192.168.1.5:19000/Shop/${id}`;
+
+    // Sao chép đường dẫn vào clipboard
+    Clipboard.setString(deeplink);
+
+    // Thông báo người dùng đã sao chép
+    alert("Đã sao chép : " + deeplink);
   };
 
   useEffect(() => {
@@ -129,6 +146,41 @@ export default function ShopScreen() {
 
   const renderShopDetails = () => (
     <View>
+<<<<<<< Updated upstream
+=======
+      <Image
+        source={{
+          uri:
+            shopDetails.image ||
+            "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
+        }}
+        style={styles.shopImage}
+      />
+      <View style={styles.productDescriptionContainer}>
+        <Text style={styles.productName}>{shopDetails.name}</Text>
+        <View style={styles.productDetailsRow}>
+          <FontAwesome name="star" size={18} color="#f1c40f" />
+          <Text style={styles.productDetailsText}>4.8 </Text>
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={() => navigation.navigate("Feedback", { shopId: id })}
+          >
+            <Text style={styles.feedbackButtonText}>(10+ Bình luận)</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  const shopId = "your_shop_id"; // Thay đổi với ID của cửa hàng bạn muốn mở
+  const deepLink = `yourapp://shop/${shopId}`; // Hoặc https://yourapp.com/shop/${shopId}
+
+  // Sử dụng Linking để mở liên kết
+  Linking.openURL(deepLink);
+
+  return (
+    <SafeAreaView style={styles.container}>
+>>>>>>> Stashed changes
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -201,7 +253,7 @@ export default function ShopScreen() {
               <Text style={styles.productName}>
                 {item.name || "Unnamed Product"}
               </Text>
-              <Text style={styles.productPrice}>${item.price || 0}</Text>
+              <Text style={styles.productPrice}>{item.price || 0} ₫</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -210,6 +262,15 @@ export default function ShopScreen() {
           <Text style={styles.errorText}>No products available.</Text>
         }
       />
+      <TouchableOpacity
+        style={styles.groupOrderButton}
+        onPress={handleGroupOrder}
+      >
+        <View style={styles.groupOrderContent}>
+          <FontAwesomeIcon icon={faUsers} size={24} color="#fff" />
+          <Text style={styles.groupOrderText}>Share link nhóm</Text>
+        </View>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -326,5 +387,32 @@ const styles = StyleSheet.create({
   feedbackButtonText: {
     color: "#FFB90F",
     fontSize: 14,
+  },
+  groupOrderButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#00cc69",
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  groupOrderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  groupOrderText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });

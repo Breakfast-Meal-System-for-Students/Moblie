@@ -29,8 +29,30 @@ import Security from "./components/Security/Security";
 import Header from "./components/Header/Header";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
+<<<<<<< Updated upstream
 const Stack = createNativeStackNavigator();
 
+=======
+import CartGroupScreen from "./components/CartGroupScreen/CartGroupScreen";
+const Stack = createNativeStackNavigator();
+
+const linking = {
+  prefixes: ["stickersmash://"],
+  config: {
+    screens: {
+      // Shop: "Shop",
+      CartGroup: "CartGroup",
+      Shop: {
+        path: "Shop/:id",
+        parse: {
+          id: (id) => `${id}`,
+        },
+      },
+    },
+  },
+};
+
+>>>>>>> Stashed changes
 function App() {
   return (
     <NavigationContainer>
@@ -170,6 +192,11 @@ function App() {
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
+      <Stack.Screen
+        name="CartGroup"
+        component={CartGroupScreen}
+        options={{ headerShown: false }}
+      />
     </NavigationContainer>
   );
 }
