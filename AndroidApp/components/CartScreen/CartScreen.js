@@ -362,7 +362,7 @@ const CartScreen = () => {
     if (resBody.isSuccess) {
       navigateToPayment(resBody.data);
     } else {
-      console.log(response);
+      console.log(resBody);
       Alert.alert("Failed when create order!!!");
     }
   };
