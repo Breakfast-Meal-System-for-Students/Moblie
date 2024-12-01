@@ -74,7 +74,7 @@ const CartScreen = () => {
               setIsMemberGroup(false);
             }
           }
-      
+
           const cartData = resBody.data; // Store the data in a variable
 
           // Check if cartData is not null and has cartDetails
@@ -190,7 +190,7 @@ const CartScreen = () => {
       method: 'POST',
       headers: {
         'Accept': '*/*', // Thêm header Accept
-        'Content-Type': 'application/json', 
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(jsonBody)
     });
@@ -343,20 +343,20 @@ const CartScreen = () => {
 
   const createOrder = async () => {
     const token = await AsyncStorage.getItem("userToken");
-    const orderDate = new Date().toISOString(); 
+    const orderDate = new Date().toISOString();
     const orderData = {
       cartId: cartId,
       orderDate: orderDate,
     };
-    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",{
-        method: 'POST',
-        headers: {
-          accept: "*/*",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      }
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder", {
+      method: 'POST',
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(orderData),
+    }
     );
     const resBody = await response.json();
     if (resBody.isSuccess) {
@@ -426,7 +426,10 @@ const CartScreen = () => {
                   <Text style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productNote}>{item.note}</Text>
                   <Text style={styles.productPrice}>
-                    ${item.price.toFixed(2)}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(item.price || 0)}
                   </Text>
                 </View>
                 <View style={styles.quantityControls}>
@@ -480,7 +483,11 @@ const CartScreen = () => {
                   </Text>
                   <Text style={styles.couponName}>{item.name}</Text>
                   <Text style={styles.couponLimit}>
-                    Up to ${item.maxDiscount}
+                    Up to {""}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(item.maxDiscount || 0)}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -493,7 +500,12 @@ const CartScreen = () => {
           <View style={styles.summary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>${totalPrice.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                }).format(totalPrice || 0)}
+              </Text>
             </View>
             {selectedCoupon && (
               <View style={styles.summaryRow}>
@@ -510,13 +522,15 @@ const CartScreen = () => {
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                $
-                {(
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                }).format((
                   totalPrice -
                   (selectedCoupon
                     ? (totalPrice * selectedCoupon.percentDiscount) / 100
                     : 0)
-                ).toFixed(2)}
+                ).toFixed(2) || 0)}
               </Text>
             </View>
             {!isMemberGroup && (

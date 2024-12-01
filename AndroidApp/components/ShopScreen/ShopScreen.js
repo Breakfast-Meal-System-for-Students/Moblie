@@ -396,7 +396,12 @@ export default function ShopScreen() {
               <Text style={styles.productName}>
                 {item.name || "Unnamed Product"}
               </Text>
-              <Text style={styles.productPrice}>${item.price || 0}</Text>
+              <Text style={styles.productPrice}>
+                {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(item.price || 0)}
+                </Text>
             </View>
           </TouchableOpacity>
         )}

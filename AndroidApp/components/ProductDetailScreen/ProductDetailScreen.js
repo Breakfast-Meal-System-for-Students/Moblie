@@ -31,7 +31,7 @@ const NoteInput = ({ note, setNote }) => {
       <FontAwesomeIcon icon={faStickyNote} size={29} color="#00cc69" />
       <TextInput
         style={styles.noteInput}
-        placeholder="Thêm ghi chú (tuỳ chọn)"
+        placeholder="Note (option*)"
         value={note}
         onChangeText={setNote}
         placeholderTextColor="#aaa"
@@ -41,7 +41,7 @@ const NoteInput = ({ note, setNote }) => {
 };
 
 export default function ProductDetailScreen({ route, navigation }) {
-  const { cart = {}, setCart = () => {} } = route.params || {};
+  const { cart = {}, setCart = () => { } } = route.params || {};
   const [loading, setLoading] = useState(true);
   const { productId } = route.params || {};
   const [product, setProduct] = useState(null);
@@ -209,7 +209,12 @@ export default function ProductDetailScreen({ route, navigation }) {
         </View>
 
         <View style={styles.addButtonPriceContainer}>
-          <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
+          <Text style={styles.productPrice}>
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(product?.price || 0) + " "}
+          </Text>
           <View style={styles.addButtonContainer}>
             <TouchableOpacity
               onPress={() => setQuantity(Math.max(1, quantity - 1))}
