@@ -14,8 +14,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { io } from 'socket.io-client';
 
 export default function OrderStatus() {
+  const [socket, setSocket] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(1);
@@ -72,6 +74,14 @@ export default function OrderStatus() {
 
   useEffect(() => {
     fetchOrders(pageIndex, status);
+    const socketConnection = io('https://bms-socket.onrender.com');
+    setSocket(socketConnection);
+
+    return () => {
+      setTimeout(() => {
+        socketConnection.disconnect(); // Delay disconnect by 2 seconds
+      }, 2000); // 2 seconds delay
+    };
   }, [pageIndex, status, search, isDesc]);
 
   const loadMoreOrders = () => {
@@ -99,6 +109,38 @@ export default function OrderStatus() {
   const toggleOrderProducts = (orderId) => {
     setExpandedOrderId(orderId === expandedOrderId ? null : orderId);
   };
+
+  const sendNotiToShop = async (orderId, userId, shopId) => {
+    if (socket) {
+      socket.emit('join-shop-topic', shopId);
+      const orderData = {
+        userId,
+        shopId,
+        orderId,
+      };
+      socket.emit('new-order', orderData); // Send notification to shop
+    }
+  };
+
+  const fetchOrderById = async (orderId) => {
+    console.log("fetchOrderById");
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`, {
+      method: 'GET',
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`
+      },
+    });
+    const resBody = await result.json();
+    console.log(resBody);
+    if (resBody.isSuccess) {
+      const order = resBody.data;
+      sendNotiToShop(order.id, order.customerId, order.shopId)
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  }
 
   const changeOrderStatus = async (orderId) => {
     try {
@@ -129,7 +171,7 @@ export default function OrderStatus() {
           data.messages[0]?.content || "Failed to change order status"
         );
       }
-
+      fetchOrderById(orderId);
       Alert.alert("Success", data.messages[0].content, [
         {
           text: "OK",

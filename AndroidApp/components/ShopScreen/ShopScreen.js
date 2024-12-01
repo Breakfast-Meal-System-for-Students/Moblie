@@ -23,8 +23,10 @@ const { width } = Dimensions.get("window");
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biểu tượng 'X'
 import { useFocusEffect } from "@react-navigation/native";
+import { io } from 'socket.io-client';
 
 export default function ShopScreen() {
+  const socket = io('https://bms-socket.onrender.com');
   const navigation = useNavigation();
   const route = useRoute();
   const { id, cardId, accessToken, orderIdSuccess } = route.params || {};
@@ -99,9 +101,9 @@ export default function ShopScreen() {
       navigation.navigate("Home");
     }
   }
-   
+
   useFocusEffect(
-      useCallback(() => {
+    useCallback(() => {
       const fetchOrderById = async () => {
         if (orderIdSuccess) {
           const token = await AsyncStorage.getItem("userToken");
@@ -117,43 +119,56 @@ export default function ShopScreen() {
             const order = resBody.data;
             await fetchChangeStatusOrder(order, token);
           } else {
-            Alert.alert("Error","Can not to get order detail!!!");
+            Alert.alert("Error", "Can not to get order detail!!!");
           }
         }
       }
-    const fetchChangeStatusOrder = async (order, token) => {
-      const jsonBody = {
-        vnp_Amount: order.totalPrice + "",
-        vnp_OrderInfo: order.id + "",
-        vnp_ResponseCode: "00"
+      const fetchChangeStatusOrder = async (order, token) => {
+        const jsonBody = {
+          vnp_Amount: order.totalPrice + "",
+          vnp_OrderInfo: order.id + "",
+          vnp_ResponseCode: "00"
+        };
+        const url = `https://bms-fs-api.azurewebsites.net/api/Payment/payment-callback`;
+        const result = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            accept: "*/*",
+            Authorization: `Bearer ${token}`
+          },
+          method: "POST",
+          body: JSON.stringify(jsonBody)
+        });
+        const resBody = await result.json();
+        if (resBody.isSuccess) {
+          Alert.alert("Success", "Payment is completelly");
+          setCart('');
+          setCartId('');
+          setIsCreatorCartGroup(false);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
+          sendNotiToShop(order.id);
+        } else {
+          console.log(resBody)
+          Alert.alert("An error occurs in payment");
+        }
+        handleBack();
       };
-      const url = `https://bms-fs-api.azurewebsites.net/api/Payment/payment-callback`;
-      const result = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json', 
-          accept: "*/*", 
-          Authorization: `Bearer ${token}` 
-        },
-        method: "POST",
-        body: JSON.stringify(jsonBody)
-      });
-      const resBody = await result.json();
-      if (resBody.isSuccess) {
-        Alert.alert("Success","Payment is completelly");
-        setCart('');
-        setCartId('');
-        setIsCreatorCartGroup(false);
-        await AsyncStorage.removeItem("cartGroupId");
-        await AsyncStorage.removeItem("accessTokenGroupId");
-      } else {
-        console.log(resBody)
-        Alert.alert("An error occurs in payment");
-      }
-      handleBack();
-    };
-    fetchOrderById();
-  }, [orderIdSuccess])
+      fetchOrderById();
+    }, [orderIdSuccess])
   );
+
+  const sendNotiToShop = async (orderId) => {
+    const userId = await AsyncStorage.getItem("userId");
+    const shopId = await AsyncStorage.getItem("shopId");
+    const orderData = {
+      userId,
+      shopId,
+      orderId,
+    };
+    socket.emit('new-order', orderData);
+  };
+
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -215,8 +230,29 @@ export default function ShopScreen() {
         setLoading(false);
       }
     };
-    
+
     checkLogin();
+    socket.on('connect', () => {
+      console.log('Connected to server with socket ID:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    // Kết nối tới room "shop" theo shopId
+    console.log('Emitting join-shop-topic for shopId:', id);
+    socket.emit('join-shop-topic', id);
+
+    // Lắng nghe sự kiện thông báo
+    socket.on('order-notification', (message) => {
+      console.log('Received order notification:', message);
+    });
+
+    return () => {
+      socket.disconnect(); // Ngắt kết nối khi component unmount
+    };
+
   }, [id, cardId]);
 
 

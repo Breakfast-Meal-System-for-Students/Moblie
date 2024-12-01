@@ -10,10 +10,12 @@ import {
 import { BarCodeScanner } from "expo-barcode-scanner";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { io } from 'socket.io-client';
 
-export default function ScanQRScreen({ route }) {
+export default function ScanQRScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [socket, setSocket] = useState(null);
   const token = AsyncStorage.getItem("userToken");
   const COMPLETE_STATUS = 8;
   const navigation = useNavigation();
@@ -23,9 +25,29 @@ export default function ScanQRScreen({ route }) {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
     })();
+    const socketConnection = io('https://bms-socket.onrender.com');
+    setSocket(socketConnection);
+
+    return () => {
+      setTimeout(() => {
+        socketConnection.disconnect(); // Delay disconnect by 2 seconds
+      }, 2000); // 2 seconds delay
+    };
   }, []);
 
-  const handleBarCodeScanned = async ({ type, data }) => {
+  const sendNotiToShop = async (orderId, userId, shopId) => {
+    if (socket) {
+      socket.emit('join-shop-topic', shopId);
+      const orderData = {
+        userId,
+        shopId,
+        orderId,
+      };
+      socket.emit('new-order', orderData); // Send notification to shop
+    }
+  };
+
+  const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     const formData = new FormData();
     formData.append("id", data);
@@ -40,17 +62,14 @@ export default function ScanQRScreen({ route }) {
     });
     const resBody = await result.json();
     if (resBody.isSuccess) {
-      Alert.alert("QR Scanned", `Order picked up at the shop.`, [
-        { text: "OK", onPress: () => setScanned(false) },
-      ]);
-      navigation.goBack();
+      fetchOrderById(data);
     }
     else {
       Alert.alert("Error", "Can not to get order detail!!!");
     }
   };
 
-  const fetchOrderById = async () => {
+  const fetchOrderById = async (orderId) => {
     const token = await AsyncStorage.getItem("userToken");
     const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`, {
       method: 'GET',
@@ -61,7 +80,12 @@ export default function ScanQRScreen({ route }) {
     });
     const resBody = await result.json();
     if (resBody.isSuccess) {
-      setOrder(resBody.data);
+      const order = resBody.data;
+      sendNotiToShop(order.id, order.customerId, order.shopId)
+      Alert.alert("QR Scanned", `Order picked up at the shop.`, [
+        { text: "OK", onPress: () => setScanned(false) },
+      ]);
+      navigation.goBack();
     } else {
       Alert.alert("Error", "Can not to get order detail!!!");
     }
