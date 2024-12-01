@@ -36,8 +36,9 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const goToProductDetail = (item) => {
-    navigation.navigate("ProductDetail", { productId: item.id });
+    navigation.navigate("ProductDetail", { productId: item.id, shopId: id });
   };
 
   const addToCart = (product) => {
@@ -102,6 +103,23 @@ export default function ShopScreen() {
     }
   }
 
+  const fetchCountCartItem = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${id}`, {
+      method: 'GET',
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`
+      },
+    });
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setCartCount(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  }
+
   useFocusEffect(
     useCallback(() => {
       const fetchOrderById = async () => {
@@ -156,6 +174,12 @@ export default function ShopScreen() {
       };
       fetchOrderById();
     }, [orderIdSuccess])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCountCartItem();
+    }, [])
   );
 
   const sendNotiToShop = async (orderId) => {
@@ -370,10 +394,7 @@ export default function ShopScreen() {
         >
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
           <Text style={styles.cartItemCount}>
-            {Object.keys(cart).reduce(
-              (total, key) => total + cart[key].quantity,
-              0
-            )}
+            {cartCount}
           </Text>
         </TouchableOpacity>
       </View>
@@ -396,7 +417,12 @@ export default function ShopScreen() {
               <Text style={styles.productName}>
                 {item.name || "Unnamed Product"}
               </Text>
-              <Text style={styles.productPrice}>${item.price || 0}</Text>
+              <Text style={styles.productPrice}>
+                {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(item.price || 0)}
+                </Text>
             </View>
           </TouchableOpacity>
         )}
