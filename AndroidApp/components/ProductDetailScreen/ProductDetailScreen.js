@@ -24,6 +24,7 @@ import {
   faClipboardCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -33,7 +34,7 @@ const NoteInput = ({ note, setNote }) => {
       <FontAwesomeIcon icon={faStickyNote} size={29} color="#00cc69" />
       <TextInput
         style={styles.noteInput}
-        placeholder="Thêm ghi chú (tuỳ chọn)"
+        placeholder="Note (option*)"
         value={note}
         onChangeText={setNote}
         placeholderTextColor="#aaa"
@@ -48,13 +49,14 @@ const formatPrice = (price) => {
 export default function ProductDetailScreen({ route, navigation }) {
   const { cart = {}, setCart = () => {} } = route.params || {};
   const [loading, setLoading] = useState(true);
-  const { productId } = route.params || {};
+  const { productId, shopId } = route.params || {};
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [shopId1, setShop1] = useState(null);
   const [note, setNote] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const totalItems = Object.values(cart).reduce(
@@ -63,6 +65,36 @@ export default function ProductDetailScreen({ route, navigation }) {
     );
     setCartItemCount(totalItems);
   }, [cart]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCountCartItem();
+    }, [])
+  );
+
+  const fetchCountCartItem = async () => {
+    console.log(shopId);
+    if (!shopId) {
+      return;
+    }
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${shopId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setCartCount(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  };
 
   const addToCart = async (event) => {
     event.persist();
@@ -172,7 +204,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           onPress={() => navigation.navigate("Checkout", { cart })}
         >
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>{cartItemCount}</Text>
+          <Text style={styles.cartItemCount}>{cartCount}</Text>
         </TouchableOpacity>
       </View>
 
@@ -216,7 +248,10 @@ export default function ProductDetailScreen({ route, navigation }) {
         {!product?.isOutOfStock && (
           <View style={styles.addButtonPriceContainer}>
             <Text style={styles.productPrice}>
-              {formatPrice(product?.price || 0)}
+              {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(product?.price || 0) + " "}
             </Text>
             <View style={styles.addButtonContainer}>
               <TouchableOpacity

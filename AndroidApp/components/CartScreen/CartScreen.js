@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -21,10 +21,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+
+import { useFocusEffect } from "@react-navigation/native";
 import DateTimePickerComponent from "./DateTimePickerComponent";
-const formatPrice = (price) => {
-  return price.toLocaleString("vi-VN") + " đ";
-};
 const CartScreen = () => {
   const navigation = useNavigation();
   const [listData, setListData] = useState([]);
@@ -42,9 +41,7 @@ const CartScreen = () => {
   const [isMemberGroup, setIsMemberGroup] = useState(false);
   const [date, setDate] = useState(new Date());
   const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
-  const formatPrice = (price) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ";
-  };
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const fetchCartData = async () => {
@@ -128,6 +125,33 @@ const CartScreen = () => {
     fetchCartData();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchCountCartItem();
+    }, [])
+  );
+
+  const fetchCountCartItem = async () => {
+    const shopId = await AsyncStorage.getItem("shopId");
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${shopId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setCartCount(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  };
+
   const calculateTotal = (updatedItems) => {
     const total = updatedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -201,6 +225,7 @@ const CartScreen = () => {
       note: data.note,
     };
     console.log(jsonBody);
+
     const result = await fetch(
       `https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`,
       {
@@ -212,6 +237,7 @@ const CartScreen = () => {
         body: JSON.stringify(jsonBody),
       }
     );
+
     const resBody = await result.json();
     console.log(resBody);
     if (!resBody.isSuccess) {
@@ -371,10 +397,14 @@ const CartScreen = () => {
 
   const createOrder = async () => {
     const token = await AsyncStorage.getItem("userToken");
+
+    const orderDate = new Date().toISOString();
+
     const orderData = {
       cartId: cartId,
       orderDate: date.toISOString(), // Format date to ISO string
     };
+
     const response = await fetch(
       "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
       {
@@ -391,6 +421,8 @@ const CartScreen = () => {
     if (resBody.isSuccess) {
       navigateToPayment(resBody.data);
     } else {
+      console.log(resBody);
+
       Alert.alert("Failed when create order!!!");
     }
   };
@@ -415,11 +447,9 @@ const CartScreen = () => {
         <Text style={styles.headerTitle}>My Cart</Text>
         <View style={styles.cartIconContainer}>
           <FontAwesomeIcon icon={faShoppingCart} size={20} color="#FFFFFF" />
-          {listData.length > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{listData.length}</Text>
-            </View>
-          )}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{cartCount}</Text>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -463,7 +493,7 @@ const CartScreen = () => {
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(item.price)}
+                    }).format(item.price || 0)}
                   </Text>
                 </View>
                 <View style={styles.quantityControls}>
@@ -517,7 +547,11 @@ const CartScreen = () => {
                   </Text>
                   <Text style={styles.couponName}>{item.name}</Text>
                   <Text style={styles.couponLimit}>
-                    Up to ${item.maxDiscount}
+                    Up to {""}
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(item.maxDiscount || 0)}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -532,7 +566,12 @@ const CartScreen = () => {
           <View style={styles.summary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>{formatPrice(totalPrice)}</Text>
+              <Text style={styles.summaryValue}>
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(totalPrice || 0)}
+              </Text>
             </View>
             {selectedCoupon && (
               <View style={styles.summaryRow}>
@@ -548,11 +587,16 @@ const CartScreen = () => {
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                {formatPrice(
-                  totalPrice -
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(
+                  (
+                    totalPrice -
                     (selectedCoupon
                       ? (totalPrice * selectedCoupon.percentDiscount) / 100
                       : 0)
+                  ).toFixed(2) || 0
                 )}
               </Text>
             </View>

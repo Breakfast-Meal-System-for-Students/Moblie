@@ -19,35 +19,48 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser",
-          {
-            method: "GET",
-            headers: {
-              Accept: "*/*",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (data.isSuccess) {
-          setNotifications(data.data.data);
-        } else {
-          setError("Failed to load notifications");
-        }
-      } catch (error) {
-        setError("An error occurred while fetching notifications");
-      } finally {
-        setLoading(false);
+  const fetchNotifications = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await fetch(
+      "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser?pageIndex=1&pageSize=10",
+      {
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
       }
-    };
+    );
+    const data = await response.json();
+    if (data.isSuccess) {
+      setNotifications(data.data.data);
+      fetchReadAllNotifications();
+    } else {
+      setError("Failed to load notifications");
+    }
+    setLoading(false);
+  };
 
+  const fetchReadAllNotifications = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await fetch(
+      "https://bms-fs-api.azurewebsites.net/api/Notification/ReadAllNotificationForUser",
+      {
+        method: "PUT",
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    if (!data.isSuccess) {
+      console.log(data);
+      setError("Failed to read all notifications");
+    }
+  };
+
+  useEffect(() => {
     fetchNotifications();
   }, []);
 
@@ -103,11 +116,11 @@ export default function NotificationsScreen() {
       <FlatList
         data={notifications}
         renderItem={renderItem}
-        keyExtractor={(item) => item.orderId}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
       />
-      <TouchableOpacity style={styles.clearButton}>
+      {/* <TouchableOpacity style={styles.clearButton}>
         <Text style={styles.clearText}>Clear All</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

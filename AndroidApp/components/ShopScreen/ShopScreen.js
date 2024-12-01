@@ -23,6 +23,7 @@ const { width } = Dimensions.get("window");
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons"; // Import biểu tượng 'X'
 import { useFocusEffect } from "@react-navigation/native";
+import { io } from "socket.io-client";
 
 // Utility function to format price
 const formatPrice = (price) => {
@@ -30,6 +31,7 @@ const formatPrice = (price) => {
 };
 
 export default function ShopScreen() {
+  const socket = io("https://bms-socket.onrender.com");
   const navigation = useNavigation();
   const route = useRoute();
   const { id, cardId, accessToken, orderIdSuccess } = route.params || {};
@@ -39,8 +41,9 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const goToProductDetail = (item) => {
-    navigation.navigate("ProductDetail", { productId: item.id });
+    navigation.navigate("ProductDetail", { productId: item.id, shopId: id });
   };
 
   const addToCart = (product) => {
@@ -110,6 +113,26 @@ export default function ShopScreen() {
     }
   };
 
+  const fetchCountCartItem = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${id}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setCartCount(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       const fetchOrderById = async () => {
@@ -158,15 +181,34 @@ export default function ShopScreen() {
           setIsCreatorCartGroup(false);
           await AsyncStorage.removeItem("cartGroupId");
           await AsyncStorage.removeItem("accessTokenGroupId");
+          sendNotiToShop(order.id);
         } else {
           console.log(resBody);
           Alert.alert("An error occurs in payment");
         }
         handleBack();
       };
+
       fetchOrderById();
     }, [orderIdSuccess])
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCountCartItem();
+    }, [])
+  );
+
+  const sendNotiToShop = async (orderId) => {
+    const userId = await AsyncStorage.getItem("userId");
+    const shopId = await AsyncStorage.getItem("shopId");
+    const orderData = {
+      userId,
+      shopId,
+      orderId,
+    };
+    socket.emit("new-order", orderData);
+  };
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -230,6 +272,26 @@ export default function ShopScreen() {
     };
 
     checkLogin();
+    socket.on("connect", () => {
+      console.log("Connected to server with socket ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server");
+    });
+
+    // Kết nối tới room "shop" theo shopId
+    console.log("Emitting join-shop-topic for shopId:", id);
+    socket.emit("join-shop-topic", id);
+
+    // Lắng nghe sự kiện thông báo
+    socket.on("order-notification", (message) => {
+      console.log("Received order notification:", message);
+    });
+
+    return () => {
+      socket.disconnect(); // Ngắt kết nối khi component unmount
+    };
   }, [id, cardId]);
 
   if (loading) {
@@ -350,12 +412,7 @@ export default function ShopScreen() {
           onPress={() => navigation.navigate("Checkout", { cart })}
         >
           <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>
-            {Object.keys(cart).reduce(
-              (total, key) => total + cart[key].quantity,
-              0
-            )}
-          </Text>
+          <Text style={styles.cartItemCount}>{cartCount}</Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -378,7 +435,10 @@ export default function ShopScreen() {
                 {item.name || "Unnamed Product"}
               </Text>
               <Text style={styles.productPrice}>
-                {formatPrice(item.price || 0)}
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(item.price || 0)}
               </Text>
             </View>
           </TouchableOpacity>

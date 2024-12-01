@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faMapPin, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -19,6 +20,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import { io } from 'socket.io-client';
+
 const { width } = Dimensions.get("window");
 
 function RestaurantCard({ item }) {
@@ -66,6 +70,8 @@ function FeaturedRow({ restaurants }) {
   );
 }
 export default function HomeScreen() {
+  const socket = io('https://bms-socket.onrender.com');
+  const [unreadCount, setUnreadCount] = useState(3); // Giả sử có 3 tin nhắn chưa đọc
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -73,6 +79,59 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const flatListRef = useRef();
   const [userProfile, setUserProfile] = useState({}); // Add state for user profile
+
+  const fetchCountNotifications = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await fetch(
+      "https://bms-fs-api.azurewebsites.net/api/Notification/CountNotificationForUser",
+      {
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    if (data.isSuccess) {
+      setUnreadCount(data.data);
+    } else {
+      console.log(data);
+      Alert.alert("Failed to count notifications");
+    }
+  };
+
+  useFocusEffect(
+    useCallback( () => {
+      fetchCountNotifications();
+
+      handleConnectionSocket();
+
+      return () => {
+        socket.disconnect(); // Ngắt kết nối khi component unmount
+      };
+    }, [])
+  );
+
+  const handleConnectionSocket = async () => {
+    socket.on('connect', () => {
+      console.log('Connected to server with socket ID:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    // Kết nối tới room "shop" theo shopId
+    const userId = await AsyncStorage.getItem("userId");
+    console.log('Emitting join-user-topic for userId:', userId);
+    socket.emit('join-user-topic', userId);
+
+    // Lắng nghe sự kiện thông báo
+    socket.on('order-notification', (message) => {
+      fetchCountNotifications(); // Cập nhật lại số lượng thông báo chưa đọc
+    });
+  }
 
   // Fetch user profile data
   useEffect(() => {
@@ -237,14 +296,19 @@ export default function HomeScreen() {
           {/* Display full name */}
         </View>
         <View style={styles.iconContainer}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Notifications")}
-          >
-            <Ionicons name="notifications-outline" size={24} color="black" />
+          <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+            <View style={styles.iconWithBadge}>
+              <Ionicons name="notifications-outline" size={24} color="black" />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Favorites")}>
+          {/* <TouchableOpacity onPress={() => navigation.navigate("Favorites")}>
             <Ionicons name="heart-outline" size={24} color="black" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -505,5 +569,24 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 1,
     marginVertical: 1,
+  },
+  iconWithBadge: {
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -10,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

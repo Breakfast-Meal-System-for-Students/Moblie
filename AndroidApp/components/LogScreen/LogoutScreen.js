@@ -15,17 +15,17 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
-import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons"; // Thêm icon
+import { AntDesign } from "@expo/vector-icons"; // Import chỉ icon Google
 import { jwtDecode } from "jwt-decode";
 
 export default function Register() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("user@gmail.com");
+  const [password, setPassword] = useState("User123@");
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-  const { shopId, cardId, accessToken} = route.params || {};
+  const { shopId, cardId, accessToken } = route.params || {};
   const { width, height } = Dimensions.get("window");
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function Register() {
         const decodedToken = jwtDecode(response.data.data.token);
         const userId = decodedToken.nameid;
         await AsyncStorage.setItem("userId", userId);
-        if (shopId && cardId && accessToken){
+        if (shopId && cardId && accessToken) {
           navigation.reset({
             index: 0, // Đặt màn hình này làm màn hình đầu tiên
             routes: [
@@ -119,6 +119,7 @@ export default function Register() {
 
   return (
     <View style={styles.container}>
+      {/* Hình nền */}
       <ImageBackground
         source={{
           uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
@@ -126,7 +127,10 @@ export default function Register() {
         style={styles.background}
         resizeMode="cover"
       >
+        {/* Lớp phủ màu */}
         <View style={styles.overlay} />
+
+        {/* Nội dung chính */}
         <View style={styles.content}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -142,9 +146,9 @@ export default function Register() {
             style={[
               styles.icon,
               {
-                width: width * 0.4,
+                width: width * 0.4, // điều chỉnh kích thước logo theo ý muốn
                 height: width * 0.4,
-                borderRadius: (width * 0.4) / 2,
+                borderRadius: (width * 0.4) / 2, // đặt bán kính để tạo thành hình tròn
               },
             ]}
           />
@@ -181,9 +185,9 @@ export default function Register() {
             <Text style={styles.buttonText}>Login</Text>
           </Pressable>
 
-          <Text style={styles.orText}>- Or sign in with -</Text>
+          <Text style={styles.orText}> Or sign in with </Text>
 
-          {/* Nút đăng nhập bằng Google, Facebook, Twitter */}
+          {/* Nút đăng nhập bằng Google */}
           <View style={styles.socialLoginContainer}>
             <TouchableOpacity
               style={styles.socialButton}
@@ -192,14 +196,16 @@ export default function Register() {
             >
               <AntDesign name="google" size={24} color="red" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="facebook" size={24} color="#3b5998" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Entypo name="twitter" size={24} color="#1DA1F2" />
+          </View>
+          <View style={styles.policyContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
+              <Text style={styles.policyText}>
+                <Text style={styles.policyLink}>Forgot the password?</Text>
+              </Text>
             </TouchableOpacity>
           </View>
-
           <TouchableOpacity onPress={() => navigation.navigate("Register")}>
             <Text style={styles.signInText}>
               Don’t have an account? Sign Up
@@ -220,13 +226,13 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // Lớp phủ màu đen 50% trong suốt
   },
   content: {
     flex: 1,
     padding: 20,
     justifyContent: "center",
-    zIndex: 1,
+    zIndex: 1, // Đặt ở phía trên lớp phủ
   },
   backButton: {
     position: "absolute",
@@ -281,12 +287,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "gray",
   },
+  policyContainer: {
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  policyText: {
+    fontSize: 14,
+    color: "gray",
+  },
+  policyLink: {
+    color: "white",
+  },
   button: {
     backgroundColor: "#00cc69",
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 20,
   },
   buttonText: {
     fontSize: 18,
@@ -301,12 +318,12 @@ const styles = StyleSheet.create({
   },
   orText: {
     textAlign: "center",
-    color: "#888",
+    color: "#fff",
     marginVertical: 10,
   },
   socialLoginContainer: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "center",
     marginBottom: 20,
   },
   socialButton: {
@@ -320,6 +337,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
-    elevation: 5, // Ánh sáng để tạo hiệu ứng nổi
+    elevation: 5,
   },
 });
