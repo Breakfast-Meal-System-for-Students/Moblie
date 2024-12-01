@@ -28,42 +28,16 @@ const MapScreen = () => {
   const [markers, setMarkers] = useState([]);
   const [distance, setDistance] = useState("");
 
-  // useEffect(() => {
-  //   requestLocationPermission();
-  // }, []);
-
-  // const requestLocationPermission = async () => {
-  //   try {
-  //     const granted = await PermissionsAndroid.request(
-  //       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //       {
-  //         title: "Location Permission",
-  //         message: "This app needs access to your location.",
-  //         buttonNeutral: "Ask Me Later",
-  //         buttonNegative: "Cancel",
-  //         buttonPositive: "OK",
-  //       }
-  //     );
-  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //       console.log("You can use the location");
-  //     } else {
-  //       console.log("Location permission denied");
-  //     }
-  //   } catch (err) {
-  //     console.warn(err);
-  //   }
-  // };
-
   const handleGetRoute = async () => {
     try {
-      // Gọi API từ A đến B
+      // Call API from A to B
       const responseAB = await fetch(
         "https://routes.gomaps.pro/directions/v2:computeRoutes",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyMf01ywbPF0VojwE11h6xn5fWC9loM_u3D", // Thay thế bằng API Key của bạn
+            "X-Goog-Api-Key": "AlzaSyMLWSaQgJYCT2ittsrZkpWQvDoV_AuPRYE", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
@@ -92,9 +66,9 @@ const MapScreen = () => {
       const dataAB = await responseAB.json();
       console.log(dataAB);
 
-      // Kiểm tra và lấy polyline từ A đến B
+      // Check and get polyline from A to B
       let pointsAB = [];
-      let durationAB = 0; // Thời gian từ A đến B
+      let durationAB = 0; // Duration from A to B
       if (
         dataAB.routes &&
         Array.isArray(dataAB.routes) &&
@@ -102,22 +76,22 @@ const MapScreen = () => {
       ) {
         const polylineAB = dataAB.routes[0].polyline.encodedPolyline;
         pointsAB = decodePolyline(polylineAB);
-        durationAB = dataAB.routes[0].duration; // Lấy thời gian từ A đến B
+        durationAB = dataAB.routes[0].duration; // Get duration from A to B
       } else {
         Alert.alert("Error", "No routes found from A to B.");
         return;
       }
 
-      // Cập nhật route và zoom vào
+      // Update route and zoom in
       setRoute(pointsAB);
-      setDuration(durationAB.toString()); // Tính tổng thời gian
+      setDuration(durationAB.toString()); // Calculate total duration
       if (mapRef.current) {
         mapRef.current.fitToCoordinates(pointsAB, {
           edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
           animated: true,
         });
       }
-      // Gọi API GetShop
+      // Call API GetShop
       await fetchShops(startAddress, endAddress, search);
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -192,16 +166,16 @@ const MapScreen = () => {
 
   const handleShopPress = async (shop) => {
     try {
-      const shopAddress = shop.store.address; // Địa chỉ của cửa hàng
+      const shopAddress = shop.store.address; // Address of the shop
 
-      // Gọi API để lấy đường đi từ A đến cửa hàng
+      // Call API to get route from A to the shop
       const responseToShop = await fetch(
         "https://routes.gomaps.pro/directions/v2:computeRoutes",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyMf01ywbPF0VojwE11h6xn5fWC9loM_u3D", // Thay thế bằng API Key của bạn
+            "X-Goog-Api-Key": "AlzaSyMLWSaQgJYCT2ittsrZkpWQvDoV_AuPRYE", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
@@ -224,7 +198,7 @@ const MapScreen = () => {
       if (!responseToShop.ok) {
         const errorData = await responseToShop.json();
         console.error("Error response to shop:", errorData);
-        throw new Error("Network response was not ok");
+        throw new Error("");
       }
 
       const dataToShop = await responseToShop.json();
@@ -236,10 +210,10 @@ const MapScreen = () => {
       ) {
         const polylineToShop = dataToShop.routes[0].polyline.encodedPolyline;
         pointsToShop = decodePolyline(polylineToShop);
-        const durationToShop = dataToShop.routes[0].duration; // Thời gian từ A đến cửa hàng
-        const distanceToShop = dataToShop.routes[0].distance; // Quãng đường từ A đến cửa hàng
+        const durationToShop = dataToShop.routes[0].duration; // Duration from A to the shop
+        const distanceToShop = dataToShop.routes[0].distance; // Distance from A to the shop
 
-        // Cập nhật state với thời gian và quãng đường
+        // Update state with duration and distance
         setDuration(durationToShop);
         setDistance(distanceToShop);
       } else {
@@ -247,14 +221,14 @@ const MapScreen = () => {
         return;
       }
 
-      // Gọi API để lấy đường đi từ cửa hàng đến B
+      // Call API to get route from the shop to B
       const responseFromShopToEnd = await fetch(
         "https://routes.gomaps.pro/directions/v2:computeRoutes",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyMf01ywbPF0VojwE11h6xn5fWC9loM_u3D", // Thay thế bằng API Key của bạn
+            "X-Goog-Api-Key": "AlzaSyMLWSaQgJYCT2ittsrZkpWQvDoV_AuPRYE", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
@@ -290,10 +264,10 @@ const MapScreen = () => {
         const polylineFromShopToEnd =
           dataFromShopToEnd.routes[0].polyline.encodedPolyline;
         pointsFromShopToEnd = decodePolyline(polylineFromShopToEnd);
-        const durationFromShopToEnd = dataFromShopToEnd.routes[0].duration; // Thời gian từ cửa hàng đến B
-        const distanceFromShopToEnd = dataFromShopToEnd.routes[0].distance; // Quãng đường từ cửa hàng đến B
+        const durationFromShopToEnd = dataFromShopToEnd.routes[0].duration; // Duration from the shop to B
+        const distanceFromShopToEnd = dataFromShopToEnd.routes[0].distance; // Distance from the shop to B
 
-        // Cập nhật tổng thời gian và quãng đường
+        // Update total duration and distance
         setDuration((prevDuration) => prevDuration + durationFromShopToEnd);
         setDistance((prevDistance) => prevDistance + distanceFromShopToEnd);
       } else {
@@ -301,7 +275,7 @@ const MapScreen = () => {
         return;
       }
 
-      // Kết hợp các điểm
+      // Combine points
       const combinedRoute = [...pointsToShop, ...pointsFromShopToEnd];
       setRoute(combinedRoute);
       if (mapRef.current) {
@@ -334,7 +308,7 @@ const MapScreen = () => {
         <FontAwesome name="map-marker" size={16} color="#00cc69" />
         <TextInput
           style={styles.input}
-          placeholder="Nhập địa chỉ bắt đầu"
+          placeholder="Enter starting address"
           onChangeText={setStartAddress}
           value={startAddress}
         />
@@ -344,7 +318,7 @@ const MapScreen = () => {
         <FontAwesome name="map-marker" size={16} color="#ff6347" />
         <TextInput
           style={styles.input}
-          placeholder="Nhập địa chỉ kết thúc"
+          placeholder="Enter destination address"
           onChangeText={setEndAddress}
           value={endAddress}
         />
@@ -378,7 +352,7 @@ const MapScreen = () => {
                 strokeColor="#000"
                 strokeWidth={3}
               />
-              {/* Đánh dấu các điểm */}
+              {/* Mark the points */}
               {route.length >= 3 && (
                 <>
                   <Marker
@@ -386,18 +360,18 @@ const MapScreen = () => {
                       latitude: route[0].latitude,
                       longitude: route[0].longitude,
                     }}
-                    title="Điểm bắt đầu"
+                    title="Starting Point"
                   />
                   <Marker
                     coordinate={{
                       latitude: route[route.length - 1].latitude,
                       longitude: route[route.length - 1].longitude,
                     }}
-                    title="Điểm kết thúc"
+                    title="Destination Point"
                   />
                 </>
               )}
-              {/* Đánh dấu các cửa hàng với hình ảnh */}
+              {/* Mark shops with images */}
               {shops.map((shop) => (
                 <Marker
                   key={shop.store.id}
@@ -405,7 +379,7 @@ const MapScreen = () => {
                     latitude: shop.store.lat,
                     longitude: shop.store.lng,
                   }}
-                  onPress={() => handleShopPress(shop)} // Gọi hàm khi nhấn vào marker
+                  onPress={() => handleShopPress(shop)} // Call function when marker is pressed
                 >
                   <View style={{ alignItems: "center" }}>
                     <Image
@@ -413,9 +387,9 @@ const MapScreen = () => {
                         uri: shop.store.image
                           ? shop.store.image
                           : "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
-                      }} // Sử dụng hình ảnh của cửa hàng hoặc hình ảnh mặc định
-                      style={{ width: 20, height: 20, borderRadius: 25 }} // Điều chỉnh kích thước hình ảnh
-                      resizeMode="cover" // Đảm bảo hình ảnh không bị méo
+                      }} // Use shop's image or default image
+                      style={{ width: 20, height: 20, borderRadius: 25 }} // Adjust image size
+                      resizeMode="cover" // Ensure image is not distorted
                     />
                     <Text style={{ fontSize: 12 }}>{shop.store.name}</Text>
                   </View>
@@ -434,7 +408,7 @@ const MapScreen = () => {
       </View>
 
       <View style={styles.shopListContainer}>
-        <Text style={styles.shopListTitle}>Danh sách cửa hàng:</Text>
+        <Text style={styles.shopListTitle}>Shop List:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {shops.map((shop) => (
             <TouchableOpacity
@@ -446,6 +420,15 @@ const MapScreen = () => {
                 source={{ uri: shop.store.image }}
                 style={styles.shopImage}
                 resizeMode="cover"
+              />
+              <Button
+                title=" Shop "
+                onPress={() =>
+                  navigation.navigate("Shop", {
+                    id: shop.store.id,
+                    orderIdSuccess: null,
+                  })
+                }
               />
               <View style={styles.shopInfo}>
                 <Text style={styles.shopName}>{shop.store.name}</Text>
@@ -597,85 +580,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#555",
   },
-  markerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  markerImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderColor: "#fff",
-    borderWidth: 2,
-  },
-  markerText: {
-    fontSize: 10,
-    color: "#333",
-    textAlign: "center",
-  },
-  shopListContainer: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 15,
-    padding: 15,
-    marginHorizontal: 10,
-    marginBottom: 15,
-    shadowColor: "#ffffff",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  shopListTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  shopItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderRadius: 15,
-    padding: 12,
-    width: 250,
-    marginRight: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderColor: "#ddd",
-    borderWidth: 1,
-  },
-  shopImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 10,
-    borderColor: "#ddd",
-    borderWidth: 1,
-  },
-  shopInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  shopName: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: -1,
-  },
   shopDetailRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 3,
-  },
-  shopDetailText: {
-    fontSize: 13,
-    color: "#555",
-    marginLeft: 6,
   },
 });
 

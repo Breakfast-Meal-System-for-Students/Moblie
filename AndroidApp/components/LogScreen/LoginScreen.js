@@ -25,7 +25,7 @@ export default function Register() {
   const [password, setPassword] = useState("User123@");
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-  const { shopId, cardId, accessToken} = route.params || {};
+  const { shopId, cardId, accessToken } = route.params || {};
   const { width, height } = Dimensions.get("window");
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function Register() {
         const decodedToken = jwtDecode(response.data.data.token);
         const userId = decodedToken.nameid;
         await AsyncStorage.setItem("userId", userId);
-        if (shopId && cardId && accessToken){
+        if (shopId && cardId && accessToken) {
           navigation.reset({
             index: 0, // Đặt màn hình này làm màn hình đầu tiên
             routes: [
@@ -156,7 +156,7 @@ export default function Register() {
           <Text style={styles.headerText}>Login to Your Account</Text>
 
           <TextInput
-            placeholder="Email"
+            placeholder="Email * "
             placeholderTextColor="#888"
             style={styles.textInput}
             value={email}
@@ -166,7 +166,7 @@ export default function Register() {
 
           <View style={styles.passwordContainer}>
             <TextInput
-              placeholder="Password"
+              placeholder="Password * "
               placeholderTextColor="#888"
               style={styles.textInputPassword}
               secureTextEntry={!showPassword}

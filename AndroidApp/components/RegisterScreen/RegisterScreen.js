@@ -116,33 +116,33 @@ export default function Register() {
           <Text style={styles.headerText}>Register</Text>
 
           <TextInput
-            placeholder="First Name"
+            placeholder="First Name * "
             style={styles.textInput}
             value={fullName}
             onChangeText={setFullName}
           />
           <TextInput
-            placeholder="Last Name"
+            placeholder="Last Name * "
             style={styles.textInput}
             value={lastName}
             onChangeText={setLastName}
           />
           <TextInput
-            placeholder="Email"
+            placeholder="Email * "
             style={styles.textInput}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
           />
           <TextInput
-            placeholder="Password"
+            placeholder="Password * "
             style={styles.textInput}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           <TextInput
-            placeholder="Confirm Password"
+            placeholder="Confirm Password * "
             style={styles.textInput}
             secureTextEntry
             value={confirmPassword}

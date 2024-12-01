@@ -16,13 +16,18 @@ import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { faUsers } from '@fortawesome/free-solid-svg-icons'; // Icon nhóm người
-import * as Clipboard from 'expo-clipboard';
-import { Alert } from 'react-native';
+import { faUsers } from "@fortawesome/free-solid-svg-icons"; // Icon nhóm người
+import * as Clipboard from "expo-clipboard";
+import { Alert } from "react-native";
 const { width } = Dimensions.get("window");
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Import biểu tượng 'X'
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { faTimes } from "@fortawesome/free-solid-svg-icons"; // Import biểu tượng 'X'
 import { useFocusEffect } from "@react-navigation/native";
+
+// Utility function to format price
+const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ";
+};
 
 export default function ShopScreen() {
   const navigation = useNavigation();
@@ -76,9 +81,14 @@ export default function ShopScreen() {
         `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cardId}?access_token=${accessToken}`
       );
     } else {
-      result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(id)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      result = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${encodeURIComponent(
+          id
+        )}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
     }
     const resBody = await result.json();
     if (resBody.isSuccess) {
@@ -98,61 +108,64 @@ export default function ShopScreen() {
       Alert.alert("This Order has been cancel!");
       navigation.navigate("Home");
     }
-  }
-   
+  };
+
   useFocusEffect(
-      useCallback(() => {
+    useCallback(() => {
       const fetchOrderById = async () => {
         if (orderIdSuccess) {
           const token = await AsyncStorage.getItem("userToken");
-          const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderIdSuccess}`, {
-            method: 'GET',
-            headers: {
-              accept: "*/*",
-              Authorization: `Bearer ${token}`
-            },
-          });
+          const result = await fetch(
+            `https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderIdSuccess}`,
+            {
+              method: "GET",
+              headers: {
+                accept: "*/*",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
           const resBody = await result.json();
           if (resBody.isSuccess) {
             const order = resBody.data;
             await fetchChangeStatusOrder(order, token);
           } else {
-            Alert.alert("Error","Can not to get order detail!!!");
+            Alert.alert("Error", "Can not to get order detail!!!");
           }
         }
-      }
-    const fetchChangeStatusOrder = async (order, token) => {
-      const jsonBody = {
-        vnp_Amount: order.totalPrice + "",
-        vnp_OrderInfo: order.id + "",
-        vnp_ResponseCode: "00"
       };
-      const url = `https://bms-fs-api.azurewebsites.net/api/Payment/payment-callback`;
-      const result = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json', 
-          accept: "*/*", 
-          Authorization: `Bearer ${token}` 
-        },
-        method: "POST",
-        body: JSON.stringify(jsonBody)
-      });
-      const resBody = await result.json();
-      if (resBody.isSuccess) {
-        Alert.alert("Success","Payment is completelly");
-        setCart('');
-        setCartId('');
-        setIsCreatorCartGroup(false);
-        await AsyncStorage.removeItem("cartGroupId");
-        await AsyncStorage.removeItem("accessTokenGroupId");
-      } else {
-        console.log(resBody)
-        Alert.alert("An error occurs in payment");
-      }
-      handleBack();
-    };
-    fetchOrderById();
-  }, [orderIdSuccess])
+      const fetchChangeStatusOrder = async (order, token) => {
+        const jsonBody = {
+          vnp_Amount: order.totalPrice + "",
+          vnp_OrderInfo: order.id + "",
+          vnp_ResponseCode: "00",
+        };
+        const url = `https://bms-fs-api.azurewebsites.net/api/Payment/payment-callback`;
+        const result = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+          method: "POST",
+          body: JSON.stringify(jsonBody),
+        });
+        const resBody = await result.json();
+        if (resBody.isSuccess) {
+          Alert.alert("Success", "Payment is completelly");
+          setCart("");
+          setCartId("");
+          setIsCreatorCartGroup(false);
+          await AsyncStorage.removeItem("cartGroupId");
+          await AsyncStorage.removeItem("accessTokenGroupId");
+        } else {
+          console.log(resBody);
+          Alert.alert("An error occurs in payment");
+        }
+        handleBack();
+      };
+      fetchOrderById();
+    }, [orderIdSuccess])
   );
 
   useEffect(() => {
@@ -165,7 +178,7 @@ export default function ShopScreen() {
         fetchShopDetails();
         fetchProducts();
       }
-    }
+    };
 
     const fetchShopDetails = async () => {
       try {
@@ -215,11 +228,9 @@ export default function ShopScreen() {
         setLoading(false);
       }
     };
-    
+
     checkLogin();
   }, [id, cardId]);
-
-
 
   if (loading) {
     return <ActivityIndicator size="large" color="#00cc69" />;
@@ -265,17 +276,20 @@ export default function ShopScreen() {
     } else {
       navigation.navigate("Home");
     }
-  }
+  };
 
   const handleClickCancelOrder = async () => {
     if (cartId) {
       const token = await AsyncStorage.getItem("userToken");
-      const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`, {
-        method: "DELETE",
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-      });
+      const result = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCart?cartId=${cartId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       console.log(result);
       const resBody = await result.json();
       if (!resBody.isSuccess) {
@@ -288,19 +302,22 @@ export default function ShopScreen() {
     } else {
       alert("cart id invalid: " + cardId);
     }
-  }
+  };
 
   const handleClickOrderForGroup = async () => {
     const token = await AsyncStorage.getItem("userToken");
     const formData = new FormData();
     formData.append("shopId", id);
-    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Cart/ChangeCartToGroup", {
-      method: "POST",
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData,
-    });
+    const response = await fetch(
+      "https://bms-fs-api.azurewebsites.net/api/Cart/ChangeCartToGroup",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
     const resBody = await response.json();
     if (resBody.isSuccess) {
       const cartId = resBody.data.cartId;
@@ -308,21 +325,21 @@ export default function ShopScreen() {
       const url = `https://bms1dl-ujj3.vercel.app/OrderGroupLink?shopId=${id}&cardId=${cartId}&accessToken=${accessToken}`;
       // copy url to clipboard and alert to noti for user
       Clipboard.setString(url);
-      Alert.alert("URL has been copied", "Please share this link with your friends");
+      Alert.alert(
+        "URL has been copied",
+        "Please share this link with your friends"
+      );
       setCartId(cartId);
       setIsCreatorCartGroup(true);
     } else {
       Alert.alert("Failed to create Order Group");
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.shopName}>
@@ -360,7 +377,9 @@ export default function ShopScreen() {
               <Text style={styles.productName}>
                 {item.name || "Unnamed Product"}
               </Text>
-              <Text style={styles.productPrice}>${item.price || 0}</Text>
+              <Text style={styles.productPrice}>
+                {formatPrice(item.price || 0)}
+              </Text>
             </View>
           </TouchableOpacity>
         )}
@@ -370,7 +389,7 @@ export default function ShopScreen() {
         }
       />
       {/* Fixed Button */}
-      {isCreatorCartGroup && (
+      {(isCreatorCartGroup && (
         <TouchableOpacity
           style={styles.fixedButtonCancel}
           onPress={handleClickCancelOrder}
@@ -380,18 +399,18 @@ export default function ShopScreen() {
             <Text style={styles.buttonText}>Cancel Order</Text>
           </View>
         </TouchableOpacity>
-      ) || !cardId && !accessToken && (
-        <TouchableOpacity
-          style={styles.fixedButton}
-          onPress={handleClickOrderForGroup}
-        >
-          <View style={styles.buttonContent}>
-            <FontAwesomeIcon icon={faUsers} size={20} color="#fff" />
-            <Text style={styles.buttonText}>Order for Group</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-
+      )) ||
+        (!cardId && !accessToken && (
+          <TouchableOpacity
+            style={styles.fixedButton}
+            onPress={handleClickOrderForGroup}
+          >
+            <View style={styles.buttonContent}>
+              <FontAwesomeIcon icon={faUsers} size={20} color="#fff" />
+              <Text style={styles.buttonText}>Order for Group</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
     </SafeAreaView>
   );
 }

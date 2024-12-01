@@ -11,6 +11,8 @@ import {
   TextInput,
   Alert,
   Platform,
+  item,
+  price,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -38,6 +40,9 @@ const NoteInput = ({ note, setNote }) => {
       />
     </View>
   );
+};
+const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ";
 };
 
 export default function ProductDetailScreen({ route, navigation }) {
@@ -208,35 +213,53 @@ export default function ProductDetailScreen({ route, navigation }) {
           </Text>
         </View>
 
-        <View style={styles.addButtonPriceContainer}>
-          <Text style={styles.productPrice}>${product?.price || "0.00"}</Text>
-          <View style={styles.addButtonContainer}>
-            <TouchableOpacity
-              onPress={() => setQuantity(Math.max(1, quantity - 1))}
-              style={styles.addButton}
-            >
-              <FontAwesomeIcon icon={faMinusCircle} size={20} color="#00cc69" />
-            </TouchableOpacity>
-            <Text style={styles.quantityText}>{quantity}</Text>
-            <TouchableOpacity
-              onPress={() => setQuantity(quantity + 1)}
-              style={styles.addButton}
-            >
-              <FontAwesomeIcon icon={faPlusCircle} size={20} color="#00cc69" />
-            </TouchableOpacity>
+        {!product?.isOutOfStock && (
+          <View style={styles.addButtonPriceContainer}>
+            <Text style={styles.productPrice}>
+              {formatPrice(product?.price || 0)}
+            </Text>
+            <View style={styles.addButtonContainer}>
+              <TouchableOpacity
+                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                style={styles.addButton}
+              >
+                <FontAwesomeIcon
+                  icon={faMinusCircle}
+                  size={20}
+                  color="#00cc69"
+                />
+              </TouchableOpacity>
+              <Text style={styles.quantityText}>{quantity}</Text>
+              <TouchableOpacity
+                onPress={() => setQuantity(quantity + 1)}
+                style={styles.addButton}
+              >
+                <FontAwesomeIcon
+                  icon={faPlusCircle}
+                  size={20}
+                  color="#00cc69"
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-
-        <NoteInput note={note} setNote={handleSetNote} />
-        <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
-          <FontAwesomeIcon
-            icon={faClipboardCheck}
-            size={29}
-            color="#fff"
-            style={{ marginRight: 10 }}
-          />
-          <Text style={styles.addToCartButtonText}>Add to Cart</Text>
-        </TouchableOpacity>
+        )}
+        {!product?.isOutOfStock && (
+          <NoteInput note={note} setNote={handleSetNote} />
+        )}
+        {!product?.isOutOfStock && (
+          <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
+            <FontAwesomeIcon
+              icon={faClipboardCheck}
+              size={29}
+              color="#fff"
+              style={{ marginRight: 10 }}
+            />
+            <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+          </TouchableOpacity>
+        )}
+        {product?.isOutOfStock && (
+          <Text style={styles.stopSellingText}>Stop Selling</Text>
+        )}
       </ScrollView>
     </View>
   );
@@ -421,5 +444,15 @@ const styles = StyleSheet.create({
   },
   noteInputFocused: {
     borderColor: "#00cc69",
+  },
+  stopSellingText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#ff0000",
+    textAlign: "center",
+    padding: 10,
+    backgroundColor: "#f8d7da",
+    borderRadius: 5,
+    marginVertical: 10,
   },
 });

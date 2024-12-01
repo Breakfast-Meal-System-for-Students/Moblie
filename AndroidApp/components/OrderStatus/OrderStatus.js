@@ -23,7 +23,7 @@ export default function OrderStatus() {
   const [isLastPage, setIsLastPage] = useState(false);
   const [status, setStatus] = useState(1);
   const [search, setSearch] = useState("");
-  const [isDesc, setIsDesc] = useState(false);
+  const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const navigation = useNavigation();
 
@@ -144,7 +144,7 @@ export default function OrderStatus() {
 
   const handleOpenFeedback = (orderId) => {
     navigation.navigate("CreateFeedback", { orderId });
-  }
+  };
 
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderCard}>
@@ -172,9 +172,24 @@ export default function OrderStatus() {
         <Text>
           <Icon name="calendar" size={20} color="#000" /> Order Date:{" "}
           {item.orderDate
-            ? new Date(item.orderDate).toLocaleDateString()
+            ? new Date(item.orderDate).toLocaleString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })
             : "N/A"}
         </Text>
+
+        {/* Show if the order is group or individual */}
+        <Text style={styles.orderType}>
+          <Icon name="users" size={20} color="#000" />{" "}
+          {item.isGroup ? "Group Order" : "Individual Order"}
+        </Text>
+
         {status == 8 && (
           <TouchableOpacity
             style={styles.feedbackButton}
@@ -196,11 +211,6 @@ export default function OrderStatus() {
               <TouchableOpacity
                 key={`${orderItem.id}-${orderItem.productId}`}
                 style={styles.productItem}
-                onPress={() =>
-                  navigation.navigate("ProductDetail", {
-                    productId: orderItem.productId,
-                  })
-                }
               >
                 <Image
                   source={{ uri: orderItem.productImages[0]?.url }}
@@ -255,210 +265,181 @@ export default function OrderStatus() {
         )}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
-        style={styles.horizontalScroll}
+        style={styles.statusTabs}
       />
 
-      <FlatList
-        data={orders}
-        renderItem={renderOrderItem}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        ListFooterComponent={() =>
-          !isLastPage && <ActivityIndicator size="small" color="#00cc69" />
-        }
-        ListEmptyComponent={() => (
-          <Text style={styles.noOrdersText}>No orders found</Text>
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color="#0000ff"
+          style={styles.loading}
+        />
+      ) : (
+        <>
+          <FlatList
+            data={orders}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item.id.toString()}
+            onEndReached={loadMoreOrders}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              !isLastPage && !loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+              ) : null
+            }
+          />
 
-      <View style={styles.paginationControls}>
-        <TouchableOpacity
-          style={[
-            styles.paginationButton,
-            pageIndex === 1 && styles.disabledButton,
-          ]}
-          onPress={handlePreviousPage}
-          disabled={pageIndex === 1}
-        >
-          <Text style={styles.paginationText}>Previous</Text>
-        </TouchableOpacity>
-        <Text style={styles.pageInfo}>Page {pageIndex}</Text>
-
-        <TouchableOpacity
-          style={[styles.paginationButton, isLastPage && styles.disabledButton]}
-          onPress={loadMoreOrders}
-          disabled={isLastPage}
-        >
-          <Text style={styles.paginationText}>Next</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              style={styles.pageButton}
+              onPress={handlePreviousPage}
+              disabled={pageIndex <= 1}
+            >
+              <Text style={styles.pageButtonText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageText}>Page {pageIndex}</Text>
+            <TouchableOpacity
+              style={styles.pageButton}
+              onPress={loadMoreOrders}
+              disabled={isLastPage}
+            >
+              <Text style={styles.pageButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f8f8",
+  },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 20,
-    paddingHorizontal: 15,
-    paddingBottom: 10,
     backgroundColor: "#00cc69",
-    shadowColor: "#000",
-    shadowOffset: { width: 8, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-    width: "100%",
+    padding: 16,
   },
-  backButton: { padding: 5 },
+  backButton: {
+    marginRight: 16,
+  },
   headerText: {
-    fontSize: 18,
+    color: "white",
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
-    marginLeft: 15,
   },
-  horizontalScroll: {
-    marginVertical: 10,
+  statusTabs: {
+    marginTop: 10,
     paddingHorizontal: 10,
-    height: 50,
-    maxHeight: 50,
-    width: "100%",
   },
   tabButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#f0f0f0",
-    alignItems: "center",
-    borderRadius: 11,
-    marginRight: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 10,
+    marginRight: 10,
+    height: 40,
   },
   activeTab: {
     backgroundColor: "#00cc69",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
   },
   tabText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#808080",
+    fontSize: 14,
+    color: "#333",
   },
   orderCard: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 15,
-    marginBottom: 12,
+    backgroundColor: "white",
+    margin: 10,
     borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    padding: 10,
     elevation: 3,
-    width: "100%",
   },
   shopImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
   orderInfo: {
-    flex: 1,
     marginLeft: 10,
   },
   orderTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
+  },
+  orderType: {
+    marginTop: 5,
+    fontStyle: "italic",
+    fontSize: 14,
   },
   reorderButton: {
     backgroundColor: "#00cc69",
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    marginTop: 10,
     borderRadius: 5,
-    marginTop: 12,
+    alignItems: "center",
   },
   feedbackButton: {
-    backgroundColor: "#0099FF",
+    backgroundColor: "#28a745",
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    marginTop: 10,
     borderRadius: 5,
-    marginTop: 12,
-  },
-  takeOverButton: {
-    backgroundColor: "#ff9800",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    marginTop: 12,
+    alignItems: "center",
   },
   buttonText: {
     color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  noOrdersText: {
-    textAlign: "center",
-    marginTop: 15,
-    color: "#888",
     fontSize: 16,
   },
   productList: {
     marginTop: 10,
+    marginLeft: 20,
   },
   productItem: {
     flexDirection: "row",
+    marginBottom: 10,
     alignItems: "center",
-    paddingVertical: 8,
-    borderBottomColor: "#f0f0f0",
-    borderBottomWidth: 1,
   },
   productImage: {
-    width: 66,
-    height: 69,
-    borderRadius: 5,
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
   productDetails: {
     marginLeft: 10,
   },
   productName: {
+    fontWeight: "bold",
     fontSize: 14,
-    fontWeight: "bold",
   },
-  paginationControls: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 15,
-    backgroundColor: "#f8f8f8",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    marginTop: 10,
-  },
-  paginationButton: {
+  takeOverButton: {
+    backgroundColor: "#ff9800",
     paddingVertical: 8,
-    paddingHorizontal: 20,
-    backgroundColor: "#00cc69",
-    borderRadius: 25,
-    marginHorizontal: 10,
-    minWidth: 100,
+    marginTop: 10,
+    borderRadius: 5,
     alignItems: "center",
   },
-  disabledButton: {
-    backgroundColor: "#cccccc",
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
+    backgroundColor: "#fff",
   },
-  paginationText: {
+  pageButton: {
+    backgroundColor: "#00cc69",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+  },
+  pageButtonText: {
     color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
   },
-  pageInfo: {
+  pageText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    paddingHorizontal: 10,
+    alignSelf: "center",
+  },
+  loading: {
+    marginTop: 20,
   },
 });

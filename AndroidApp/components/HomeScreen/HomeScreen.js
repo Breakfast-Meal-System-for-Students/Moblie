@@ -25,7 +25,9 @@ function RestaurantCard({ item }) {
   const navigation = useNavigation();
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Shop", { id: item.id, orderIdSuccess: null })}
+      onPress={() =>
+        navigation.navigate("Shop", { id: item.id, orderIdSuccess: null })
+      }
     >
       <View style={styles.restaurantCard}>
         <Image style={styles.restaurantImage} source={item.image} />
@@ -147,8 +149,16 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchFeaturedData = async () => {
       try {
+        const token = await AsyncStorage.getItem("userToken");
         const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/ShopApplication?status=ACCEPTED&pageIndex=1&pageSize=5"
+          `https://bms-fs-api.azurewebsites.net/api/Shop/GetAllShopForMobile?pageIndex=1&pageSize=5&status=ACCEPTED&search=&isDesc=false`,
+          {
+            method: "GET",
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         const data = await response.json();
         if (data.isSuccess) {
@@ -177,7 +187,6 @@ export default function HomeScreen() {
             image: {
               uri: "https://i.pinimg.com/736x/7d/8e/f1/7d8ef10c148ee4166d647e8a7ca19c06.jpg",
             },
-
             restaurants: [],
           };
 
