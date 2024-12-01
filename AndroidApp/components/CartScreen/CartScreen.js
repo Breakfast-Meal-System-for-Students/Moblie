@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -36,6 +37,8 @@ const CartScreen = () => {
   const [coupons, setCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMemberGroup, setIsMemberGroup] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
   useEffect(() => {
     const fetchCartData = async () => {
       setLoading(true);
@@ -112,6 +115,30 @@ const CartScreen = () => {
 
     fetchCartData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCountCartItem();
+    }, [])
+  );
+
+  const fetchCountCartItem = async () => {
+    const shopId = await AsyncStorage.getItem("shopId");
+    const token = await AsyncStorage.getItem("userToken");
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${shopId}`, {
+      method: 'GET',
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`
+      },
+    });
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setCartCount(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get order detail!!!");
+    }
+  }
 
   const calculateTotal = (updatedItems) => {
     const total = updatedItems.reduce(
@@ -381,11 +408,9 @@ const CartScreen = () => {
         <Text style={styles.headerTitle}>My Cart</Text>
         <View style={styles.cartIconContainer}>
           <FontAwesomeIcon icon={faShoppingCart} size={20} color="#FFFFFF" />
-          {listData.length > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{listData.length}</Text>
-            </View>
-          )}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{cartCount}</Text>
+          </View>
         </View>
       </SafeAreaView>
 
