@@ -9,14 +9,17 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 
+const { width } = Dimensions.get("window");
+
 const MapScreen = () => {
-  const navigation = useNavigation(); // Ensure navigation is defined
+  const navigation = useNavigation();
   const [startAddress, setStartAddress] = useState("");
   const [endAddress, setEndAddress] = useState("");
   const [search, setSearch] = useState("");
@@ -292,59 +295,78 @@ const MapScreen = () => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["#e3f2fd", "#bbdefb"]}
+        colors={["#4caf50", "#81c784"]}
         style={styles.background}
       />
 
-      {/* Custom Header with Back Button */}
+      {/* Enhanced Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="#ffff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Map</Text>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <FontAwesome name="map-marker" size={16} color="#00cc69" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter starting address"
-          onChangeText={setStartAddress}
-          value={startAddress}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <FontAwesome name="map-marker" size={16} color="#ff6347" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter destination address"
-          onChangeText={setEndAddress}
-          value={endAddress}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Ionicons name="search" size={16} color="#888" />
-        <TextInput
-          style={styles.input}
-          placeholder="Search..."
-          onChangeText={setSearch}
-          value={search}
-        />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleGetRoute}>
-        <LinearGradient
-          colors={["#00cc69", "#00a856"]}
-          style={styles.buttonGradient}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBackButton}
         >
-          <Text style={styles.buttonText}>Find Now</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Route & Shop Finder</Text>
+      </View>
 
+      {/* Address Input Section */}
+      <View style={styles.inputSection}>
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="my-location" size={20} color="#4caf50" />
+          <TextInput
+            style={styles.input}
+            placeholder="Starting Point"
+            placeholderTextColor="#888"
+            onChangeText={setStartAddress}
+            value={startAddress}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="location-on" size={20} color="#f44336" />
+          <TextInput
+            style={styles.input}
+            placeholder="Destination"
+            placeholderTextColor="#888"
+            onChangeText={setEndAddress}
+            value={endAddress}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Ionicons name="search" size={20} color="#2196f3" />
+          <TextInput
+            style={styles.input}
+            placeholder="Search Shops"
+            placeholderTextColor="#888"
+            onChangeText={setSearch}
+            value={search}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.findButton} onPress={handleGetRoute}>
+          <LinearGradient
+            colors={["#4caf50", "#81c784"]}
+            style={styles.findButtonGradient}
+          >
+            <Text style={styles.findButtonText}>Find Route</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+      {/* Map View */}
       <View style={styles.mapContainer}>
-        <MapView ref={mapRef} style={styles.map}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={{
+            latitude: 10.7764,
+            longitude: 106.7053,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+          }}
+        >
           {route.length > 0 && (
             <>
               <Polyline
@@ -407,48 +429,53 @@ const MapScreen = () => {
         </MapView>
       </View>
 
+      {/* Shops Horizontal Scrollview */}
       <View style={styles.shopListContainer}>
-        <Text style={styles.shopListTitle}>Shop List:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <Text style={styles.shopListTitle}>Nearby Shops</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.shopScrollContent}
+        >
           {shops.map((shop) => (
             <TouchableOpacity
               key={shop.store.id}
-              style={styles.shopItem}
+              style={styles.shopCard}
               onPress={() => handleShopPress(shop)}
             >
               <Image
-                source={{ uri: shop.store.image }}
-                style={styles.shopImage}
+                source={{
+                  uri:
+                    shop.store.image ||
+                    "https://via.placeholder.com/150/4caf50/ffffff?text=Shop",
+                }}
+                style={styles.shopCardImage}
                 resizeMode="cover"
               />
-              <Button
-                title=" Shop "
-                onPress={() =>
-                  navigation.navigate("Shop", {
-                    id: shop.store.id,
-                    orderIdSuccess: null,
-                  })
-                }
-              />
-              <View style={styles.shopInfo}>
-                <Text style={styles.shopName}>{shop.store.name}</Text>
-                <Text style={styles.shopDescription}>
+              <View style={styles.shopCardDetails}>
+                <Text style={styles.shopCardName} numberOfLines={1}>
+                  {shop.store.name}
+                </Text>
+                <Text style={styles.shopCardDescription} numberOfLines={2}>
                   {shop.store.description}
                 </Text>
-                <View style={styles.shopDetailRow}>
-                  <FontAwesome name="map-marker" size={10} color="#FF6347" />
-                  <Text style={styles.shopDetailText}>
-                    {shop.store.address}
+                <View style={styles.shopCardMeta}>
+                  <Ionicons name="location" size={12} color="#4caf50" />
+                  <Text style={styles.shopCardMetaText}>
+                    {shop.distanceText}
                   </Text>
                 </View>
-                <View style={styles.shopDetailRow}>
-                  <Ionicons name="time" size={10} color="#007AFF" />
-                  <Text style={styles.shopDetailText}>{shop.timeText}</Text>
-                </View>
-                <View style={styles.shopDetailRow}>
-                  <Ionicons name="location" size={10} color="#00cc69" />
-                  <Text style={styles.shopDetailText}>{shop.distanceText}</Text>
-                </View>
+                <TouchableOpacity
+                  style={styles.shopDetailsButton}
+                  onPress={() =>
+                    navigation.navigate("Shop", {
+                      id: shop.store.id,
+                      orderIdSuccess: null,
+                    })
+                  }
+                >
+                  <Text style={styles.shopDetailsButtonText}>View Shop</Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))}
@@ -461,6 +488,7 @@ const MapScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   background: {
     ...StyleSheet.absoluteFillObject,
@@ -468,122 +496,139 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 20,
+    paddingTop: 40,
     paddingHorizontal: 15,
-    paddingBottom: 10,
-    backgroundColor: "#00cc69",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
+    paddingBottom: 15,
+    backgroundColor: "transparent",
+  },
+  headerBackButton: {
+    marginRight: 15,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#ffff",
-    marginLeft: 15,
+    color: "white",
+  },
+  inputSection: {
+    paddingHorizontal: 15,
+    marginBottom: 10,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 8,
+    backgroundColor: "white",
+    borderRadius: 10,
     paddingHorizontal: 15,
-    marginHorizontal: 15,
-    marginBottom: 1,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    marginTop: 10,
   },
   input: {
     flex: 1,
-    height: 40,
+    height: 45,
     fontSize: 14,
-    paddingLeft: 8,
+    paddingLeft: 10,
+    color: "#333",
+  },
+  findButton: {
+    marginTop: 5,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  findButtonGradient: {
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  findButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   mapContainer: {
-    flex: 2,
+    flex: 1,
     borderRadius: 15,
     overflow: "hidden",
-    marginHorizontal: 10,
-    backgroundColor: "#e0f7fa",
-    elevation: 3,
+    marginHorizontal: 15,
+    marginBottom: 10,
   },
   map: {
     flex: 1,
   },
-  button: {
-    marginHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  buttonGradient: {
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   shopListContainer: {
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 15,
-    padding: 10,
-    marginHorizontal: 10,
-    marginBottom: 10,
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 15,
+    paddingBottom: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 5,
   },
   shopListTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
+    paddingHorizontal: 15,
+    marginBottom: 10,
   },
-  shopItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
+  shopScrollContent: {
     paddingHorizontal: 10,
-    backgroundColor: "#f7f7f7",
-    borderRadius: 8,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
   },
-  shopImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  shopCard: {
+    width: width * 0.7,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 15,
     marginRight: 10,
-  },
-  shopName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  shopDetailText: {
-    fontSize: 12,
-    color: "#555",
-  },
-  shopDetailRow: {
+    overflow: "hidden",
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  shopCardImage: {
+    width: 100,
+    height: 100,
+  },
+  shopCardDetails: {
+    flex: 1,
+    padding: 10,
+  },
+  shopCardName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  shopCardDescription: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 5,
+  },
+  shopCardMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  shopCardMetaText: {
+    fontSize: 12,
+    marginLeft: 5,
+    color: "#4caf50",
+  },
+  shopDetailsButton: {
+    backgroundColor: "#4caf50",
+    borderRadius: 5,
+    paddingVertical: 5,
+    alignItems: "center",
+  },
+  shopDetailsButtonText: {
+    color: "white",
+    fontSize: 12,
   },
 });
 
