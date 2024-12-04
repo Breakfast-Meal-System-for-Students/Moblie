@@ -39,7 +39,7 @@ function RestaurantCard({ item }) {
           <Text style={styles.restaurantName}>{item.name}</Text>
           <View style={styles.restaurantRatingContainer}>
             <FontAwesomeIcon icon={faStar} style={styles.starIcon} size={15} />
-            <Text style={styles.ratingText}>{item.stars}</Text>
+            <Text style={styles.ratingText}>{Math.floor(item.stars)}</Text>
             <Text style={styles.reviewsText}>
               ({item.reviews} reviews) -{" "}
               <Text style={styles.categoryText}>{item.category}</Text>
