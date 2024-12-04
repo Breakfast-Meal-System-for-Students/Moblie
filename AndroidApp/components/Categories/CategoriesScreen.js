@@ -15,6 +15,7 @@ import axios from "axios";
 import { useRoute } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CategoriesScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
@@ -23,20 +24,24 @@ const CategoriesScreen = ({ navigation }) => {
   const [cart, setCart] = useState({});
   const route = useRoute();
   const { categoryId } = route.params;
+  const token = AsyncStorage.getItem("userToken");
 
   const fetchProducts = async () => {
     try {
+      console.log(categoryId);
       const response = await axios.get(
-        `https://bms-fs-api.azurewebsites.net/api/RegisterCategory/all-product-by-category-id`,
+        `https://bms-fs-api.azurewebsites.net/api/RegisterCategory/GetAllProductByCategory`,
         {
           params: {
             categoryId: categoryId,
-            pageSize: 10,
+            pageSize: 100,
             pageIndex: 1,
-            isDesc: false,
+            isDesc: true,
+            search: ""
           },
           headers: {
             Accept: "*/*",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -121,7 +126,8 @@ const CategoriesScreen = ({ navigation }) => {
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingText}>⭐ {item.product.rating}</Text>
               <Text style={styles.ratingCount}>
-                ({item.product.ratingCount})
+                {/* ({item.product.ratingCount}) */}
+                4
               </Text>
             </View>
             <Text style={styles.productDistance}>
@@ -130,7 +136,10 @@ const CategoriesScreen = ({ navigation }) => {
           </View>
           <View style={styles.productPriceContainer}>
             <Text style={styles.productPrice}>
-              ${item.product.price.toFixed(2)}
+              {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(item.product.price || 0)}
             </Text>
             <View style={styles.deliveryContainer}>
               <Text style={styles.productDeliveryFee}>
