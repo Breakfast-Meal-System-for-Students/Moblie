@@ -108,6 +108,8 @@ const CartScreen = () => {
       } catch (error) {
         console.error("Fetch cart data error:", error);
         Alert.alert("Error", "An error occurred while fetching cart data.");
+        await AsyncStorage.removeItem("cartGroupId");
+        await AsyncStorage.removeItem("accessTokenGroupId");
       } finally {
         setLoading(false); // Set loading to false when done
       }
