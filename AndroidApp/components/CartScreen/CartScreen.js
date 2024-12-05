@@ -10,7 +10,6 @@ import {
   Modal,
   Alert,
   Platform,
-  dismiss,
   SafeAreaView,
   ActivityIndicator,
   Pressable
@@ -25,8 +24,6 @@ import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { RadioButton } from 'react-native-paper';
-import { useFocusEffect } from "@react-navigation/native";
-import DateTimePickerComponent from "./DateTimePickerComponent";
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -41,8 +38,6 @@ const CartScreen = () => {
   const [coupons, setCoupons] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMemberGroup, setIsMemberGroup] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [isDateTimePickerVisible, setIsDateTimePickerVisible] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -57,24 +52,19 @@ const CartScreen = () => {
       setLoading(true);
       try {
         const cartGroupId = await AsyncStorage.getItem("cartGroupId");
-        const accessTokenGroupId = await AsyncStorage.getItem(
-          "accessTokenGroupId"
-        );
+        const accessTokenGroupId = await AsyncStorage.getItem("accessTokenGroupId");
         const token = await AsyncStorage.getItem("userToken");
         const shopId = await AsyncStorage.getItem("shopId");
         const userId = await AsyncStorage.getItem("userId");
         var result = null;
         if (cartGroupId && accessTokenGroupId) {
           setIsMemberGroup(true);
-          result = await fetch(
-            `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`,
-            {
-              headers: {
-                accept: "*/*",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/GetCartBySharing/${cartGroupId}?access_token=${accessTokenGroupId}`, {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          });
         } else {
           result = await fetch(
             `https://bms-fs-api.azurewebsites.net/api/Cart/GetCartInShopForUser?shopId=${shopId}`,
@@ -145,23 +135,20 @@ const CartScreen = () => {
   const fetchCountCartItem = async () => {
     const shopId = await AsyncStorage.getItem("shopId");
     const token = await AsyncStorage.getItem("userToken");
-    const result = await fetch(
-      `https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${shopId}`,
-      {
-        method: "GET",
-        headers: {
-          accept: "*/*",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/CountCartItemInShop?shopId=${shopId}`, {
+      method: 'GET',
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`
+      },
+    });
     const resBody = await result.json();
     if (resBody.isSuccess) {
       setCartCount(resBody.data);
     } else {
       Alert.alert("Error", "Can not to get order detail!!!");
     }
-  };
+  }
 
   const calculateTotal = (updatedItems) => {
     const total = updatedItems.reduce(
@@ -248,29 +235,24 @@ const CartScreen = () => {
       productId: data.productId,
       quantity: quantity,
       price: data.price,
-      note: data.note,
-    };
+      note: data.note
+    }
     console.log(jsonBody);
-
-    const result = await fetch(
-      `https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "*/*", // Thêm header Accept
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(jsonBody),
-      }
-    );
-
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Cart/UpdateCartDetail`, {
+      method: 'POST',
+      headers: {
+        'Accept': '*/*', // Thêm header Accept
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(jsonBody)
+    });
     const resBody = await result.json();
     console.log(resBody);
     if (!resBody.isSuccess) {
       console.log(resBody);
       Alert.alert("Update cart quantity failed!");
     }
-  };
+  }
 
   const increaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
@@ -278,7 +260,7 @@ const CartScreen = () => {
     setListData(updatedItems);
     calculateTotal(updatedItems);
     await fetchApiUpdateCartItemQuantity(data, updatedItems[index].quantity);
-  };
+  }
 
   const decreaseQuantity = async (data, index) => {
     const updatedItems = [...listData];
@@ -326,10 +308,10 @@ const CartScreen = () => {
         }}
         style={styles.productImage}
       />
-      <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productNote}>{item.note}</Text>
-        <Text style={styles.productPrice}>{formatPrice(item.price)}</Text>
+      <View style={styles.productDetails}>
+        <Text style={styles.textStyle}>{data.item.name}</Text>
+        <Text style={styles.textStyle}>{data.item.note}</Text>
+        <Text style={styles.priceStyle}>${data.item.price.toFixed(2)}</Text>
       </View>
       <View style={styles.quantityContainer}>
         <TouchableOpacity
@@ -409,17 +391,7 @@ const CartScreen = () => {
       shopId, // Pass the cart ID for reference
       selectedCoupon: selectedCoupon, // Pass selected coupon if available
     });
-  };
-
-  const onDateTimeChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setIsDateTimePickerVisible(false);
-    setDate(currentDate);
-  };
-
-  const showDateTimePicker = () => {
-    setIsDateTimePickerVisible(true);
-  };
+  }
 
   const createOrder = async (date = null) => {
     // check date > time now
@@ -432,41 +404,29 @@ const CartScreen = () => {
     }
 
     const token = await AsyncStorage.getItem("userToken");
-
     const orderDate = new Date().toISOString();
-
     const orderData = {
       cartId: cartId,
-      orderDate: date.toISOString() ?? orderDate,
+      orderDate: date ?? orderDate,
       voucherId: selectedCoupon?.id
     };
-
-    const response = await fetch(
-      "https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder",
-      {
-        method: "POST",
-        headers: {
-          accept: "*/*",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      }
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder", {
+      method: 'POST',
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(orderData),
+    }
     );
     const resBody = await response.json();
     if (resBody.isSuccess) {
       navigateToPayment(resBody.data);
     } else {
       console.log(resBody);
-
       Alert.alert("Failed when create order!!!");
     }
-  };
-
-  const formatDate = (date) => {
-    return `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
   };
 
   // Render loading spinner or cart items
@@ -526,9 +486,9 @@ const CartScreen = () => {
                   <Text style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productNote}>{item.note}</Text>
                   <Text style={styles.productPrice}>
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
                     }).format(item.price || 0)}
                   </Text>
                 </View>
@@ -584,9 +544,9 @@ const CartScreen = () => {
                   <Text style={styles.couponName}>{item.name}</Text>
                   <Text style={styles.couponLimit}>
                     Up to {""}
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
                     }).format(item.maxDiscount || 0)}
                   </Text>
                 </TouchableOpacity>
@@ -595,17 +555,15 @@ const CartScreen = () => {
               contentContainerStyle={styles.couponsList}
             />
           </View>
-          <View style={styles.container}>
-            <DateTimePickerComponent date={date} setDate={setDate} />
-          </View>
+
           {/* Order Summary */}
           <View style={styles.summary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
               <Text style={styles.summaryValue}>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
                 }).format(totalPrice || 0)}
               </Text>
             </View>
@@ -624,17 +582,15 @@ const CartScreen = () => {
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(
-                  (
-                    totalPrice -
-                    (selectedCoupon
-                      ? (totalPrice * selectedCoupon.percentDiscount) / 100
-                      : 0)
-                  ).toFixed(2) || 0
-                )}
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                }).format((
+                  totalPrice -
+                  (selectedCoupon
+                    ? (totalPrice * selectedCoupon.percentDiscount) / 100
+                    : 0)
+                ).toFixed(2) || 0)}
               </Text>
             </View>
             <View>
