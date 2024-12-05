@@ -394,6 +394,15 @@ const CartScreen = () => {
   }
 
   const createOrder = async (date = null) => {
+    // check date > time now
+    if (date != null) {
+      const currentTime = new Date();
+      if (date <= currentTime) {
+        Alert.alert("Invalid", "Error: The selected time must be in the future.")
+        return;
+      }
+    }
+
     const token = await AsyncStorage.getItem("userToken");
     const orderDate = new Date().toISOString();
     const orderData = {
