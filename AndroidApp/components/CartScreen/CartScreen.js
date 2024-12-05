@@ -12,6 +12,7 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
+  Pressable
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,14 +22,14 @@ import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { RadioButton } from 'react-native-paper'; // Hoặc bạn có thể tự làm radio nếu không dùng thư viện này
 
 const CartScreen = () => {
   const navigation = useNavigation();
   const [listData, setListData] = useState([]);
-  const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] =
-    useState(false);
-  const [isPaymentFailModalVisible, setPaymentFailModalVisible] =
-    useState(false);
+  const [isPaymentSuccessModalVisible, setPaymentSuccessModalVisible] = useState(false);
+  const [isPaymentFailModalVisible, setPaymentFailModalVisible] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [voucherCode, setVoucherCode] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -38,6 +39,13 @@ const CartScreen = () => {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isMemberGroup, setIsMemberGroup] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [orderType, setOrderType] = useState('now'); // now or later
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   useEffect(() => {
     const fetchCartData = async () => {
@@ -178,6 +186,21 @@ const CartScreen = () => {
       Alert.alert("Error", "An error occurred while applying the voucher.");
     }
   };
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setSelectedTime(date);
+    hideDatePicker();
+    createOrder(date);
+  };
+
   const fetchCoupons = async () => {
     try {
       const shopId = await AsyncStorage.getItem("shopId");
@@ -370,12 +393,13 @@ const CartScreen = () => {
     });
   }
 
-  const createOrder = async () => {
+  const createOrder = async (date = null) => {
     const token = await AsyncStorage.getItem("userToken");
     const orderDate = new Date().toISOString();
     const orderData = {
       cartId: cartId,
-      orderDate: orderDate,
+      orderDate: date ?? orderDate,
+      voucherId: selectedCoupon?.id
     };
     const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder", {
       method: 'POST',
@@ -538,11 +562,11 @@ const CartScreen = () => {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount</Text>
                 <Text style={styles.discountValue}>
-                  -$
-                  {(
-                    (totalPrice * selectedCoupon.percentDiscount) /
-                    100
-                  ).toFixed(2)}
+                  -
+                  {new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                  }).format((totalPrice * selectedCoupon.percentDiscount) / 100 || 0)}
                 </Text>
               </View>
             )}
@@ -560,14 +584,64 @@ const CartScreen = () => {
                 ).toFixed(2) || 0)}
               </Text>
             </View>
-            {!isMemberGroup && (
-              <TouchableOpacity
-                style={styles.checkoutButton}
-                onPress={handleCreateOrder}
-              >
-                <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-              </TouchableOpacity>
-            )}
+            <View>
+              {!isMemberGroup && (
+                <TouchableOpacity style={styles.checkoutButton} onPress={openModal}>
+                  <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+                </TouchableOpacity>
+              )}
+
+              <Modal visible={isModalVisible} transparent={true} animationType="slide">
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Choose Order Type</Text>
+                    <View style={styles.radioGroup}>
+                      <View style={styles.radioOption}>
+                        <RadioButton
+                          value="now"
+                          status={orderType === 'now' ? 'checked' : 'unchecked'}
+                          onPress={() => setOrderType('now')}
+                        />
+                        <Text>Order Now</Text>
+                      </View>
+                      <View style={styles.radioOption}>
+                        <RadioButton
+                          value="later"
+                          status={orderType === 'later' ? 'checked' : 'unchecked'}
+                          onPress={() => setOrderType('later')}
+                        />
+                        <Text>Pick Up Later</Text>
+                      </View>
+                    </View>
+                    <View style={styles.buttonGroup}>
+                      <Pressable style={styles.modalButton} onPress={closeModal}>
+                        <Text>Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        style={styles.modalButtonOk}
+                        onPress={() => {
+                          if (orderType == "now") {
+                            handleCreateOrder(); // Gọi đặt hàng
+                          } else {
+                            showDatePicker();
+                          }
+                          closeModal();
+                        }}
+                      >
+                        <Text style={styles.modalButtonTextOk}>OK</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="time"
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+              />
+            </View>
           </View>
         </>
       )}
@@ -922,6 +996,110 @@ const styles = StyleSheet.create({
   },
   errorButton: {
     backgroundColor: "#F44336",
+  },
+  checkoutButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+    elevation: 3, // Shadow trên Android
+    shadowColor: '#000', // Shadow trên iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  checkoutButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 25,
+    borderRadius: 12,
+    width: 320,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#333',
+  },
+  radioGroup: {
+    marginVertical: 15,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    paddingVertical: 10,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  datetimeButton: {
+    marginVertical: 15,
+    padding: 12,
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  datetimeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+  modalButtonOk: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'green',
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  modalButtonTextOk: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  modalButtonText: {
+    color: '#007bff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#007bff',
+  },
+  modalButtonPrimaryText: {
+    color: '#fff',
   },
 });
 
