@@ -25,7 +25,7 @@ export default function OrderStatus() {
   const [isLastPage, setIsLastPage] = useState(false);
   const [status, setStatus] = useState(1);
   const [search, setSearch] = useState("");
-  const [isDesc, setIsDesc] = useState(false);
+  const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const navigation = useNavigation();
 
