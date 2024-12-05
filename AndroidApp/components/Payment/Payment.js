@@ -14,8 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
-const Payment = ({ route, navigation }) => {
+const Payment = ({ route }) => {
   const {
     fullName = "Guest",
     orderInfo = "",
@@ -25,6 +26,7 @@ const Payment = ({ route, navigation }) => {
     shopId,
   } = route.params || {};
 
+  const navigation = useNavigation();
 
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,12 @@ const Payment = ({ route, navigation }) => {
 
   const handlePayment = async () => {
     if (!selectedMethod) {
-      Alert.alert("Thông báo", "Vui lòng chọn phương thức thanh toán");
+      Alert.alert("Notification", "Please choose an payment method");
+      return;
+    }
+    if (selectedMethod == 3) {
+      Alert.alert("Notification", "Your order has been successfully created!");
+      navigation.navigate("Home");
       return;
     }
 
