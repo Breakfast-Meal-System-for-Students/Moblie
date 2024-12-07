@@ -67,7 +67,7 @@ const CategoriesScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00cc69" />
-        <Text style={styles.loadingText}>Đang tải sản phẩm...</Text>
+        <Text style={styles.loadingText}>Loading ...</Text>
       </View>
     );
   }
@@ -77,7 +77,7 @@ const CategoriesScreen = ({ navigation }) => {
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchProducts}>
-          <Text style={styles.retryButtonText}>Thử lại</Text>
+          <Text style={styles.retryButtonText}>Try again!</Text>
         </TouchableOpacity>
       </View>
     );
@@ -86,12 +86,12 @@ const CategoriesScreen = ({ navigation }) => {
   if (products.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Không có sản phẩm nào.</Text>
+        <Text style={styles.emptyText}>There are no products.</Text>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>Quay lại</Text>
+          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -126,15 +126,16 @@ const CategoriesScreen = ({ navigation }) => {
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingText}>⭐ {item.product.rating}</Text>
               <Text style={styles.ratingCount}>
-                {/* ({item.product.ratingCount}) */}
-                4
+           
+                
               </Text>
             </View>
-            <Text style={styles.productDistance}>
-              📍 {item.product.distance} km
-            </Text>
+     
           </View>
           <View style={styles.productPriceContainer}>
+          <Text style={styles.productDeliveryFee}>
+                🚚 {item.product.deliveryFee}
+              </Text>
             <Text style={styles.productPrice}>
               {new Intl.NumberFormat("vi-VN", {
                 style: "currency",
@@ -142,9 +143,7 @@ const CategoriesScreen = ({ navigation }) => {
               }).format(item.product.price || 0)}
             </Text>
             <View style={styles.deliveryContainer}>
-              <Text style={styles.productDeliveryFee}>
-                🚚 ${item.product.deliveryFee}
-              </Text>
+             
             </View>
           </View>
         </View>
@@ -326,6 +325,22 @@ const styles = StyleSheet.create({
   productDeliveryFee: {
     fontSize: 14,
     color: "#666",
+  },
+  backButtonText: {
+    fontSize: 18,              
+    fontWeight: 'bold',         
+    color: '#ffffff',          
+    backgroundColor: '#00cc69', 
+    paddingVertical: 12,       
+    paddingHorizontal: 20,      
+    borderRadius: 20,           
+    textAlign: 'center',        
+    textTransform: 'uppercase', 
+    shadowColor: '#000000',     
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.3,       
+    shadowRadius: 4,           
+    elevation: 5,             
   },
 });
 

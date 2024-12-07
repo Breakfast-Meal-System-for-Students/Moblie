@@ -215,18 +215,31 @@ export default function OrderStatus() {
           {item.lastName}
         </Text>
         <Text>
-          <Icon name="calendar" size={20} color="#000" /> Order Date:{" "}
-          {item.orderDate
-            ? new Date(item.orderDate).toLocaleString("en-US", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })
-            : "N/A"}
+        
+          <Icon name="calendar" size={20} color="#000" /> {" "}
+          {item.orderDate ? (
+            <>
+              <Text style={styles.dateText}>
+                {new Date(item.orderDate).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
+              </Text>
+              {" "}
+              <Ionicons name="time" size={20} color="#000" />{" "}
+              <Text style={styles.timeText}>
+                {new Date(item.orderDate).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false,
+                })}
+              </Text>
+            </>
+          ) : (
+            "N/A"
+          )}
         </Text>
 
         {/* Show if the order is group or individual */}
@@ -265,8 +278,14 @@ export default function OrderStatus() {
                   <Text style={styles.productName}>
                     Product: {orderItem.productName}
                   </Text>
-                  <Text>Quantity: {orderItem.quantity}</Text>
-                  <Text>Price: ${orderItem.price.toFixed(2)}</Text>
+                  <Text> Quantity: {orderItem.quantity}</Text>
+                  <Text>
+          <Icon name="" size={20} color="#000" /> Total Price:{" "}
+          {new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(item.totalPrice || 0)}
+        </Text>
                 </View>
               </TouchableOpacity>
             ))}
