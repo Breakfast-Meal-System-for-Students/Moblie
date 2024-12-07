@@ -61,9 +61,7 @@ export default function ProfileScreen() {
   const handleGoToCart = () => {
     navigation.navigate("CartMain");
   };
-  const handleGoToPayment = () => {
-    navigation.navigate("Payment");
-  };
+
 
 
   const handleGoToSettings = () => {
@@ -134,12 +132,6 @@ export default function ProfileScreen() {
           title="Edit Profile"
           onPress={handleEditProfile}
         />
-        <OptionItem
-          icon="card-outline"
-          title="Payment"
-          onPress={handleGoToPayment}
-        />
-
         <OptionItem
           icon="settings-outline"
           title="Settings"

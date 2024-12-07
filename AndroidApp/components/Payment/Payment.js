@@ -34,8 +34,8 @@ const Payment = ({ route }) => {
   // Define the payment methods array
   const paymentMethods = [
     { id: 1, name: "VNPAY", icon: "card-outline", color: "#00457C" },
-    { id: 2, name: "PayOS", icon: "logo-paypal", color: "#003087" },
-    { id: 3, name: "Cash on Delivery", icon: "cash-outline", color: "#2E7D32" },
+
+    { id: 2, name: "Cash on Delivery", icon: "cash-outline", color: "#2E7D32" },
   ];
 
   const apiEndpoint =
@@ -43,10 +43,11 @@ const Payment = ({ route }) => {
 
   const handlePayment = async () => {
     if (!selectedMethod) {
-      Alert.alert("Notification", "Please choose an payment method");
+      Alert.alert("Notification", "Please choose a payment method");
       return;
     }
-    if (selectedMethod == 3) {
+
+    if (selectedMethod === 2) {
       Alert.alert("Notification", "Your order has been successfully created!");
       navigation.navigate("Home");
       return;
@@ -78,10 +79,10 @@ const Payment = ({ route }) => {
         await Linking.openURL(data);
       } else {
         console.error(response);
-        Alert.alert("Lỗi", "Không thể khởi tạo thanh toán");
+        Alert.alert("Error", "Unable to initiate payment");
       }
     } catch (error) {
-      Alert.alert("Lỗi", "Đã có lỗi xảy ra trong quá trình xử lý thanh toán");
+      Alert.alert("Error", "An error occurred during payment processing");
       console.error(error);
     } finally {
       setLoading(false);
@@ -140,12 +141,8 @@ const Payment = ({ route }) => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Amount: </Text>
             <Text style={styles.summaryAmount}>
-              {amount.toLocaleString("vi-VN")} VNĐ
+              {amount.toLocaleString("vi-VN")}đ
             </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Customer Name: </Text>
-            <Text style={styles.summaryText}>{fullName}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Order Code: </Text>

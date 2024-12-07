@@ -10,6 +10,9 @@ import {
   ActivityIndicator,
   Platform,
   SafeAreaView,
+  totalStars,
+  filledStars,
+  roundedStars,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
@@ -29,6 +32,8 @@ import { io } from "socket.io-client";
 const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ";
 };
+const StarRating = ({ totalStars = 4, filledStars = 1 }) => {
+  const roundedStars = Math.round(filledStars)};
 
 export default function ShopScreen() {
   const socket = io("https://bms-socket.onrender.com");
@@ -319,13 +324,25 @@ export default function ShopScreen() {
       <View style={styles.productDescriptionContainer}>
         <Text style={styles.productName}>{shopDetails.name}</Text>
         <View style={styles.productDetailsRow}>
-          <FontAwesome name="star" size={18} color="#f1c40f" />
-          <Text style={styles.productDetailsText}>4.8 </Text>
+  <FontAwesome name="star" size={30} color="#f1c40f" />
+  <FontAwesome name="star" size={30} color="#f1c40f" />
+  <FontAwesome name="star" size={30} color="#f1c40f" />
+  <View style={{ flexDirection: "row" }}>
+    {[...Array(totalStars)].map((_, index) => (
+      <FontAwesome
+        key={index}
+        name={index < roundedStars ? "star" : "star-o"} // Conditional rendering of filled or empty star
+        size={30}
+        color="#f1c40f" // Yellow color for stars
+      />
+    ))}
+  </View>
+
           <TouchableOpacity
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
           >
-            <Text style={styles.feedbackButtonText}>(10+ Bình luận)</Text>
+            <Text style={styles.feedbackButtonText}>Feedback</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -585,8 +602,19 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   feedbackButtonText: {
-    color: "#FFB90F",
-    fontSize: 14,
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    backgroundColor: "#00cc69", 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15, 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    left: 100, // khoảng cách từ cạnh phải
+    
   },
   fixedButton: {
     position: "absolute",

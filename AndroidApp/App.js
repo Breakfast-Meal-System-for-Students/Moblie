@@ -19,12 +19,13 @@ import CartScreen from "./components/CartScreen/CartScreen";
 import MapScreen from "./components/MapScreen/MapScreen";
 import OrderStatus from "./components/OrderStatus/OrderStatus";
 import EditProfile from "./components/EditProfile/EditProfile";
+import HelpSupport from "./components/HelpSupport/HelpSupport.js";
 import LogoutScreen from "./components/LogScreen/LogoutScreen";
 import MyCart from "./components/MyCart/MyCart";
 import Address from "./components/Address/Address";
 import FeedbackScreen from "./components/FeedbackScreen/FeedbackScreen";
 import Payment from "./components/Payment/Payment";
-import Security from "./components/Security/Security";
+import Settings from "./components/Settings/Settings.js";
 import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
 import ScanQRScreen from "./components/ScanQRScreen/ScanQRScreen";
@@ -145,6 +146,12 @@ function App() {
           component={EditProfile}
           options={{ headerShown: false }}
         />
+          <Stack.Screen
+          name="HelpSupport"
+          component={HelpSupport}
+          options={{ headerShown: false }}
+        />
+        
         <Stack.Screen
           name="MapScreen"
           component={MapScreen}
@@ -176,8 +183,8 @@ function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Security"
-          component={Security}
+          name="Settings"
+          component={Settings}
           options={{ headerShown: false }}
         />
         <Stack.Screen
