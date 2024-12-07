@@ -200,8 +200,11 @@ export default function OrderStatus() {
           {item.status}
         </Text>
         <Text>
-          <Icon name="dollar" size={20} color="#000" /> Total Price: $
-          {item.totalPrice.toFixed(2)}
+          <Icon name="dollar" size={20} color="#000" /> Total Price:{" "}
+          {new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(item.totalPrice || 0)}
         </Text>
         <Text>
           <Icon name="shopping-cart" size={20} color="#000" /> Shop Name:{" "}
@@ -215,14 +218,14 @@ export default function OrderStatus() {
           <Icon name="calendar" size={20} color="#000" /> Order Date:{" "}
           {item.orderDate
             ? new Date(item.orderDate).toLocaleString("en-US", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-              })
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })
             : "N/A"}
         </Text>
 
