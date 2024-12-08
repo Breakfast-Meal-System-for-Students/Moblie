@@ -396,11 +396,6 @@ const CartScreen = () => {
     });
   }
 
-  const toVietnamTime = (date) => {
-    const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-    return vietnamTime.toISOString().replace('Z', '+07:00');
-  };
-
   const createOrder = async (date = null) => {
     // check date > time now
     if (date != null) {
@@ -413,10 +408,11 @@ const CartScreen = () => {
 
     const token = await AsyncStorage.getItem("userToken");
     const currentDate = new Date();
+    const utcOrderDate = (date ?? currentDate).toISOString();
 
     const orderData = {
       cartId: cartId,
-      orderDate: date ? toVietnamTime(date) : toVietnamTime(currentDate),
+      orderDate: utcOrderDate,
       voucherId: selectedCoupon?.id
     };
     const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Order/CreateOrder", {
