@@ -24,6 +24,7 @@ import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { RadioButton } from 'react-native-paper';
+import { io } from 'socket.io-client';
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -43,6 +44,7 @@ const CartScreen = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [orderType, setOrderType] = useState('now'); // now or later
   const [isModalVisible, setModalVisible] = useState(false);
+  const [socket, setSocket] = useState(null);
 
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
@@ -224,6 +226,14 @@ const CartScreen = () => {
   };
   useEffect(() => {
     fetchCoupons(); // Fetch coupons when the component mounts
+    const socketConnection = io('https://bms-socket.onrender.com');
+    setSocket(socketConnection);
+
+    return () => {
+      setTimeout(() => {
+        socketConnection.disconnect(); // Delay disconnect by 2 seconds
+      }, 2000); // 2 seconds delay
+    };
   }, []);
 
   const fetchApiUpdateCartItemQuantity = async (data, quantity) => {
@@ -427,12 +437,29 @@ const CartScreen = () => {
     );
     const resBody = await response.json();
     if (resBody.isSuccess) {
-      navigateToPayment(resBody.data);
+      const orderId = resBody.data;
+      sendNotiToShop(orderId);
+      navigateToPayment(orderId);
     } else {
       console.log(resBody);
       Alert.alert("Failed when create order!!!");
     }
   };
+
+  const sendNotiToShop = async (orderId) => {
+    const shopId = await AsyncStorage.getItem("shopId");
+    const userId = await AsyncStorage.getItem("userId");
+    if (socket) {
+      socket.emit('join-shop-topic', shopId);
+      const orderData = {
+        userId,
+        shopId,
+        orderId,
+      };
+      socket.emit('new-order', orderData); // Send notification to shop
+    }
+  };
+
 
   // Render loading spinner or cart items
   return (
