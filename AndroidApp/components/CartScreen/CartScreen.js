@@ -310,6 +310,17 @@ const CartScreen = () => {
     }
   };
 
+  const calcDiscount = () => {
+    if (selectedCoupon == null) {
+      return 0;
+    }
+    var total = totalPrice * selectedCoupon.percentDiscount / 100;
+    if (total > selectedCoupon.maxDiscount) {
+      total = selectedCoupon.maxDiscount;
+    }
+    return total;
+  }
+
   const renderItem = (data) => (
     <View style={styles.rowFront}>
       <Image
@@ -607,7 +618,7 @@ const CartScreen = () => {
                   {new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND',
-                  }).format((totalPrice * selectedCoupon.percentDiscount) / 100 || 0)}
+                  }).format(calcDiscount())}
                 </Text>
               </View>
             )}
@@ -617,12 +628,7 @@ const CartScreen = () => {
                 {new Intl.NumberFormat('vi-VN', {
                   style: 'currency',
                   currency: 'VND',
-                }).format((
-                  totalPrice -
-                  (selectedCoupon
-                    ? (totalPrice * selectedCoupon.percentDiscount) / 100
-                    : 0)
-                ).toFixed(2) || 0)}
+                }).format(totalPrice - calcDiscount() || 0)}
               </Text>
             </View>
             <View>
