@@ -311,11 +311,16 @@ const CartScreen = () => {
     if (selectedCoupon == null) {
       return 0;
     }
-    var total = totalPrice * selectedCoupon.percentDiscount / 100;
-    if (total > selectedCoupon.maxDiscount) {
-      total = selectedCoupon.maxDiscount;
+    var discount = 0;
+    if (selectedCoupon.isPercentDiscount) {
+      discount = totalPrice * selectedCoupon.percentDiscount / 100;
+      if (discount > selectedCoupon.maxDiscount) {
+        discount = selectedCoupon.maxDiscount;
+      }
+    } else {
+      discount = selectedCoupon.minPrice;
     }
-    return total;
+    return discount;
   }
 
   const renderItem = (data) => (
@@ -464,6 +469,9 @@ const CartScreen = () => {
     }
   };
 
+  const handleSelectedCoupon = (item) => {
+    setSelectedCoupon(item)
+  }
 
   // Render loading spinner or cart items
   return (
@@ -575,10 +583,18 @@ const CartScreen = () => {
                     styles.couponCard,
                     selectedCoupon?.id === item.id && styles.selectedCouponCard,
                   ]}
-                  onPress={() => setSelectedCoupon(item)}
+                  onPress={() => handleSelectedCoupon(item)}
                 >
                   <Text style={styles.couponDiscount}>
-                    {item.percentDiscount}% OFF
+                    {item.isPercentDiscount && (
+                      item.percentDiscount + "% OFF"
+                      ) 
+                    || (
+                      new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      }).format(item.minPrice)
+                    )} 
                   </Text>
                   <Text style={styles.couponName}>{item.name}</Text>
                   <Text style={styles.couponLimit}>
@@ -586,7 +602,7 @@ const CartScreen = () => {
                     {new Intl.NumberFormat('vi-VN', {
                       style: 'currency',
                       currency: 'VND',
-                    }).format(item.maxDiscount || 0)}
+                    }).format(item.isPercentDiscount && item.maxDiscount || item.minPrice)}
                   </Text>
                 </TouchableOpacity>
               )}
