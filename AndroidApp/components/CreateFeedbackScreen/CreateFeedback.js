@@ -50,7 +50,6 @@ export default function CreateFeedback({ route }) {
       Alert.alert("Success", "Thank you for your feedback!");
       navigation.navigate("Feedback", {shopId: order.shopId, token: token});
     } else {
-      console.log(resBody);
       Alert.alert("Error", "An error occurs in process feedback");
     }
   };

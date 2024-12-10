@@ -188,7 +188,6 @@ export default function ShopScreen() {
           await AsyncStorage.removeItem("accessTokenGroupId");
           sendNotiToShop(order.id);
         } else {
-          console.log(resBody);
           Alert.alert("An error occurs in payment");
         }
         handleBack();

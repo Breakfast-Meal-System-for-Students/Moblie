@@ -110,7 +110,6 @@ const CartScreen = () => {
             setListData([]); // Ensure listData is set to an empty array
           }
         } else {
-          console.log(resBody);
           await AsyncStorage.removeItem("cartGroupId");
           await AsyncStorage.removeItem("accessTokenGroupId");
           Alert.alert("Error", "Failed to fetch cart data.");
@@ -257,9 +256,7 @@ const CartScreen = () => {
       body: JSON.stringify(jsonBody)
     });
     const resBody = await result.json();
-    console.log(resBody);
     if (!resBody.isSuccess) {
-      console.log(resBody);
       Alert.alert("Update cart quantity failed!");
     }
   }
@@ -449,7 +446,6 @@ const CartScreen = () => {
       sendNotiToShop(orderId);
       navigateToPayment(orderId);
     } else {
-      console.log(resBody);
       Alert.alert("Failed when create order!!!");
     }
   };

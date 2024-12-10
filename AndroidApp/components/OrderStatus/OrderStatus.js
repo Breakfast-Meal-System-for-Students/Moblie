@@ -28,6 +28,8 @@ export default function OrderStatus() {
   const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const navigation = useNavigation();
+  const STATUS_TAKEN_OVER = 6;
+  const STATUS_CANCEL = 7;
 
   const statusLabels = [
     { id: 1, label: "Draft", value: "DRAFT" },
@@ -133,7 +135,6 @@ export default function OrderStatus() {
       },
     });
     const resBody = await result.json();
-    console.log(resBody);
     if (resBody.isSuccess) {
       const order = resBody.data;
       sendNotiToShop(order.id, order.customerId, order.shopId)
@@ -142,14 +143,14 @@ export default function OrderStatus() {
     }
   }
 
-  const changeOrderStatus = async (orderId) => {
+  const changeOrderStatus = async (orderId, statusChange) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) throw new Error("User token is missing");
 
       const formData = new FormData();
       formData.append("id", orderId);
-      formData.append("status", 6);
+      formData.append("status", statusChange);
 
       const response = await fetch(
         "https://bms-fs-api.azurewebsites.net/api/Order/ChangeOrderStatus",
@@ -183,6 +184,26 @@ export default function OrderStatus() {
       Alert.alert("Error", error.message);
     }
   };
+
+  const handleCancelOrder = async (orderId) => {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Order/CheckOrderIsPayed/${orderId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const resBody = await response.json();
+    if (resBody.data == false) {
+      changeOrderStatus(orderId, STATUS_CANCEL);
+    } else {
+      Alert.alert("Order cancellation is not allowed.");
+    }
+  }
 
   const handleOpenFeedback = async (orderId) => {
     const token = await AsyncStorage.getItem("userToken");
@@ -279,6 +300,15 @@ export default function OrderStatus() {
           <Text style={styles.buttonText}>View Products</Text>
         </TouchableOpacity>
 
+        {status <= 3 && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => handleCancelOrder(item.id)}
+          >
+            <Text style={styles.buttonText}>Cancel Order</Text>
+          </TouchableOpacity>
+        )}
+
         {expandedOrderId === item.id && (
           <View style={styles.productList}>
             {item.orderItems.map((orderItem) => (
@@ -311,7 +341,7 @@ export default function OrderStatus() {
         {item.status === "PREPARED" && (
           <TouchableOpacity
             style={styles.takeOverButton}
-            onPress={() => changeOrderStatus(item.id)}
+            onPress={() => changeOrderStatus(item.id, STATUS_TAKEN_OVER)}
           >
             <Text style={styles.buttonText}>Take Over</Text>
           </TouchableOpacity>
@@ -463,6 +493,13 @@ const styles = StyleSheet.create({
   },
   feedbackButton: {
     backgroundColor: "#28a745",
+    paddingVertical: 8,
+    marginTop: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "red",
     paddingVertical: 8,
     marginTop: 10,
     borderRadius: 5,
