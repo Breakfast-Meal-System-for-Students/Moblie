@@ -520,7 +520,7 @@ const CartScreen = () => {
                         ? item.images[0].url
                         : "https://via.placeholder.com/150",
                   }}
-                  style={styles.productImage}
+                  style={item.cartGroupUserName && styles.productImageGrp || styles.productImage}
                 />
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{item.name}</Text>
@@ -531,6 +531,9 @@ const CartScreen = () => {
                       currency: 'VND',
                     }).format(item.price || 0)}
                   </Text>
+                  {item.cartGroupUserName && (
+                    <Text style={styles.productNote}>{item.cartGroupUserName}</Text>
+                  )}
                 </View>
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
@@ -830,6 +833,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  productImageGrp: {
+    width: 80,
+    height: 100,
+    borderRadius: 8,
   },
   productImage: {
     width: 80,
