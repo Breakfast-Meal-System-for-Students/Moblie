@@ -184,8 +184,24 @@ export default function OrderStatus() {
     }
   };
 
-  const handleOpenFeedback = (orderId) => {
-    navigation.navigate("CreateFeedback", { orderId });
+  const handleOpenFeedback = async (orderId) => {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Feedback/CheckOrderIsFeedbacked?orderId=${orderId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const resBody = await response.json();
+    if (resBody.data == true) {
+      Alert.alert("You can only provide feedback once.");
+    } else {
+      navigation.navigate("CreateFeedback", { orderId });
+    }
   };
 
   const renderOrderItem = ({ item }) => (
