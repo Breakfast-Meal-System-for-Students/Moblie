@@ -284,7 +284,7 @@ export default function OrderStatus() {
           {new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-          }).format(item.totalPrice || 0)}
+          }).format(orderItem.quantity * orderItem.price || 0)}
         </Text>
                 </View>
               </TouchableOpacity>

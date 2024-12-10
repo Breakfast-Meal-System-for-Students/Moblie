@@ -408,10 +408,7 @@ const CartScreen = () => {
       orderInfo: `${orderId}`, // Example order info using cart ID
       orderType: "general", // Set your order type
       description: "Order description", // Set a description if needed
-      amount: totalPrice -
-        (selectedCoupon
-          ? (totalPrice * selectedCoupon.percentDiscount) / 100
-          : 0), // Send total price
+      amount: totalPrice - calcDiscount(), // Send total price
       shopId, // Pass the cart ID for reference
       selectedCoupon: selectedCoupon, // Pass selected coupon if available
     });
