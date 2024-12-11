@@ -599,6 +599,8 @@ const styles = StyleSheet.create({
   },
   feedbackButton: {
     marginLeft: 10,
+    alignSelf: "flex-end", 
+    marginLeft: "auto"
   },
   feedbackButtonText: {
     color: "#fff",
@@ -612,8 +614,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    left: 100, // khoảng cách từ cạnh phải
-    
   },
   fixedButton: {
     position: "absolute",
