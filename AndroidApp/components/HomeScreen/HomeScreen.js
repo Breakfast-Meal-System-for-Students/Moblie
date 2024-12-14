@@ -70,7 +70,6 @@ function FeaturedRow({ restaurants }) {
   );
 }
 export default function HomeScreen() {
-  const socket = io('https://bms-socket.onrender.com');
   const [unreadCount, setUnreadCount] = useState(3); // Giả sử có 3 tin nhắn chưa đọc
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
@@ -79,6 +78,7 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const flatListRef = useRef();
   const [userProfile, setUserProfile] = useState({}); // Add state for user profile
+  const [socket, setSocket] = useState(null);
 
   const fetchCountNotifications = async () => {
     const token = await AsyncStorage.getItem("userToken");
@@ -108,12 +108,17 @@ export default function HomeScreen() {
       handleConnectionSocket();
 
       return () => {
-        socket.disconnect(); // Ngắt kết nối khi component unmount
+        if (socket) {
+          socket.disconnect();
+        }
       };
     }, [])
   );
 
   const handleConnectionSocket = async () => {
+    const socket = io('https://bms-socket.onrender.com');
+    setSocket(socket);
+
     socket.on('connect', () => {
       console.log('Connected to server with socket ID:', socket.id);
     });
