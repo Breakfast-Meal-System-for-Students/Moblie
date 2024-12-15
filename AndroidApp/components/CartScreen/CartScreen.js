@@ -280,31 +280,47 @@ const CartScreen = () => {
   };
 
   const deleteItem = async (cartItemId) => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const response = await axios.delete(
-        `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCartItem`,
+    Alert.alert(
+      "Confirm remove",
+      "Are you sure you want to remove this item?",
+      [
         {
-          params: { cartItemId },
-          headers: {
-            Accept: "*/*",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+          text: "No",
+          onPress: () => console.log("Cancellation aborted"),
+        },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("userToken");
+              const response = await axios.delete(
+                `https://bms-fs-api.azurewebsites.net/api/Cart/DeleteCartItem`,
+                {
+                  params: { cartItemId },
+                  headers: {
+                    Accept: "*/*",
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
 
-      if (response.status === 200) {
-        const updatedItems = listData.filter((item) => item.id !== cartItemId);
-        setListData(updatedItems);
-        calculateTotal(updatedItems);
-        Alert.alert("Success", "Item has been removed from your cart.");
-      } else {
-        Alert.alert("Error", "Failed to delete item.");
-      }
-    } catch (error) {
-      console.error("Delete item error:", error);
-      Alert.alert("Error", "An error occurred while deleting the item.");
-    }
+              if (response.status === 200) {
+                const updatedItems = listData.filter((item) => item.id !== cartItemId);
+                setListData(updatedItems);
+                calculateTotal(updatedItems);
+                Alert.alert("Success", "Item has been removed from your cart.");
+              } else {
+                Alert.alert("Error", "Failed to delete item.");
+              }
+            } catch (error) {
+              console.error("Delete item error:", error);
+              Alert.alert("Error", "An error occurred while deleting the item.");
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Cho phép người dùng nhấn ra ngoài để đóng
+    );
   };
 
   const calcDiscount = () => {
@@ -588,13 +604,13 @@ const CartScreen = () => {
                   <Text style={styles.couponDiscount}>
                     {item.isPercentDiscount && (
                       item.percentDiscount + "% OFF"
-                      ) 
-                    || (
-                      new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      }).format(item.minPrice)
-                    )} 
+                    )
+                      || (
+                        new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                        }).format(item.minPrice)
+                      )}
                   </Text>
                   <Text style={styles.couponName}>{item.name}</Text>
                   <Text style={styles.couponLimit}>
