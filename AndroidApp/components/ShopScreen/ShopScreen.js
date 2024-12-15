@@ -15,7 +15,7 @@ import {
   roundedStars,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faShoppingCart, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart, faArrowLeft, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,8 +32,22 @@ import { io } from "socket.io-client";
 const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ";
 };
-const StarRating = ({ totalStars = 4, filledStars = 1 }) => {
-  const roundedStars = Math.round(filledStars)};
+
+// Function to render stars
+const renderStars = (rating) => {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <FontAwesomeIcon
+        key={i}
+        icon={faStar}
+        size={20}
+        color={i <= rating ? "#ffcc00" : "#ccc"} // Gold for filled stars, gray for empty stars
+      />
+    );
+  }
+  return <View style={styles.ratingContainer}>{stars}</View>;
+};
 
 export default function ShopScreen() {
   const socket = io("https://bms-socket.onrender.com");
@@ -323,20 +337,7 @@ export default function ShopScreen() {
       <View style={styles.productDescriptionContainer}>
         <Text style={styles.productName}>{shopDetails.name}</Text>
         <View style={styles.productDetailsRow}>
-  <FontAwesome name="star" size={30} color="#f1c40f" />
-  <FontAwesome name="star" size={30} color="#f1c40f" />
-  <FontAwesome name="star" size={30} color="#f1c40f" />
-  <View style={{ flexDirection: "row" }}>
-    {[...Array(totalStars)].map((_, index) => (
-      <FontAwesome
-        key={index}
-        name={index < roundedStars ? "star" : "star-o"} // Conditional rendering of filled or empty star
-        size={30}
-        color="#f1c40f" // Yellow color for stars
-      />
-    ))}
-  </View>
-
+          {renderStars(shopDetails.rate)}
           <TouchableOpacity
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
@@ -658,5 +659,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold", // Đậm chữ
     textAlign: "center", // Căn giữa chữ
     lineHeight: 30, // Căn giữa chữ theo chiều dọc trong nút
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 5, // Space around the rating
+  },
+  star: {
+    color: "#ccc", // Default star color
+    fontSize: 20,
+  },
+  starFilled: {
+    color: "#ffcc00", // Color for filled stars
+    fontSize: 20,
   },
 });
