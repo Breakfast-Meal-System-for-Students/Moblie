@@ -21,7 +21,7 @@ export default function OrderStatus() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize] = useState(3);
+  const [pageSize] = useState(5);
   const [isLastPage, setIsLastPage] = useState(false);
   const [status, setStatus] = useState(1);
   const [search, setSearch] = useState("");
@@ -415,7 +415,7 @@ export default function OrderStatus() {
             renderItem={renderOrderItem}
             keyExtractor={(item) => item.id.toString()}
             onEndReached={loadMoreOrders}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0}
             ListFooterComponent={
               !isLastPage && !loading ? (
                 <ActivityIndicator size="large" color="#0000ff" />
