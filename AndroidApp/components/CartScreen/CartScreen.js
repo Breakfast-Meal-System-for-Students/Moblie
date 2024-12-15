@@ -205,19 +205,16 @@ const CartScreen = () => {
   const fetchCoupons = async () => {
     try {
       const shopId = await AsyncStorage.getItem("shopId");
-      const response = await axios.get(
-        `https://bms-fs-api.azurewebsites.net/api/Coupon/get-all-coupon-for-shop?shopId=${shopId}`,
-        {
-          headers: {
-            accept: "*/*",
-          },
-        }
-      );
-
-      if (response.data.isSuccess) {
-        setCoupons(response.data.data.data); // Set the coupons data
+      const response = await fetch(`https://bms-fs-api.azurewebsites.net/api/Coupon/get-all-coupon-for-shop?shopId=${shopId}&pageIndex=1&pageSize=1000`,{
+        headers: {
+          accept: "*/*",
+        },
+      });
+      const resBody = await response.json();
+      if (resBody.isSuccess) {
+        setCoupons(resBody.data.data); // Set the coupons data
       } else {
-        console.error("Failed to fetch coupons:", response.data.messages);
+        console.error("Failed to fetch coupons:", resBody.messages);
       }
     } catch (error) {
       console.error("Fetch coupons error:", error);
