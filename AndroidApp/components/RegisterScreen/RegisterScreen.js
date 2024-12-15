@@ -24,6 +24,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+  const [isProccessing, setIsProccessing] = useState(false);
 
   const { width, height } = Dimensions.get("window");
 
@@ -37,9 +38,21 @@ export default function Register() {
     );
   }, [fullName, lastName, email, password, confirmPassword]);
 
+  function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Biểu thức chính quy kiểm tra email
+    return emailRegex.test(email);
+  }
+
   const handleRegister = async () => {
+    setIsProccessing(true);
     if (!isFormValid) {
       Alert.alert("Error", "Please complete all fields correctly.");
+      setIsProccessing(false);
+      return;
+    }
+    if (!isValidEmail(email)) {
+      Alert.alert("Error", "Please enter a valid email");
+      setIsProccessing(false);
       return;
     }
     const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Auth/register", {
@@ -56,8 +69,6 @@ export default function Register() {
       })
     })
     const resBody = await response.json();
-    console.log(resBody);
-
     if (resBody.isSuccess) {
       Alert.alert("Success", "Sign up successfully!", [
         { text: "OK", onPress: () => navigation.navigate("Login") },
@@ -67,6 +78,7 @@ export default function Register() {
     } else {
       Alert.alert("Error", "An unknown error is occor");
     }
+    setIsProccessing(false);
   };
 
   return (
@@ -138,8 +150,11 @@ export default function Register() {
             onChangeText={setConfirmPassword}
           />
 
-          <Pressable style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Register</Text>
+          <Pressable style={[
+              styles.button,
+              isProccessing && styles.buttonProccessing,
+            ]} onPress={handleRegister} disabled={isProccessing}>
+            <Text style={styles.buttonText}>{isProccessing && "Processing..." || "Register"}</Text>
           </Pressable>
 
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -212,6 +227,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#fff",
     fontWeight: "bold",
+  },
+  buttonProccessing: {
+    backgroundColor: 'gray'
   },
   signInText: {
     textAlign: "center",
