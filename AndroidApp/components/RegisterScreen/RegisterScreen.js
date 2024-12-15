@@ -30,10 +30,10 @@ export default function Register() {
   useEffect(() => {
     setIsFormValid(
       fullName.trim() !== "" &&
-        lastName.trim() !== "" &&
-        email.trim() !== "" &&
-        password.trim() !== "" &&
-        password === confirmPassword
+      lastName.trim() !== "" &&
+      email.trim() !== "" &&
+      password.trim() !== "" &&
+      password === confirmPassword
     );
   }, [fullName, lastName, email, password, confirmPassword]);
 
@@ -42,41 +42,30 @@ export default function Register() {
       Alert.alert("Error", "Please complete all fields correctly.");
       return;
     }
+    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        accept: "*/*",
+      },
+      body: JSON.stringify({
+        firstName: fullName,
+        lastName,
+        email,
+        password,
+      })
+    })
+    const resBody = await response.json();
+    console.log(resBody);
 
-    try {
-      const response = await axios.post(
-        "https://bms-fs-api.azurewebsites.net/api/Auth/register",
-        {
-          firstName: fullName,
-          lastName,
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            accept: "*/*",
-          },
-        }
-      );
-
-      console.log(response);
-
-      if (response.data.isSuccess) {
-        await AsyncStorage.setItem("userToken", response.data.data.token);
-        console.log(response.data.data.token);
-        Alert.alert("Success", "Registration successful!", [
-          { text: "OK", onPress: () => navigation.navigate("Login") },
-        ]);
-      } else {
-        Alert.alert("Error", "Registration failed. Please check your details.");
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      Alert.alert(
-        "Error",
-        "An error occurred during registration. Please try again."
-      );
+    if (resBody.isSuccess) {
+      Alert.alert("Success", "Sign up successfully!", [
+        { text: "OK", onPress: () => navigation.navigate("Login") },
+      ]);
+    } else if (resBody.messages && resBody.messages.length > 0) {
+      Alert.alert("Error", resBody.messages[0].content);
+    } else {
+      Alert.alert("Error", "An unknown error is occor");
     }
   };
 
