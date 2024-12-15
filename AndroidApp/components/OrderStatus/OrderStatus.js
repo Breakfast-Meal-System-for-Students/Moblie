@@ -173,7 +173,7 @@ export default function OrderStatus() {
         );
       }
       fetchOrderById(orderId);
-      Alert.alert("Success", data.messages[0].content, [
+      Alert.alert("Success", data.messages[0].content.toString().trim(), [
         {
           text: "OK",
           onPress: () => fetchOrders(pageIndex, status), // Tải lại dữ liệu sau khi nhấn OK
@@ -186,23 +186,39 @@ export default function OrderStatus() {
   };
 
   const handleCancelOrder = async (orderId) => {
-    const token = await AsyncStorage.getItem("userToken");
-    const response = await fetch(
-      `https://bms-fs-api.azurewebsites.net/api/Order/CheckOrderIsPayed/${orderId}`,
-      {
-        method: "GET",
-        headers: {
-          accept: "*/*",
-          Authorization: `Bearer ${token}`,
+    Alert.alert(
+      "Confirm Cancellation",
+      "Are you sure you want to cancel this order?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("Cancellation aborted"),
         },
-      }
+        {
+          text: "Yes",
+          onPress: async () => {
+            const token = await AsyncStorage.getItem("userToken");
+            const response = await fetch(
+              `https://bms-fs-api.azurewebsites.net/api/Order/CheckOrderIsPayed/${orderId}`,
+              {
+                method: "GET",
+                headers: {
+                  accept: "*/*",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            const resBody = await response.json();
+            if (resBody.data == false) {
+              changeOrderStatus(orderId, STATUS_CANCEL);
+            } else {
+              Alert.alert("Order cancellation is not allowed.");
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Cho phép người dùng nhấn ra ngoài để đóng
     );
-    const resBody = await response.json();
-    if (resBody.data == false) {
-      changeOrderStatus(orderId, STATUS_CANCEL);
-    } else {
-      Alert.alert("Order cancellation is not allowed.");
-    }
   }
 
   const handleOpenFeedback = async (orderId) => {
