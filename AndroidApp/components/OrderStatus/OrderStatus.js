@@ -252,7 +252,7 @@ export default function OrderStatus() {
           {item.lastName}
         </Text>
         <Text>
-        
+
           <Icon name="calendar" size={20} color="#000" /> {" "}
           {item.orderDate ? (
             <>
@@ -287,8 +287,12 @@ export default function OrderStatus() {
 
         {status == 8 && (
           <TouchableOpacity
-            style={styles.feedbackButton}
+            style={[
+              styles.feedbackButton,
+              !item.canFeedback && styles.disabledButton,
+            ]}
             onPress={() => handleOpenFeedback(item.id)}
+            disabled={!item.canFeedback}
           >
             <Text style={styles.buttonText}>Feedback</Text>
           </TouchableOpacity>
@@ -302,8 +306,12 @@ export default function OrderStatus() {
 
         {status <= 3 && (
           <TouchableOpacity
-            style={styles.cancelButton}
+            style={[
+              styles.cancelButton,
+              !item.canCancel && styles.disabledButton,
+            ]}
             onPress={() => handleCancelOrder(item.id)}
+            disabled={!item.canCancel}
           >
             <Text style={styles.buttonText}>Cancel Order</Text>
           </TouchableOpacity>
@@ -326,12 +334,12 @@ export default function OrderStatus() {
                   </Text>
                   <Text> Quantity: {orderItem.quantity}</Text>
                   <Text>
-          <Icon name="" size={20} color="#000" /> Total Price:{" "}
-          {new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-          }).format(orderItem.quantity * orderItem.price || 0)}
-        </Text>
+                    <Icon name="" size={20} color="#000" /> Total Price:{" "}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(orderItem.quantity * orderItem.price || 0)}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -558,5 +566,9 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: 20,
+  },
+  disabledButton: {
+    backgroundColor: 'gray',
+    opacity: 0.6,
   },
 });

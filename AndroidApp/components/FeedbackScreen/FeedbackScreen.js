@@ -117,7 +117,7 @@ export default function FeedbackScreen({ route }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
           <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Feedback</Text>
