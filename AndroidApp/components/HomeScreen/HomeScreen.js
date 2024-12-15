@@ -172,7 +172,7 @@ export default function HomeScreen() {
     const fetchCategories = async () => {
       try {
         const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/Category?pageIndex=1&pageSize=5"
+          "https://bms-fs-api.azurewebsites.net/api/Category?pageIndex=1&pageSize=1000"
         );
         const data = await response.json();
         if (data.isSuccess) {
