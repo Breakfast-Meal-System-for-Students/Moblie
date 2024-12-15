@@ -20,6 +20,7 @@ export default function Search({ navigation }) {
   const [pageIndex, setPageIndex] = useState(1);
   const [isLastPage, setIsLastPage] = useState(false);
   const pageSize = 2; // Number of items per page
+  const [cart, setCart] = useState({});
 
   useEffect(() => {
     if (searchQuery.length > 0) {
@@ -47,6 +48,7 @@ export default function Search({ navigation }) {
       const json = await response.json();
       if (json.isSuccess) {
         const fetchedProducts = json.data.data;
+        setProducts(fetchedProducts);
         setIsLastPage(json.data.isLastPage);
       } else {
         setError("Failed to load data");
@@ -59,6 +61,14 @@ export default function Search({ navigation }) {
       setLoading(false);
     }
   };
+
+  const handleNavigateToProduct = (item) => {
+    navigation.navigate("ProductDetail", {
+      productId: item.id,
+      cart: cart,
+      setCart: setCart,
+    })
+  }
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -114,14 +124,19 @@ export default function Search({ navigation }) {
             data={products}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.itemContainer}>
-                <Image
-                  source={{ uri: item.images[0].url }}
-                  style={styles.image}
-                />
+              <TouchableOpacity style={styles.itemContainer} onPress={() => handleNavigateToProduct(item)}>
+                {item.images && item.images.length > 0 && (
+                  <Image
+                    source={{ uri: item.images[0].url }}
+                    style={styles.image}
+                  />
+                )}
                 <View style={styles.textContainer}>
                   <Text style={styles.itemText}>
-                    {item.name} - ${item.price.toFixed(2)}
+                  {item.name + " - "}{new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(item.price || 0)}
                   </Text>
                 </View>
               </TouchableOpacity>
