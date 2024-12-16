@@ -10,7 +10,7 @@ import WelcomeScreen from "./components/Welcome/Welcome";
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import ShopScreen from "./components/ShopScreen/ShopScreen";
 import CategoriesScreen from "./components/Categories/CategoriesScreen";
-import FavoritesScreen from "./components/FavoritesScreen/FavoritesScreen";
+import FavoritesScreen from "./components/FavoritesScreen/FavoritesScreen.js";
 import NotificationsScreen from "./components/NotificationsScreen/NotificationsScreen";
 import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
@@ -107,7 +107,7 @@ function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Favorites"
+          name="FavoritesScreen"
           component={FavoritesScreen}
           options={{ headerShown: false }}
         />

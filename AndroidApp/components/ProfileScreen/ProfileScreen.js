@@ -117,11 +117,16 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView style={styles.profileOptions}>
-        <OptionItem
+      {/* <OptionItem
+  icon="heart-outline" 
+  title="FavoritesScreen"
+  onPress={() => navigation.navigate("FavoritesScreen")}
+/> */}
+<OptionItem
           icon="cart-outline"
-          title="My Cart"
-          onPress={handleGoToCart}
-        />
+          title="My Order"
+          onPress={() => navigation.navigate("Order")}
+          />
         <OptionItem
           icon="notifications-outline"
           title="My Notification"

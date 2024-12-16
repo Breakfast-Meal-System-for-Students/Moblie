@@ -12,25 +12,57 @@ import {
   Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { width } = Dimensions.get("window");
 
-  const handleSendEmail = () => {
-    if (!email) {
-      Alert.alert("Error", "Please enter your email address.");
+  const handleSendEmail = async () => {
+    if (!email || !newPassword || !confirmPassword) {
+      Alert.alert("Error", "Please fill all fields.");
       return;
     }
 
     if (!email.endsWith("@gmail.com")) {
-      Alert.alert("Error", "Email must end with '@gmail.com'");
+      Alert.alert("Error", "Email must end with '@gmail.com'.");
       return;
     }
 
-    Alert.alert("Success", "Password reset link sent to your email.");
-    navigation.navigate("OTPScreen");
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        "https://bms-fs-api.azurewebsites.net/api/Account/ResetPassword",
+        {
+          email,
+          newPassword,
+          confirmPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        Alert.alert("Success", "Password reset successfully!");
+        navigation.navigate("OTPScreen");
+      }
+    } catch (error) {
+      console.error(error);
+      const errorMsg =
+        error.response?.data?.errors?.ConfirmPassword?.[0] ||
+        "An error occurred. Please try again.";
+      Alert.alert("Error", errorMsg);
+    }
   };
 
   return (
@@ -77,9 +109,25 @@ function ForgotPasswordScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          <TextInput
+            placeholder="New Password"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={newPassword}
+            secureTextEntry
+            onChangeText={setNewPassword}
+          />
+          <TextInput
+            placeholder="Confirm Password"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={confirmPassword}
+            secureTextEntry
+            onChangeText={setConfirmPassword}
+          />
 
           <Pressable style={styles.button} onPress={handleSendEmail}>
-            <Text style={styles.buttonText}>Send Password Reset Request</Text>
+            <Text style={styles.buttonText}>Reset Password</Text>
           </Pressable>
 
           <View style={styles.policyContainer}>

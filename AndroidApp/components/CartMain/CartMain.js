@@ -74,9 +74,7 @@ const CartMain = () => {
       />
       <Text style={styles.productName}>📦 {item.name}</Text>
       <Text style={styles.productQuantity}>🔢 Quantity: {item.quantity}</Text>
-      <Text style={styles.productPrice}>
-        💲 Price: ${item.price.toFixed(2)}
-      </Text>
+      
     </View>
   );
 

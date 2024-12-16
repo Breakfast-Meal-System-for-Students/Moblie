@@ -40,10 +40,10 @@ function RestaurantCard({ item }) {
           <View style={styles.restaurantRatingContainer}>
             <FontAwesomeIcon icon={faStar} style={styles.starIcon} size={15} />
             <Text style={styles.ratingText}>{Math.floor(item.stars)}</Text>
-
-
-            <Text style={styles.categoryText}>{item.category}</Text>
-
+            
+              
+              <Text style={styles.categoryText}>{item.category}</Text>
+           
           </View>
           <View style={styles.locationInfo}>
             <FontAwesomeIcon icon={faMapPin} color="green" size={16} />
@@ -73,17 +73,12 @@ export default function HomeScreen() {
   const [unreadCount, setUnreadCount] = useState(3); // Giả sử có 3 tin nhắn chưa đọc
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
-  const [shops, setShops] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0); // Thay thế biến currentIndex bằng useState
   const navigation = useNavigation();
   const flatListRef = useRef();
   const [userProfile, setUserProfile] = useState({}); // Add state for user profile
   const [socket, setSocket] = useState(null);
-  const [pageShop, setPageShop] = useState(1);
-  const PAGE_SIZE = 5;
-  const [loading, setLoading] = useState(false); // Đang tải dữ liệu
-  const [isLastPage, setIsLastPage] = useState(false); // Đã tải hết trang?
 
   const fetchCountNotifications = async () => {
     const token = await AsyncStorage.getItem("userToken");
@@ -107,7 +102,7 @@ export default function HomeScreen() {
   };
 
   useFocusEffect(
-    useCallback(() => {
+    useCallback( () => {
       fetchCountNotifications();
 
       handleConnectionSocket();
@@ -177,7 +172,7 @@ export default function HomeScreen() {
     const fetchCategories = async () => {
       try {
         const response = await fetch(
-          "https://bms-fs-api.azurewebsites.net/api/Category?pageIndex=1&pageSize=1000"
+          "https://bms-fs-api.azurewebsites.net/api/Category?pageIndex=1&pageSize=20"
         );
         const data = await response.json();
         if (data.isSuccess) {
@@ -214,49 +209,41 @@ export default function HomeScreen() {
     return () => clearInterval(intervalId); // Xóa interval khi component unmount
   }, [currentIndex, featured.length]); // Đảm bảo currentIndex và featured.length là dependency
 
-  const loadMoreShops = async () => {
-    if (loading || isLastPage) return;
-    setLoading(true);
-    await fetchFeaturedData(pageShop + 1, PAGE_SIZE);
-    setLoading(false); // Dừng trạng thái tải
-  }
-
-  const fetchFeaturedData = async (pageIndex, pageSize, isInit = false) => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const url = `https://bms-fs-api.azurewebsites.net/api/Shop/GetAllShopForMobile?pageIndex=${pageIndex}&pageSize=${pageSize}&status=ACCEPTED&search=&isDesc=false`;
-      const response = await fetch(
-        url,
-        {
-          method: "GET",
-          headers: {
-            accept: "*/*",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (data.isSuccess) {
-
-        const formattedData = data.data.data.map((item) => ({
-          id: item.id,
-          description: item.description,
-          image: { uri: item.image || "default_image_url" },
-          title: item.name,
-          restaurants: [
-            {
-              id: item.id,
-              name: item.name,
-              image: { uri: item.image || "default_image_url" },
-              description: item.description,
-              stars: item.rate || 0,
-              address: item.address,
+  // Fetch featured data (existing logic)
+  useEffect(() => {
+    const fetchFeaturedData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        const response = await fetch(
+          `https://bms-fs-api.azurewebsites.net/api/Shop/GetAllShopForMobile?pageIndex=1&pageSize=10&status=ACCEPTED&search=&isDesc=true`,
+          {
+            method: "GET",
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
             },
-          ],
-        }));
+          }
+        );
+        const data = await response.json();
+        if (data.isSuccess) {
+          const formattedData = data.data.data.map((item) => ({
+            id: item.id,
+            description: item.description,
+            image: { uri: item.image || "default_image_url" },
+            title: item.name,
+            restaurants: [
+              {
+                id: item.id,
+                name: item.name,
+                image: { uri: item.image || "default_image_url" },
+                description: item.description,
+                stars: item.rate || 0,
+                address: item.address,
+              },
+            ],
+          }));
 
-        // Prepend the custom image as the first item
-        if (isInit) {
+          // Prepend the custom image as the first item
           const firstImage = {
             id: "custom_image",
             image: {
@@ -266,25 +253,15 @@ export default function HomeScreen() {
           };
 
           setFeatured([firstImage, ...formattedData]);
+        } else {
+          console.error("Error fetching featured data:", data.messages);
         }
-        if (!isLastPage) {
-          setShops((prevShops) => [...prevShops, ...formattedData]);
-          setPageShop(pageIndex);
-        }
-        if (data.data.isLastPage == true) {
-          setIsLastPage(true); // Nếu không còn dữ liệu, đánh dấu là hết trang
-        }
-      } else {
-        console.error("Error fetching featured data:", data.messages);
+      } catch (error) {
+        console.error("Fetch error:", error);
       }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
-  };
+    };
 
-  // Fetch featured data (existing logic)
-  useEffect(() => {
-    fetchFeaturedData(1, PAGE_SIZE, true);
+    fetchFeaturedData();
   }, []);
 
   if (loadingCategories) {
@@ -338,95 +315,79 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color="#888" />
+          <TextInput
+            placeholder="Search"
+            style={styles.searchInput}
+            onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
+          />
+          
+        </View>
 
+        {/* Featured Images Slider */}
+        <FlatList
+          ref={flatListRef}
+          data={featured}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.featuredImageContainer}>
+              <Image style={styles.featuredImage} source={item.image} />
+              <View style={styles.imageOverlay}>
+                <Text style={styles.featuredTitle}>{item.title}</Text>
+                <Text style={styles.featuredDescription}>
+                  {item.description}
+                </Text>
+              </View>
+            </View>
+          )}
+          contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
+        />
 
-      {/* Featured Rows */}
-      <FlatList
-        data={shops}
-        renderItem={({ item }) => (
-          <View style={{ marginTop: 10 }}>
+        {/* Categories */}
+        <Text style={styles.categories}>Categories</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScrollView}
+          contentContainerStyle={{ paddingHorizontal: 10, gap: 20 }}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              onPress={() => {
+                navigation.navigate("CategoriesScreen", {
+                  categoryId: category.id, // Pass the category ID
+                });
+              }}
+              style={styles.categoryButton}
+            >
+              <Image
+                source={category.image ? { uri: category.image } : null}
+                style={styles.categoryImage}
+              />
+              <Text style={styles.categoryText}>{category.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Featured Rows */}
+        <Text style={styles.recommended}>Recommended</Text>
+        {featured.map((item) => (
+          <View key={item.id} style={{ marginTop: 10 }}>
             <FeaturedRow
               title={item.title}
               description={item.description}
               restaurants={item.restaurants || []}
             />
           </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-        onEndReached={loadMoreShops} // Hàm load thêm dữ liệu
-        onEndReachedThreshold={0} // Load khi gần cuối danh sách
-        ListHeaderComponent={
-          <ScrollView showsVerticalScrollIndicator={false} style={styles.headerContent}>
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <Ionicons name="search-outline" size={20} color="#888" />
-              <TextInput
-                placeholder="Search"
-                style={styles.searchInput}
-                onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
-              />
-
-            </View>
-
-            {/* Featured Images Slider */}
-            <FlatList
-              ref={flatListRef}
-              data={featured}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.featuredImageContainer}>
-                  <Image style={styles.featuredImage} source={item.image} />
-                  <View style={styles.imageOverlay}>
-                    <Text style={styles.featuredTitle}>{item.title}</Text>
-                    <Text style={styles.featuredDescription}>
-                      {item.description}
-                    </Text>
-                  </View>
-                </View>
-              )}
-              contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
-            />
-
-            {/* Categories */}
-            <Text style={styles.categories}>Categories</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryScrollView}
-              contentContainerStyle={{ paddingHorizontal: 10, gap: 20 }}
-            >
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  onPress={() => {
-                    navigation.navigate("CategoriesScreen", {
-                      categoryId: category.id, // Pass the category ID
-                    });
-                  }}
-                  style={styles.categoryButton}
-                >
-                  {category.image && (
-                    <Image
-                      source={category.image ? { uri: category.image } : null}
-                      style={styles.categoryImage}
-                    />
-                  )}
-                  <Text style={styles.categoryText}>{category.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <Text style={styles.recommended}>Recommended</Text>
-          </ScrollView>
-        }
-        ListFooterComponent={
-          !isLastPage && !loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
-          ) : null
-        }
-      />
+        ))}
+      </ScrollView>
 
       {/* Bottom Tab Navigator */}
       <BottomTabNavigator navigation={navigation} />
@@ -469,7 +430,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginBottom: 2,
-    marginHorizontal: 15,
+    marginHorizontal: 19,
   },
   searchInput: {
     flex: 1,
@@ -482,49 +443,49 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   featuredImageContainer: {
-    position: 'relative',
-    width: 350,
-    height: 200,
+    position: 'relative',  
+    width: 350,            
+    height: 200,           
   },
   featuredImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-
+    width: '100%',        
+    height: '100%',       
+    borderRadius: 20,     
+     
   },
   imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    borderRadius: 10,
-    padding: 15,
+    position: 'absolute',  
+    top: 0,                
+    left: 0,               
+    right: 0,             
+    bottom: 0,             
+    justifyContent: 'center',  
+    alignItems: 'center',      
+   
+    borderRadius: 10,            
+    padding: 15,                 
   },
   featuredTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 6,
-    marginBottom: 10,
-    textAlign: 'center',
-    letterSpacing: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    fontSize: 24,                
+    fontWeight: 'bold',          
+    color: '#fff',               
+    textShadowColor: '#000',     
+    textShadowOffset: { width: 2, height: 2 },  
+    textShadowRadius: 6,         
+    marginBottom: 10,            
+    textAlign: 'center',         
+    letterSpacing: 1,        
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',     
   },
   featuredDescription: {
-    fontSize: 18,
-    color: '#fff',
-    textAlign: 'center',
-    opacity: 0.9,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    fontSize: 18,                
+    color: '#fff',               
+    textAlign: 'center',         
+    opacity: 0.9,                
+    textShadowColor: '#000',     
+    textShadowOffset: { width: 1, height: 1 },  
+    textShadowRadius: 4,   
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',        
   },
   categoryScrollView: {
     paddingHorizontal: Platform.OS === "ios" ? 20 : 15,

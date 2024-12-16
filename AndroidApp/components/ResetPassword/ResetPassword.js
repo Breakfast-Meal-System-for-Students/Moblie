@@ -6,55 +6,61 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Image,
   ImageBackground,
   Dimensions,
 } from "react-native";
+import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 
-function ResetPassword() {
+function ResetPasswordScreen() {
   const navigation = useNavigation();
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { width } = Dimensions.get("window");
 
-  // Hàm kiểm tra độ bảo mật của mật khẩu
-  const validatePassword = (password) => {
-    const errors = [];
+  const handleResetPassword = async () => {
+    if (!email || !newPassword || !confirmPassword) {
+      Alert.alert("Error", "Please fill all fields.");
+      return;
+    }
 
-    if (password.length < 6) {
-      errors.push("Password must be at least 6 characters long.");
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
     }
-    if (!/[a-z]/.test(password)) {
-      errors.push("Password must include at least one lowercase letter.");
+
+    if (newPassword.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters long.");
+      return;
     }
-    if (!/[A-Z]/.test(password)) {
-      errors.push("Password must include at least one uppercase letter.");
-    }
-    if (!/\d/.test(password)) {
-      errors.push("Password must include at least one number.");
-    }
-    if (!/[@$!%*?&]/.test(password)) {
-      errors.push(
-        "Password must include at least one special character (@$!%*?&)."
+
+    try {
+      const response = await axios.put(
+        "https://bms-fs-api.azurewebsites.net/api/Account/ResetPassword",
+        {
+          email,
+          newPassword,
+          confirmPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-    }
 
-    return errors;
-  };
-
-  const handleResetPassword = () => {
-    if (!password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields.");
-    } else if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match!");
-    } else {
-      const passwordErrors = validatePassword(password);
-      if (passwordErrors.length > 0) {
-        Alert.alert("Password Error", passwordErrors.join("\n"));
-      } else {
-        Alert.alert("Success", "Your password has been reset successfully!");
-        navigation.navigate("Login"); // Quay lại trang Login sau khi thành công
+      if (response.status === 200) {
+        Alert.alert("Success", "Password reset successfully.");
+        navigation.navigate("Login");
       }
+    } catch (error) {
+      console.error(error);
+      const errorMsg =
+        error.response?.data?.errors?.ConfirmPassword?.[0] ||
+        "An error occurred. Please try again.";
+      Alert.alert("Error", errorMsg);
     }
   };
 
@@ -68,7 +74,6 @@ function ResetPassword() {
         resizeMode="cover"
       >
         <View style={styles.overlay} />
-
         <View style={styles.content}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -77,24 +82,46 @@ function ResetPassword() {
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
 
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
+            }}
+            style={[
+              styles.icon,
+              {
+                width: width * 0.4,
+                height: width * 0.4,
+                borderRadius: (width * 0.4) / 2,
+              },
+            ]}
+          />
+
           <Text style={styles.headerText}>Reset Password</Text>
 
           <TextInput
-            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
             placeholder="New Password"
             placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
+            style={styles.textInput}
+            value={newPassword}
+            secureTextEntry
+            onChangeText={setNewPassword}
           />
-
           <TextInput
-            style={styles.input}
             placeholder="Confirm Password"
             placeholderTextColor="#888"
+            style={styles.textInput}
             value={confirmPassword}
+            secureTextEntry
             onChangeText={setConfirmPassword}
-            secureTextEntry={true}
           />
 
           <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
@@ -133,6 +160,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "white",
   },
+  icon: {
+    alignSelf: "center",
+    marginBottom: 20,
+  },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
@@ -140,30 +171,29 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 20,
   },
-  input: {
+  textInput: {
     width: "100%",
-    height: 50,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "gray",
     borderRadius: 5,
-    paddingHorizontal: 15,
-    marginBottom: 20,
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
     backgroundColor: "#f9f9f9",
   },
   button: {
     width: "100%",
-    height: 50,
     backgroundColor: "#00cc69",
+    paddingVertical: 15,
     borderRadius: 30,
-    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginVertical: 20,
   },
   buttonText: {
-    color: "#fff",
     fontSize: 18,
+    color: "#fff",
     fontWeight: "bold",
   },
 });
 
-export default ResetPassword;
+export default ResetPasswordScreen;

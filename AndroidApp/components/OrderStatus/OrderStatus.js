@@ -33,13 +33,13 @@ export default function OrderStatus() {
 
   const statusLabels = [
     
-    { id: 1, label: "Ordered", value: "ORDERED" },
-    { id: 2, label: "Checking", value: "CHECKING" },
-    { id: 3, label: "Preparing", value: "PREPARING" },
-    { id: 4, label: "Prepared", value: "PREPARED" },
-    { id: 5, label: "Taken Over", value: "TAKENOVER" },
-    { id: 6, label: "Cancelled", value: "CANCEL" },
-    { id: 7, label: "Complete", value: "COMPLETE" },
+    { id: 2, label: "Ordered", value: "ORDERED" },
+    { id: 3, label: "Checking", value: "CHECKING" },
+    { id: 4, label: "Preparing", value: "PREPARING" },
+    { id: 5, label: "Prepared", value: "PREPARED" },
+    { id: 6, label: "Taken Over", value: "TAKENOVER" },
+    { id: 7, label: "Cancelled", value: "CANCEL" },
+    { id: 8, label: "Complete", value: "COMPLETE" },
   ];
 
   const fetchOrders = async (newPageIndex = 1, selectedStatus = status) => {
