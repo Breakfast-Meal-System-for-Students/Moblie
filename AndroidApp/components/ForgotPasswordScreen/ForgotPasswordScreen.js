@@ -1,67 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   TextInput,
+  Pressable,
   TouchableOpacity,
+  Text,
   StyleSheet,
   Alert,
-  Pressable,
-  Image,
   ImageBackground,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 
-function ForgotPasswordScreen() {
+export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const { width } = Dimensions.get("window");
 
-  const handleSendEmail = async () => {
-    if (!email || !newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill all fields.");
+  useEffect(() => {
+    setIsFormValid(email.trim() !== "");
+  }, [email]);
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email validation regex
+    return emailRegex.test(email);
+  };
+
+  const handleSendOTP = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email.");
       return;
     }
 
-    if (!email.endsWith("@gmail.com")) {
-      Alert.alert("Error", "Email must end with '@gmail.com'.");
+    if (!isValidEmail(email)) {
+      Alert.alert("Error", "Please enter a valid email.");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      return;
-    }
-
+    setIsProcessing(true);
     try {
-      const response = await axios.put(
-        "https://bms-fs-api.azurewebsites.net/api/Account/ResetPassword",
-        {
-          email,
-          newPassword,
-          confirmPassword,
-        },
+      const formData = new FormData();
+      formData.append("email", email);
+
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Auth/SendOTP",
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            accept: "*/*",
+            Authorization: `Bearer YOUR_ACCESS_TOKEN`, // Replace with your actual token
           },
         }
       );
 
-      if (response.status === 200) {
-        Alert.alert("Success", "Password reset successfully!");
-        navigation.navigate("OTPScreen");
+      if (response.data.isSuccess) {
+        Alert.alert("Success", "OTP sent successfully!");
+        // Navigate to the OTP screen
+        navigation.navigate("OTPScreen", { email }); // Pass the email to the OTP screen
+      } else {
+        Alert.alert("Error", response.data.messages[0].content);
       }
     } catch (error) {
-      console.error(error);
-      const errorMsg =
-        error.response?.data?.errors?.ConfirmPassword?.[0] ||
-        "An error occurred. Please try again.";
-      Alert.alert("Error", errorMsg);
+      console.error("Error sending OTP:", error);
+      Alert.alert("Error", "An error occurred while sending OTP.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -74,9 +83,7 @@ function ForgotPasswordScreen() {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.overlay} />
-
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -84,60 +91,24 @@ function ForgotPasswordScreen() {
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
 
-          <Image
-            source={{
-              uri: "https://i.pinimg.com/474x/dc/f3/93/dcf3934512c6f8f2a107005eca1ab9de.jpg",
-            }}
-            style={[
-              styles.icon,
-              {
-                width: width * 0.4,
-                height: width * 0.4,
-                borderRadius: (width * 0.4) / 2,
-              },
-            ]}
-          />
-
-          <Text style={styles.headerText}>Forgot Password?</Text>
+          <Text style={styles.headerText}>Forgot Password</Text>
 
           <TextInput
-            placeholder="Enter your email"
-            placeholderTextColor="#888"
+            placeholder="Email *"
             style={styles.textInput}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TextInput
-            placeholder="New Password"
-            placeholderTextColor="#888"
-            style={styles.textInput}
-            value={newPassword}
-            secureTextEntry
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            placeholder="Confirm Password"
-            placeholderTextColor="#888"
-            style={styles.textInput}
-            value={confirmPassword}
-            secureTextEntry
-            onChangeText={setConfirmPassword}
           />
 
-          <Pressable style={styles.button} onPress={handleSendEmail}>
-            <Text style={styles.buttonText}>Reset Password</Text>
+          <Pressable
+            style={[styles.button, isProcessing && styles.buttonProcessing]}
+            onPress={handleSendOTP}
+            disabled={isProcessing}
+          >
+            <Text style={styles.buttonText}>{isProcessing ? "Processing..." : "Send OTP"}</Text>
           </Pressable>
-
-          <View style={styles.policyContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Main")}>
-              <Text style={styles.policyText}>
-                <Text style={styles.policyLink}>Back to Login</Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </ScrollView>
       </ImageBackground>
     </View>
   );
@@ -150,15 +121,10 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  },
   content: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     justifyContent: "center",
-    alignItems: "center",
     zIndex: 1,
   },
   backButton: {
@@ -169,10 +135,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 24,
     color: "white",
-  },
-  icon: {
-    alignSelf: "center",
-    marginBottom: 20,
   },
   headerText: {
     fontSize: 28,
@@ -204,18 +166,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  policyContainer: {
-    marginVertical: 10,
-    alignItems: "center",
-  },
-  policyText: {
-    fontSize: 14,
-    color: "gray",
-    textAlign: "center",
-  },
-  policyLink: {
-    color: "white",
+  buttonProcessing: {
+    backgroundColor: 'gray',
   },
 });
 
-export default ForgotPasswordScreen;
