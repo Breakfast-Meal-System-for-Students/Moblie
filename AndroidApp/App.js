@@ -30,7 +30,7 @@ import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
 import ScanQRScreen from "./components/ScanQRScreen/ScanQRScreen";
 import CreateFeedback from "./components/CreateFeedbackScreen/CreateFeedback";
-
+import OrderDetail from "./components/OrderDetail/OrderDetail";
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -205,6 +205,11 @@ function App() {
         <Stack.Screen
           name="CreateFeedback"
           component={CreateFeedback}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OrderDetail"
+          component={OrderDetail}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

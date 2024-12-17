@@ -23,7 +23,7 @@ export default function OrderStatus() {
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5);
   const [isLastPage, setIsLastPage] = useState(false);
-  const [status, setStatus] = useState(1);
+  const [status, setStatus] = useState(2);
   const [search, setSearch] = useState("");
   const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
@@ -244,6 +244,12 @@ export default function OrderStatus() {
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderCard}>
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
+      <TouchableOpacity
+        style={styles.detailButton}
+        onPress={() => navigation.navigate("OrderDetail", { orderId: item.id })}
+      >
+        <Text style={styles.detailButtonText}>Detail</Text>
+      </TouchableOpacity>
       <View style={styles.orderInfo}>
         <Text style={styles.orderTitle}>
           <Icon name="file-text" size={20} color="#000" /> Order ID: {item.id}
@@ -587,4 +593,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     opacity: 0.6,
   },
+
+  detailButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#007bff",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    zIndex: 10, // Đảm bảo nằm trên cùng
+  },
+  detailButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },  
 });

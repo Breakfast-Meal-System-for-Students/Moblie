@@ -70,6 +70,7 @@ export default function NotificationsScreen() {
         styles.notificationItem,
         item.status === 1 ? styles.unreadNotification : styles.readNotification,
       ]}
+      onPress={() => navigation.navigate("OrderDetail", { orderId: item.orderId })}
     >
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
       <View style={styles.notificationTextContainer}>
