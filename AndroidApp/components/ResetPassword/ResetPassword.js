@@ -1,27 +1,26 @@
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Dimensions,
+  Image,
+  ImageBackground,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Image,
-  ImageBackground,
-  Dimensions,
+  View,
 } from "react-native";
-import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
 
 function ResetPasswordScreen() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { width } = Dimensions.get("window");
 
   const handleResetPassword = async () => {
-    if (!email || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
@@ -35,7 +34,7 @@ function ResetPasswordScreen() {
       Alert.alert("Error", "Password must be at least 8 characters long.");
       return;
     }
-
+    const email = await AsyncStorage.getItem("email");
     try {
       const response = await axios.put(
         "https://bms-fs-api.azurewebsites.net/api/Account/ResetPassword",
@@ -97,16 +96,6 @@ function ResetPasswordScreen() {
           />
 
           <Text style={styles.headerText}>Reset Password</Text>
-
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#888"
-            style={styles.textInput}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
           <TextInput
             placeholder="New Password"
             placeholderTextColor="#888"

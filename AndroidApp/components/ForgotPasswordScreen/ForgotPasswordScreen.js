@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  Pressable,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Alert,
-  ImageBackground,
-  Dimensions,
-  ScrollView,
-} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
@@ -62,6 +62,7 @@ export default function ForgotPasswordScreen() {
       if (response.data.isSuccess) {
         Alert.alert("Success", "OTP sent successfully!");
         // Navigate to the OTP screen
+        await AsyncStorage.setItem("email", email);
         navigation.navigate("OTPScreen", { email }); // Pass the email to the OTP screen
       } else {
         Alert.alert("Error", response.data.messages[0].content);
