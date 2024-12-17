@@ -31,6 +31,7 @@ import Search from "./components/Search/Search";
 import ScanQRScreen from "./components/ScanQRScreen/ScanQRScreen";
 import CreateFeedback from "./components/CreateFeedbackScreen/CreateFeedback";
 import OrderDetail from "./components/OrderDetail/OrderDetail";
+import ChangePassword from "./components/ChangePassword/ChangePassWord";
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -212,7 +213,13 @@ function App() {
           component={OrderDetail}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
+      
     </NavigationContainer>
   );
 }

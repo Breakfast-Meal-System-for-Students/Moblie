@@ -464,7 +464,7 @@ const CartScreen = () => {
       sendNotiToShop(orderId);
       navigateToPayment(orderId);
     } else {
-      Alert.alert("Failed when create order!!!");
+      Alert.alert("Error", resBody.messages[0]?.content || "Failed to CreateOrder");
     }
   };
 
