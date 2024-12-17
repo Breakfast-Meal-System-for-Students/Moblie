@@ -22,7 +22,7 @@ export default function NotificationsScreen() {
   const fetchNotifications = async () => {
     const token = await AsyncStorage.getItem("userToken");
     const response = await fetch(
-      "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser?pageIndex=1&pageSize=10",
+      "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser?pageIndex=1&pageSize=30",
       {
         method: "GET",
         headers: {

@@ -336,15 +336,25 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.featuredImageContainer}>
-              <Image style={styles.featuredImage} source={item.image} />
-              <View style={styles.imageOverlay}>
-                <Text style={styles.featuredTitle}>{item.title}</Text>
-                <Text style={styles.featuredDescription}>
-                  {item.description}
-                </Text>
+            <TouchableOpacity
+              onPress={() =>
+                item.id != 'custom_image' ? navigation.navigate("Shop", { id: item.id, orderIdSuccess: null }) : null
+              }
+              disabled={!item.id}
+              activeOpacity={item.id ? 0.8 : 1}
+              style={[
+                styles.featuredImageContainer,
+                !item.id && { opacity: 0.5 },
+              ]}
+            >
+              <View style={styles.featuredImageContainer}>
+                <Image style={styles.featuredImage} source={item.image} />
+                <View style={styles.imageOverlay}>
+                  <Text style={styles.featuredTitle}>{item.title}</Text>
+                  <Text style={styles.featuredDescription}>{item.description}</Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
         />
