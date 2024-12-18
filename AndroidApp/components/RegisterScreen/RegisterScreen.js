@@ -15,6 +15,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Grid } from "react-native-feather";
+import { Picker } from '@react-native-picker/picker';
 
 export default function Register() {
   const navigation = useNavigation();
@@ -25,6 +27,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [isProccessing, setIsProccessing] = useState(false);
+  const [selectedValue, setSelectedValue] = useState('');
 
   const { width, height } = Dimensions.get("window");
 
@@ -107,27 +110,41 @@ export default function Register() {
             style={[
               styles.icon,
               {
-                width: width * 0.4,
-                height: width * 0.4,
-                borderRadius: (width * 0.4) / 2,
+                width: width * 0.3,
+                height: width * 0.3,
+                borderRadius: width * 0.3 / 2,
               },
             ]}
           />
 
           <Text style={styles.headerText}>Register</Text>
+          <View style={styles.containerDevide}>
+            <View style={styles.rowDevide}>
+              <TextInput
+                placeholder="First Name * "
+                style={styles.textInputDevide}
+                value={fullName}
+                onChangeText={setFullName}
+              />
+              <TextInput
+                placeholder="Last Name * "
+                style={styles.textInputDevide}
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
+          </View>
 
-          <TextInput
-            placeholder="First Name * "
+          <Picker
+            selectedValue={selectedValue}
             style={styles.textInput}
-            value={fullName}
-            onChangeText={setFullName}
-          />
-          <TextInput
-            placeholder="Last Name * "
-            style={styles.textInput}
-            value={lastName}
-            onChangeText={setLastName}
-          />
+            onValueChange={(itemValue) => setSelectedValue(itemValue)}
+          >
+            <Picker.Item label="Select your school *" value="0" style={styles.placeholderItem}/>
+            <Picker.Item label="Đại học công nghiệp TP.HCM" value="1" />
+            <Picker.Item label="Đại học công nghệ Sài Gòn" value="2" />
+          </Picker>
+
           <TextInput
             placeholder="Email * "
             style={styles.textInput}
@@ -151,9 +168,9 @@ export default function Register() {
           />
 
           <Pressable style={[
-              styles.button,
-              isProccessing && styles.buttonProccessing,
-            ]} onPress={handleRegister} disabled={isProccessing}>
+            styles.button,
+            isProccessing && styles.buttonProccessing,
+          ]} onPress={handleRegister} disabled={isProccessing}>
             <Text style={styles.buttonText}>{isProccessing && "Processing..." || "Register"}</Text>
           </Pressable>
 
@@ -169,6 +186,9 @@ export default function Register() {
 }
 
 const styles = StyleSheet.create({
+  containerDevide: {
+    display: 'flex'
+  },
   container: {
     flex: 1,
   },
@@ -196,14 +216,18 @@ const styles = StyleSheet.create({
   },
   icon: {
     alignSelf: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   headerText: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
     color: "white",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  placeholderItem: {
+    color: 'lightgray',
+    fontStyle: 'italic',
   },
   textInput: {
     width: "100%",
@@ -214,6 +238,21 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     backgroundColor: "#f9f9f9",
+  },
+  textInputDevide: {
+    width: "48%",
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
+  },
+  rowDevide: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Đảm bảo khoảng cách giữa hai ô
+    alignItems: 'center',
   },
   button: {
     width: "100%",
