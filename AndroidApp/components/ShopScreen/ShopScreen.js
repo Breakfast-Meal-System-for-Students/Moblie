@@ -268,7 +268,7 @@ export default function ShopScreen() {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          `https://bms-fs-api.azurewebsites.net/api/Product/all-product-by-shop-id?id=${id}&pageIndex=1&pageSize=5`,
+          `https://bms-fs-api.azurewebsites.net/api/Product/all-product-by-shop-id?id=${id}&pageIndex=1&pageSize=1000`,
           {
             method: "GET",
             headers: {
