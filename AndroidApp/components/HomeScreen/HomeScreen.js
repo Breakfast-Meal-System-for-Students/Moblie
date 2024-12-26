@@ -40,10 +40,10 @@ function RestaurantCard({ item }) {
           <View style={styles.restaurantRatingContainer}>
             <FontAwesomeIcon icon={faStar} style={styles.starIcon} size={15} />
             <Text style={styles.ratingText}>{Math.floor(item.stars)}</Text>
-            
-              
-              <Text style={styles.categoryText}>{item.category}</Text>
-           
+
+
+            <Text style={styles.categoryText}>{item.category}</Text>
+
           </View>
           <View style={styles.locationInfo}>
             <FontAwesomeIcon icon={faMapPin} color="green" size={16} />
@@ -102,7 +102,7 @@ export default function HomeScreen() {
   };
 
   useFocusEffect(
-    useCallback( () => {
+    useCallback(() => {
       fetchCountNotifications();
 
       handleConnectionSocket();
@@ -324,7 +324,7 @@ export default function HomeScreen() {
             style={styles.searchInput}
             onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
           />
-          
+
         </View>
 
         {/* Featured Images Slider */}
@@ -377,10 +377,12 @@ export default function HomeScreen() {
               }}
               style={styles.categoryButton}
             >
-              <Image
-                source={category.image ? { uri: category.image } : null}
-                style={styles.categoryImage}
-              />
+              {category.image && (
+                <Image
+                  source={category.image ? { uri: category.image } : null}
+                  style={styles.categoryImage}
+                />
+              )}
               <Text style={styles.categoryText}>{category.name}</Text>
             </TouchableOpacity>
           ))}
@@ -453,49 +455,49 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   featuredImageContainer: {
-    position: 'relative',  
-    width: 350,            
-    height: 200,           
+    position: 'relative',
+    width: 350,
+    height: 200,
   },
   featuredImage: {
-    width: '100%',        
-    height: '100%',       
-    borderRadius: 20,     
-     
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+
   },
   imageOverlay: {
-    position: 'absolute',  
-    top: 0,                
-    left: 0,               
-    right: 0,             
-    bottom: 0,             
-    justifyContent: 'center',  
-    alignItems: 'center',      
-   
-    borderRadius: 10,            
-    padding: 15,                 
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    borderRadius: 10,
+    padding: 15,
   },
   featuredTitle: {
-    fontSize: 24,                
-    fontWeight: 'bold',          
-    color: '#fff',               
-    textShadowColor: '#000',     
-    textShadowOffset: { width: 2, height: 2 },  
-    textShadowRadius: 6,         
-    marginBottom: 10,            
-    textAlign: 'center',         
-    letterSpacing: 1,        
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',     
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 6,
+    marginBottom: 10,
+    textAlign: 'center',
+    letterSpacing: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   featuredDescription: {
-    fontSize: 18,                
-    color: '#fff',               
-    textAlign: 'center',         
-    opacity: 0.9,                
-    textShadowColor: '#000',     
-    textShadowOffset: { width: 1, height: 1 },  
-    textShadowRadius: 4,   
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',        
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'center',
+    opacity: 0.9,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   categoryScrollView: {
     paddingHorizontal: Platform.OS === "ios" ? 20 : 15,

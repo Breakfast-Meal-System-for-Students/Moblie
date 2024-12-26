@@ -12,6 +12,7 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
+import CheckBox from '@react-native-community/checkbox';
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,23 +24,41 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [studentIdCard, setStudentIdCard] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [isProccessing, setIsProccessing] = useState(false);
   const [selectedValue, setSelectedValue] = useState('');
-
+  const [listUniversity, setListUniversity] = useState([]);
   const { width, height } = Dimensions.get("window");
+  const [useStudentEmail, setUseStudentEmail] = useState(false);
 
   useEffect(() => {
     setIsFormValid(
       fullName.trim() !== "" &&
       lastName.trim() !== "" &&
       email.trim() !== "" &&
+      studentIdCard.trim() !== "" &&
       password.trim() !== "" &&
       password === confirmPassword
     );
   }, [fullName, lastName, email, password, confirmPassword]);
+
+  useEffect(() => {
+    fetchUniversity("", true, 1, 1000);
+  }, []);
+
+  const fetchUniversity = async (search, isDesc, pageIndex, pageSize) => {
+    const params = new URLSearchParams({ search, isDesc, pageIndex, pageSize });
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/University?${params.toString()}`);
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setListUniversity(resBody.data.data);
+    } else {
+      console.log(resBody);
+    }
+  }
 
   function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Biểu thức chính quy kiểm tra email
@@ -54,9 +73,34 @@ export default function Register() {
       return;
     }
     if (!isValidEmail(email)) {
-      Alert.alert("Error", "Please enter a valid email");
+      Alert.alert("Error", "Please enter a valid email.");
       setIsProccessing(false);
       return;
+    }
+    if (selectedValue == "0") {
+      Alert.alert("Error", "Please select your school.");
+      setIsProccessing(false);
+      return;
+    }
+    var universitySelect = null;
+    for(let i = 0; i < listUniversity.length; i++) {
+      const item = listUniversity[i];
+      if (selectedValue == item.id) {
+        universitySelect = item;
+        break;
+      }
+    }
+    if (universitySelect != null) {
+      if (universitySelect.idStudentFormat && !studentIdCard.includes(universitySelect.idStudentFormat)) {
+        Alert.alert("Error", "Please enter a valid Student ID of your school.");
+        setIsProccessing(false);
+        return;
+      }
+      if (useStudentEmail && universitySelect.endMail && !email.includes(universitySelect.endMail)) {
+        Alert.alert("Error", "Please enter a student email of your school.");
+        setIsProccessing(false);
+        return;
+      }
     }
     const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Auth/register", {
       method: "POST",
@@ -69,6 +113,8 @@ export default function Register() {
         lastName,
         email,
         password,
+        universityId: selectedValue,
+        studentIdCard: studentIdCard
       })
     })
     const resBody = await response.json();
@@ -140,10 +186,18 @@ export default function Register() {
             style={styles.textInput}
             onValueChange={(itemValue) => setSelectedValue(itemValue)}
           >
-            <Picker.Item label="Select your school *" value="0" style={styles.placeholderItem}/>
-            <Picker.Item label="Đại học công nghiệp TP.HCM" value="1" />
-            <Picker.Item label="Đại học công nghệ Sài Gòn" value="2" />
+            <Picker.Item label="Select your school *" value="0" style={styles.placeholderItem} />
+            {listUniversity && listUniversity.map((row, index) => (
+              <Picker.Item key={index} label={row.name} value={row.id} />
+            ))}
           </Picker>
+
+          <TextInput
+            placeholder="Student ID* "
+            style={styles.textInput}
+            value={studentIdCard}
+            onChangeText={setStudentIdCard}
+          />
 
           <TextInput
             placeholder="Email * "
@@ -152,20 +206,35 @@ export default function Register() {
             onChangeText={setEmail}
             keyboardType="email-address"
           />
-          <TextInput
-            placeholder="Password * "
-            style={styles.textInput}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TextInput
-            placeholder="Confirm Password * "
-            style={styles.textInput}
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
+
+          {/* Checkbox for "Use Student Email" */}
+          <View style={styles.checkboxContainer}>
+            <CheckBox
+              value={useStudentEmail}
+              onValueChange={setUseStudentEmail}
+              style={styles.checkbox}
+            />
+            <Text style={styles.checkboxLabel}>Use Student Email</Text>
+          </View>
+
+          <View style={styles.containerDevide}>
+            <View style={styles.rowDevide}>
+              <TextInput
+                placeholder="Password * "
+                style={styles.textInputDevide}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TextInput
+                placeholder="Confirm Password * "
+                style={styles.textInputDevide}
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+            </View>
+          </View>
 
           <Pressable style={[
             styles.button,
@@ -275,5 +344,20 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     marginTop: 20,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 5,
+  },
+  checkbox: {
+    marginRight: 10,
+    tintColor: '#FFFFFF', // Màu checkbox trắng
+    backgroundColor: '#FFFFFF', // Màu border trắng
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: '#FFFFFF', // Màu chữ trắng
   },
 });
