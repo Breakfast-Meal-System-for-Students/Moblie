@@ -33,6 +33,8 @@ import CreateFeedback from "./components/CreateFeedbackScreen/CreateFeedback";
 import OrderDetail from "./components/OrderDetail/OrderDetail";
 import ChangePassword from "./components/ChangePassword/ChangePassWord";
 import TakePhotoStudentCard from "./components/TakePhotoStudentCard/TakePhotoStudentCard";
+import BuyCoins from "./components/BuyCoins/BuyCoins";
+
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -222,6 +224,12 @@ function App() {
         <Stack.Screen
           name="TakePhotoStudentCard"
           component={TakePhotoStudentCard}
+          options={{ headerShown: false }}
+        />
+        
+        <Stack.Screen
+          name="BuyCoins"
+          component={BuyCoins}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
