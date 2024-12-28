@@ -102,20 +102,26 @@ export default function Register() {
         return;
       }
     }
+    const jsonRequest = {
+      firstName: fullName,
+      lastName,
+      email,
+      password,
+      universityId: selectedValue,
+      studentIdCard: studentIdCard
+    };
+    if (!useStudentEmail) {
+      setIsProccessing(false);
+      navigation.navigate("TakePhotoStudentCard", { jsonRequest });
+      return;
+    }
     const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         accept: "*/*",
       },
-      body: JSON.stringify({
-        firstName: fullName,
-        lastName,
-        email,
-        password,
-        universityId: selectedValue,
-        studentIdCard: studentIdCard
-      })
+      body: JSON.stringify(jsonRequest)
     })
     const resBody = await response.json();
     if (resBody.isSuccess) {
