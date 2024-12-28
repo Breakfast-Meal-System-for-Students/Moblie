@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,21 +25,42 @@ const Payment = ({ route }) => {
     amount = 0,
     shopId,
   } = route.params || {};
-
+  const STATUS_PAID = 1;
   const navigation = useNavigation();
-
+  const token = AsyncStorage.getItem("token");
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // Define the payment methods array
-  const paymentMethods = [
+  const [balance, setBalance] = useState(0);
+  const [paymentMethods, setPaymentMethods] = useState([
     { id: 1, name: "VNPAY", icon: "card-outline", color: "#00457C" },
-
     { id: 2, name: "Cash on Delivery", icon: "cash-outline", color: "#2E7D32" },
-  ];
+    { id: 3, name: "BSM Wallet", icon: "wallet-outline", color: "#2E7D32" },
+  ]);
+
+  useEffect(() => {
+    fetchWalletByUser();
+  }, []);
 
   const apiEndpoint =
     "https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url";
+
+  const fetchWalletByUser = async () => {
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Wallet/GetWalletByUserId`, {
+      "Authorization": `Bearer ${token}`
+    });
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      const amount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(parseInt(resBody.data.balance));
+      setBalance(resBody.data.balance);
+      setPaymentMethods([
+        { id: 1, name: "VNPAY", icon: "card-outline", color: "#00457C" },
+        { id: 2, name: "Cash on Delivery", icon: "cash-outline", color: "#2E7D32" },
+        { id: 3, name: `BSM Wallet - ${amount}`, icon: "wallet-outline", color: "#2E7D32" },
+      ]);
+    } else {
+      Alert.alert("Error", "Can not to get wallet information.");
+    }
+  };
 
   const handlePayment = async () => {
     if (!selectedMethod) {
@@ -50,6 +71,33 @@ const Payment = ({ route }) => {
     if (selectedMethod === 2) {
       Alert.alert("Notification", "Your order has been successfully created!");
       navigation.navigate("Home");
+      return;
+    }
+
+    if (selectedMethod === 3) {
+      if (balance < amount) {
+        Alert.alert("Sorry", "BSM Wallet is not enough to payment.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("amount", amount);
+      formData.append("status", STATUS_PAID);
+      formData.append("orderId", orderInfo);
+      const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Wallet/UpdateBalance`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData
+      });
+      const resBody = await result.json();
+      if (resBody.isSuccess) {
+        Alert.alert("Notification", "Your order has been successfully created!");
+        navigation.navigate("Home");
+        return;
+      } else {
+        Alert.alert("Error", `Lỗi thanh toán`);
+      }
       return;
     }
 
