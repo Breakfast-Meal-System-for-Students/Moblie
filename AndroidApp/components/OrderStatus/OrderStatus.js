@@ -498,6 +498,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   shopImage: {
+    marginLeft: 10,
+    marginBottom: 5,
     width: 100,
     height: 100,
     borderRadius: 8,
