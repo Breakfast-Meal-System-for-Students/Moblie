@@ -197,23 +197,7 @@ export default function OrderStatus() {
         {
           text: "Yes",
           onPress: async () => {
-            const token = await AsyncStorage.getItem("userToken");
-            const response = await fetch(
-              `https://bms-fs-api.azurewebsites.net/api/Order/CheckOrderIsPayed/${orderId}`,
-              {
-                method: "GET",
-                headers: {
-                  accept: "*/*",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const resBody = await response.json();
-            if (resBody.data == false) {
-              changeOrderStatus(orderId, STATUS_CANCEL);
-            } else {
-              Alert.alert("Order cancellation is not allowed.");
-            }
+            changeOrderStatus(orderId, STATUS_CANCEL);
           },
         },
       ],
