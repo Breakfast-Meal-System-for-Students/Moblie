@@ -44,6 +44,7 @@ const linking = {
       Main: "WelcomeScreen",
       Login: "Login",
       Home: "Home",
+      BuyCoins: "BuyCoins",
       // Other screens can be added here
       Shop: {
         path: "Shop/:id",
