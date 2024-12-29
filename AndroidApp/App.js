@@ -10,7 +10,7 @@ import WelcomeScreen from "./components/Welcome/Welcome";
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import ShopScreen from "./components/ShopScreen/ShopScreen";
 import CategoriesScreen from "./components/Categories/CategoriesScreen";
-import FavoritesScreen from "./components/FavoritesScreen/FavoritesScreen";
+import FavoritesScreen from "./components/FavoritesScreen/FavoritesScreen.js";
 import NotificationsScreen from "./components/NotificationsScreen/NotificationsScreen";
 import ProfileScreen from "./components/ProfileScreen/ProfileScreen";
 import BottomNavigationBar from "./components/BottomNavigationBar/BottomNavigationBar";
@@ -30,6 +30,10 @@ import CartMain from "./components/CartMain/CartMain";
 import Search from "./components/Search/Search";
 import ScanQRScreen from "./components/ScanQRScreen/ScanQRScreen";
 import CreateFeedback from "./components/CreateFeedbackScreen/CreateFeedback";
+import OrderDetail from "./components/OrderDetail/OrderDetail";
+import ChangePassword from "./components/ChangePassword/ChangePassWord";
+import TakePhotoStudentCard from "./components/TakePhotoStudentCard/TakePhotoStudentCard";
+import BuyCoins from "./components/BuyCoins/BuyCoins";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +44,7 @@ const linking = {
       Main: "WelcomeScreen",
       Login: "Login",
       Home: "Home",
+      BuyCoins: "BuyCoins",
       // Other screens can be added here
       Shop: {
         path: "Shop/:id",
@@ -107,7 +112,7 @@ function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Favorites"
+          name="FavoritesScreen"
           component={FavoritesScreen}
           options={{ headerShown: false }}
         />
@@ -207,7 +212,29 @@ function App() {
           component={CreateFeedback}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="OrderDetail"
+          component={OrderDetail}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="TakePhotoStudentCard"
+          component={TakePhotoStudentCard}
+          options={{ headerShown: false }}
+        />
+        
+        <Stack.Screen
+          name="BuyCoins"
+          component={BuyCoins}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
+      
     </NavigationContainer>
   );
 }

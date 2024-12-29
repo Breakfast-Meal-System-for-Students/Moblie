@@ -9,23 +9,49 @@ import {
   ImageBackground,
   Dimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import axios from "axios";
+
+const CheckOTP = async (email, otp, navigation) => {
+  try {
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("oTP", otp);
+
+    const response = await axios.post(
+      "https://bms-fs-api.azurewebsites.net/api/Auth/CheckOTP",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          accept: "*/*",
+          Authorization: `Bearer YOUR_ACCESS_TOKEN`, // Replace with your actual token
+        },
+      }
+    );
+
+    if (response.data.isSuccess) {
+      Alert.alert("Success", "OTP verified successfully!");
+      // Navigate to Reset Password screen
+      navigation.navigate("ResetPassword", { email }); // Pass the email to the Reset Password screen
+    } else {
+      Alert.alert("Error", response.data.messages[0].content);
+    }
+  } catch (error) {
+    console.error("Error checking OTP:", error);
+    Alert.alert("Error", "An error occurred while verifying OTP.");
+  }
+};
 
 function OTPScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { email } = route.params; // Get the email passed from ForgotPasswordScreen
   const [otp, setOtp] = useState("");
   const { width } = Dimensions.get("window");
 
   const handleVerifyOtp = () => {
-    console.log("Verifying OTP:", otp);
-
-    if (otp === "123456") {
-      Alert.alert("Success", "OTP has been successfully verified!");
-      // Điều hướng đến trang Reset Password
-      navigation.navigate("ResetPassword");
-    } else {
-      Alert.alert("Error", "Your OTP is incorrect. Please try again.");
-    }
+    CheckOTP(email, otp, navigation);
   };
 
   const handleResendOtp = () => {

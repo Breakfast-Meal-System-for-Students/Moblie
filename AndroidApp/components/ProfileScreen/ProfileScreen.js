@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 function OptionItem({ icon, title, onPress, rightText }) {
   return (
@@ -31,10 +33,23 @@ export default function ProfileScreen() {
   const [data, setData] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
+  const token = AsyncStorage.getItem("token");
+  const [wallet, setWallet] = useState(null);
+
+  const fetchWalletByUser = async () => {
+    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Wallet/GetWalletByUserId`, {
+      "Authorization": `Bearer ${token}`
+    });
+    const resBody = await result.json();
+    if (resBody.isSuccess) {
+      setWallet(resBody.data);
+    } else {
+      Alert.alert("Error", "Can not to get wallet information.");
+    }
+  };
 
   const handleGetUser = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
       const instance = axios.create({
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -72,9 +87,12 @@ export default function ProfileScreen() {
     navigation.navigate("HelpSupport");
   };
 
-  useEffect(() => {
-    handleGetUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      handleGetUser();
+      fetchWalletByUser();
+    }, [])
+  );
 
   // Update the avatar if it was passed as a parameter
   useEffect(() => {
@@ -108,19 +126,25 @@ export default function ProfileScreen() {
           }}
           style={styles.profileImage}
         />
-        <Text style={styles.profileName}>{`${data?.firstName || "no"} ${
-          data?.lastName || "no"
-        }`}</Text>
-        <Text style={styles.profileEmail}>{`${
-          data?.phone || "No phone available"
-        }`}</Text>
+        <Text style={styles.profileName}>{`${data?.firstName || "no"} ${data?.lastName || "no"
+          }`}</Text>
+        <Text style={styles.profileEmail}>{`${data?.phone || "No phone available"
+          }`}</Text>
+        <Text style={styles.profileBalance}>
+          {`${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(wallet?.balance ?? 0)}`}
+        </Text>
       </View>
 
       <ScrollView style={styles.profileOptions}>
         <OptionItem
+          icon="wallet-outline"
+          title="Buy Coins"
+          onPress={() => navigation.navigate("BuyCoins")}
+        />
+        <OptionItem
           icon="cart-outline"
-          title="My Cart"
-          onPress={handleGoToCart}
+          title="My Order"
+          onPress={() => navigation.navigate("Order")}
         />
         <OptionItem
           icon="notifications-outline"
@@ -189,6 +213,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   profileEmail: {
+    fontSize: 14,
+    color: "#888",
+  },
+  profileBalance: {
     fontSize: 14,
     color: "#888",
   },

@@ -1,27 +1,27 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import axios from "axios";
 import React, { useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ImageBackground,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  StyleSheet,
+  Alert,
+  Image,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
-
-function ResetPasswordScreen() {
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+export default function ChangePassword() {
   const navigation = useNavigation();
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { width } = Dimensions.get("window");
 
-  const handleResetPassword = async () => {
-    if (!newPassword || !confirmPassword) {
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
@@ -35,25 +35,31 @@ function ResetPasswordScreen() {
       Alert.alert("Error", "Password must be at least 8 characters long.");
       return;
     }
-    const email = await AsyncStorage.getItem("email");
+
     try {
-      const response = await axios.put(
-        "https://bms-fs-api.azurewebsites.net/api/Account/ResetPassword",
-        {
-          email,
-          newPassword,
-          confirmPassword,
-        },
-        {
+      const jsonBody = {
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      }
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(
+        `https://bms-fs-api.azurewebsites.net/api/Account/change-password`,{
+          method: 'PUT',
           headers: {
-            "Content-Type": "multipart/form-data",
+            accept: "*/*",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(jsonBody)
         }
       );
-
-      if (response.status === 200) {
-        Alert.alert("Success", "Password reset successfully.");
+      const resBody = await response.json();
+      if (resBody.isSuccess) {
+        Alert.alert("Success", "Password change successfully.");
         navigation.navigate("Login");
+      } else {
+        Alert.alert("Error", resBody.messages[0]?.content || "Failed to change Password");
       }
     } catch (error) {
       console.error(error);
@@ -96,7 +102,17 @@ function ResetPasswordScreen() {
             ]}
           />
 
-          <Text style={styles.headerText}>Reset Password</Text>
+          <Text style={styles.headerText}>Change Password</Text>
+
+          <TextInput
+            placeholder="Old Password"
+            placeholderTextColor="#888"
+            style={styles.textInput}
+            value={oldPassword}
+            onChangeText={setOldPassword}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
           <TextInput
             placeholder="New Password"
             placeholderTextColor="#888"
@@ -114,8 +130,8 @@ function ResetPasswordScreen() {
             onChangeText={setConfirmPassword}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-            <Text style={styles.buttonText}>Reset Password</Text>
+          <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+            <Text style={styles.buttonText}>Change Password</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -186,4 +202,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ResetPasswordScreen;

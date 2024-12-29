@@ -16,8 +16,8 @@ export default function Security() {
   const handleOptionPress = (option) => {
     switch (option) {
       case "ChangePassword":
-        Alert.alert("Change Password", "Navigate to Change Password screen.");
-        // navigation.navigate("ChangePasswordScreen");
+        //Alert.alert("Change Password", "Navigate to Change Password screen.");
+        navigation.navigate("ChangePassword");
         break;
       case "Enable2FA":
         Alert.alert(

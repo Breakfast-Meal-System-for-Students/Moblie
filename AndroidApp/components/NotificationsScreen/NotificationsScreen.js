@@ -1,17 +1,17 @@
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  ActivityIndicator,
   FlatList,
-  TouchableOpacity,
   Image,
   Platform,
-  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NotificationsScreen() {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ export default function NotificationsScreen() {
   const fetchNotifications = async () => {
     const token = await AsyncStorage.getItem("userToken");
     const response = await fetch(
-      "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser?pageIndex=1&pageSize=10",
+      "https://bms-fs-api.azurewebsites.net/api/Notification/GetNotificationForUser?pageIndex=1&pageSize=30",
       {
         method: "GET",
         headers: {
@@ -64,21 +64,44 @@ export default function NotificationsScreen() {
     fetchNotifications();
   }, []);
 
+  const calculateTimeAgo = (createDate) => {
+    const now = new Date();
+    const createdTime = new Date(createDate);
+    const diffInSeconds = Math.floor((now - createdTime) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) return `${diffInDays} days ago`;
+    const diffInMonth = Math.floor(diffInDays / 30);
+    return `${diffInMonth} months ago`
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[
         styles.notificationItem,
         item.status === 1 ? styles.unreadNotification : styles.readNotification,
       ]}
+      onPress={() => navigation.navigate("OrderDetail", { orderId: item.orderId })}
     >
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
       <View style={styles.notificationTextContainer}>
         <Text style={styles.notificationMessage}>{item.object}</Text>
         <Text style={styles.notificationDetails}>
-          Order ID: {item.orderId} | Shop: {item.shopName}
+          Order ID: {item.orderId}
+        </Text>
+        <Text style={styles.notificationDetails}>
+          Shop: {item.shopName}
         </Text>
         <Text style={styles.notificationTime}>
           Status: {item.status === 1 ? "Unread" : "Read"} | Title: {item.title}
+        </Text>
+        <Text style={styles.timeSent}>
+          Sent: {calculateTimeAgo(item.createDate)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -217,5 +240,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  timeSent: {
+    fontSize: 14, 
+    fontWeight: "bold", 
+    color: "#007BFF", 
+    marginTop: 8,
+    alignItems: "center",
   },
 });

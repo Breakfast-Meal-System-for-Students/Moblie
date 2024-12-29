@@ -197,15 +197,23 @@ const CartScreen = () => {
   };
 
   const handleConfirm = (date) => {
-    setSelectedTime(date);
+    // Nếu orderType là 'tomorrow', cộng thêm 1 ngày
+    if (orderType === 'tomorrow') {
+      const tomorrow = new Date(date);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setSelectedTime(tomorrow);
+      createOrder(tomorrow);
+    } else {
+      setSelectedTime(date);
+      createOrder(date);
+    }
     hideDatePicker();
-    createOrder(date);
   };
 
   const fetchCoupons = async () => {
     try {
       const shopId = await AsyncStorage.getItem("shopId");
-      const response = await fetch(`https://bms-fs-api.azurewebsites.net/api/Coupon/get-all-coupon-for-shop?shopId=${shopId}&pageIndex=1&pageSize=1000`,{
+      const response = await fetch(`https://bms-fs-api.azurewebsites.net/api/Coupon/get-all-coupon-for-shop?shopId=${shopId}&pageIndex=1&pageSize=1000`, {
         headers: {
           accept: "*/*",
         },
@@ -464,7 +472,7 @@ const CartScreen = () => {
       sendNotiToShop(orderId);
       navigateToPayment(orderId);
     } else {
-      Alert.alert("Failed when create order!!!");
+      Alert.alert("Create Order Failed", resBody.messages[0]?.content || "Sorry, creating the order was unsuccessful. Please try again.");
     }
   };
 
@@ -682,7 +690,15 @@ const CartScreen = () => {
                           status={orderType === 'later' ? 'checked' : 'unchecked'}
                           onPress={() => setOrderType('later')}
                         />
-                        <Text>Pick Up Later</Text>
+                        <Text>Pick Up Today</Text>
+                      </View>
+                      <View style={styles.radioOption}>
+                        <RadioButton
+                          value="tomorrow"
+                          status={orderType === 'tomorrow' ? 'checked' : 'unchecked'}
+                          onPress={() => setOrderType('tomorrow')}
+                        />
+                        <Text>Pick Up Tomorrow</Text>
                       </View>
                     </View>
                     <View style={styles.buttonGroup}>

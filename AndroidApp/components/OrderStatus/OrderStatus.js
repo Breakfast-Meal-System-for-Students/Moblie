@@ -23,7 +23,7 @@ export default function OrderStatus() {
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5);
   const [isLastPage, setIsLastPage] = useState(false);
-  const [status, setStatus] = useState(1);
+  const [status, setStatus] = useState(2);
   const [search, setSearch] = useState("");
   const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
@@ -33,13 +33,13 @@ export default function OrderStatus() {
 
   const statusLabels = [
     
-    { id: 1, label: "Ordered", value: "ORDERED" },
-    { id: 2, label: "Checking", value: "CHECKING" },
-    { id: 3, label: "Preparing", value: "PREPARING" },
-    { id: 4, label: "Prepared", value: "PREPARED" },
-    { id: 5, label: "Taken Over", value: "TAKENOVER" },
-    { id: 6, label: "Cancelled", value: "CANCEL" },
-    { id: 7, label: "Complete", value: "COMPLETE" },
+    { id: 2, label: "Ordered", value: "ORDERED" },
+    { id: 3, label: "Checking", value: "CHECKING" },
+    { id: 4, label: "Preparing", value: "PREPARING" },
+    { id: 5, label: "Prepared", value: "PREPARED" },
+    { id: 6, label: "Taken Over", value: "TAKENOVER" },
+    { id: 7, label: "Cancelled", value: "CANCEL" },
+    { id: 8, label: "Complete", value: "COMPLETE" },
   ];
 
   const fetchOrders = async (newPageIndex = 1, selectedStatus = status) => {
@@ -197,23 +197,7 @@ export default function OrderStatus() {
         {
           text: "Yes",
           onPress: async () => {
-            const token = await AsyncStorage.getItem("userToken");
-            const response = await fetch(
-              `https://bms-fs-api.azurewebsites.net/api/Order/CheckOrderIsPayed/${orderId}`,
-              {
-                method: "GET",
-                headers: {
-                  accept: "*/*",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const resBody = await response.json();
-            if (resBody.data == false) {
-              changeOrderStatus(orderId, STATUS_CANCEL);
-            } else {
-              Alert.alert("Order cancellation is not allowed.");
-            }
+            changeOrderStatus(orderId, STATUS_CANCEL);
           },
         },
       ],
@@ -244,6 +228,12 @@ export default function OrderStatus() {
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderCard}>
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
+      <TouchableOpacity
+        style={styles.detailButton}
+        onPress={() => navigation.navigate("OrderDetail", { orderId: item.id })}
+      >
+        <Text style={styles.detailButtonText}>Detail</Text>
+      </TouchableOpacity>
       <View style={styles.orderInfo}>
         <Text style={styles.orderTitle}>
           <Icon name="file-text" size={20} color="#000" /> Order ID: {item.id}
@@ -492,6 +482,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   shopImage: {
+    marginLeft: 10,
+    marginBottom: 5,
     width: 100,
     height: 100,
     borderRadius: 8,
@@ -587,4 +579,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     opacity: 0.6,
   },
+
+  detailButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#007bff",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    zIndex: 10, // Đảm bảo nằm trên cùng
+  },
+  detailButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },  
 });
