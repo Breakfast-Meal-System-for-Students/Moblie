@@ -13,6 +13,7 @@ import {
   totalStars,
   filledStars,
   roundedStars,
+  ScrollView
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faShoppingCart, faArrowLeft, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -58,7 +59,8 @@ export default function ShopScreen() {
   const [cart, setCart] = useState({});
   const [shopDetails, setShopDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]); // seperate to product and product combo by field isCombo
+  const [listCombo, setListCombo] = useState([]);
   const [isCreatorCartGroup, setIsCreatorCartGroup] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const goToProductDetail = (item) => {
@@ -278,7 +280,20 @@ export default function ShopScreen() {
         );
         const data = await response.json();
         if (data.isSuccess) {
-          setProducts(data.data.data);
+          const listData = data.data.data;
+          const listProduct = [];
+          const listCombo = [];
+          // filter 2 list by product.isCombo
+          listData.forEach((product) => {
+            if (product.isCombo) {
+              listCombo.push(product);
+            } else {
+              listProduct.push(product);
+            }
+          });
+
+          setProducts(listProduct);
+          setListCombo(listCombo);
         } else {
           console.error("Error fetching products:", data.messages);
         }
@@ -417,27 +432,51 @@ export default function ShopScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.shopName}>
-          {shopDetails.name || "Shop Name Not Available"}
-        </Text>
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("Checkout", { cart })}
-        >
-          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-          <Text style={styles.cartItemCount}>{cartCount}</Text>
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={products}
-        ListHeaderComponent={renderShopDetails}
-        renderItem={({ item }) => (
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+
+        <View style={styles.headerContainer}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.shopName}>
+            {shopDetails.name || "Shop Name Not Available"}
+          </Text>
           <TouchableOpacity
-            key={item.id}
+            style={styles.cartButton}
+            onPress={() => navigation.navigate("Checkout", { cart })}
+          >
+            <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+            <Text style={styles.cartItemCount}>{cartCount}</Text>
+          </TouchableOpacity>
+        </View>
+        <View>
+          <Image
+            source={{
+              uri:
+                shopDetails.image ||
+                "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
+            }}
+            style={styles.shopImage}
+          />
+          <View style={styles.productDescriptionContainer}>
+            <Text style={styles.productName}>{shopDetails.name}</Text>
+            <View style={styles.productDetailsRow}>
+              {renderStars(shopDetails.rate)}
+              <TouchableOpacity
+                style={styles.feedbackButton}
+                onPress={() => navigation.navigate("Feedback", { shopId: id })}
+              >
+                <Text style={styles.feedbackButtonText}>Feedback</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <Text style={styles.featuredProduct}>
+          Featured Product
+        </Text>
+        {products && products.map((item, index) => (
+          <TouchableOpacity
+            key={index}
             style={styles.productItem}
             onPress={() => goToProductDetail(item)}
           >
@@ -459,12 +498,36 @@ export default function ShopScreen() {
               </Text>
             </View>
           </TouchableOpacity>
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={
-          <Text style={styles.errorText}>No products available.</Text>
-        }
-      />
+        ))}
+        <Text style={styles.featuredProduct}>
+          Top Combo Deals
+        </Text>
+        {listCombo && listCombo.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.productItem}
+            onPress={() => goToProductDetail(item)}
+          >
+            <Image
+              source={{
+                uri: item.images?.[0]?.url || "https://via.placeholder.com/150",
+              }}
+              style={styles.productImage}
+            />
+            <View style={styles.productInfo}>
+              <Text style={styles.productName}>
+                {item.name || "Unnamed Product"}
+              </Text>
+              <Text style={styles.productPrice}>
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(item.price || 0)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
       {/* Fixed Button */}
       {(isCreatorCartGroup && (
         <TouchableOpacity
@@ -600,25 +663,25 @@ const styles = StyleSheet.create({
   },
   feedbackButton: {
     marginLeft: 10,
-    alignSelf: "flex-end", 
+    alignSelf: "flex-end",
     marginLeft: "auto"
   },
   feedbackButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    backgroundColor: "#00cc69", 
+    backgroundColor: "#00cc69",
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 15, 
-    shadowColor: "#000", 
+    borderRadius: 15,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
   fixedButton: {
     position: "absolute",
-    bottom: 20, // khoảng cách từ đáy màn hình
+    bottom: 30, // khoảng cách từ đáy màn hình
     right: 20, // khoảng cách từ cạnh phải
     backgroundColor: "#00cc69", // Màu nền của button
     paddingVertical: 10,
@@ -634,7 +697,7 @@ const styles = StyleSheet.create({
   },
   fixedButtonCancel: {
     position: "absolute",
-    bottom: 20, // khoảng cách từ đáy màn hình
+    bottom: 30, // khoảng cách từ đáy màn hình
     right: 20, // khoảng cách từ cạnh phải
     backgroundColor: "red", // Màu nền của button
     paddingVertical: 10,
@@ -672,5 +735,14 @@ const styles = StyleSheet.create({
   starFilled: {
     color: "#ffcc00", // Color for filled stars
     fontSize: 20,
+  },
+  featuredProduct: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 20,
+    marginBottom: 15,
+    textAlign: 'center',
+    fontFamily: 'Roboto', // Hoặc bất kỳ font nào bạn muốn
   },
 });
