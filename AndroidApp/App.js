@@ -34,7 +34,8 @@ import OrderDetail from "./components/OrderDetail/OrderDetail";
 import ChangePassword from "./components/ChangePassword/ChangePassWord";
 import TakePhotoStudentCard from "./components/TakePhotoStudentCard/TakePhotoStudentCard";
 import BuyCoins from "./components/BuyCoins/BuyCoins";
-
+import Withdraw from "./components/Withdraw/Withdraw";
+import SearchSchool from "./components/SearchSchool/SearchSchool";
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -151,12 +152,12 @@ function App() {
           component={EditProfile}
           options={{ headerShown: false }}
         />
-          <Stack.Screen
+        <Stack.Screen
           name="HelpSupport"
           component={HelpSupport}
           options={{ headerShown: false }}
         />
-        
+
         <Stack.Screen
           name="MapScreen"
           component={MapScreen}
@@ -227,14 +228,23 @@ function App() {
           component={TakePhotoStudentCard}
           options={{ headerShown: false }}
         />
-        
+
         <Stack.Screen
           name="BuyCoins"
           component={BuyCoins}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Withdraw"
+          component={Withdraw}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="SearchSchool"
+          component={SearchSchool}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
-      
     </NavigationContainer>
   );
 }

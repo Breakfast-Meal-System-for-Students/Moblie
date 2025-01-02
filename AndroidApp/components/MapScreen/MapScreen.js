@@ -355,6 +355,17 @@ const MapScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Search Button */}
+      <View style={styles.centerContainer}>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={() => navigation.navigate("SearchSchool")}
+        >
+          <Ionicons name="search" size={20} color="#2196f3" />
+          <Text style={styles.searchButtonText}>Search School</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Map View */}
       <View style={styles.mapContainer}>
         <MapView
@@ -629,6 +640,27 @@ const styles = StyleSheet.create({
   shopDetailsButtonText: {
     color: "white",
     fontSize: 12,
+  },
+  centerContainer: {
+    alignItems: "center",
+  },
+  searchButton: {
+    flexDirection: "row", // Để biểu tượng và text nằm ngang
+    alignItems: "center", // Căn giữa nội dung theo chiều dọc trong nút
+    backgroundColor: "#ffffff", // Màu nền của nút
+    padding: 10, // Khoảng cách bên trong nút
+    borderRadius: 8, // Góc bo tròn
+    shadowColor: "#000", // Tạo bóng
+    shadowOffset: { width: 0, height: 2 }, // Hướng bóng
+    shadowOpacity: 0.2, // Độ mờ bóng
+    shadowRadius: 4, // Độ nhòe bóng
+    elevation: 3, // Bóng trên Android
+  },
+  searchButtonText: {
+    marginLeft: 5, // Khoảng cách giữa biểu tượng và text
+    color: "#2196f3",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

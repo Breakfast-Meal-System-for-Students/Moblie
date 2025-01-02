@@ -13,8 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 function OptionItem({ icon, title, onPress, rightText }) {
   return (
@@ -37,9 +37,12 @@ export default function ProfileScreen() {
   const [wallet, setWallet] = useState(null);
 
   const fetchWalletByUser = async () => {
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Wallet/GetWalletByUserId`, {
-      "Authorization": `Bearer ${token}`
-    });
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Wallet/GetWalletByUserId`,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
       setWallet(resBody.data);
@@ -76,8 +79,6 @@ export default function ProfileScreen() {
   const handleGoToCart = () => {
     navigation.navigate("CartMain");
   };
-
-
 
   const handleGoToSettings = () => {
     navigation.navigate("Settings");
@@ -126,12 +127,17 @@ export default function ProfileScreen() {
           }}
           style={styles.profileImage}
         />
-        <Text style={styles.profileName}>{`${data?.firstName || "no"} ${data?.lastName || "no"
-          }`}</Text>
-        <Text style={styles.profileEmail}>{`${data?.phone || "No phone available"
-          }`}</Text>
+        <Text style={styles.profileName}>{`${data?.firstName || "no"} ${
+          data?.lastName || "no"
+        }`}</Text>
+        <Text style={styles.profileEmail}>{`${
+          data?.phone || "No phone available"
+        }`}</Text>
         <Text style={styles.profileBalance}>
-          {`${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(wallet?.balance ?? 0)}`}
+          {`${new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(wallet?.balance ?? 0)}`}
         </Text>
       </View>
 
@@ -140,6 +146,11 @@ export default function ProfileScreen() {
           icon="wallet-outline"
           title="Buy Coins"
           onPress={() => navigation.navigate("BuyCoins")}
+        />
+        <OptionItem
+          icon="cash-outline"
+          title="Withdraw"
+          onPress={() => navigation.navigate("Withdraw")}
         />
         <OptionItem
           icon="cart-outline"
