@@ -40,21 +40,30 @@ export default function BuyCoins() {
     const formData = new FormData();
     formData.append("amount", amountSuccess);
     formData.append("status", STATUS_DEPOSIT);
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Wallet/UpdateBalance`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      },
-      body: formData
-    });
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Wallet/UpdateBalance`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
-      Alert.alert("Thank you", `You have successfully topped up ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(parseInt(amount))}`);
+      Alert.alert(
+        "Thank you",
+        `You have successfully topped up ${new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(parseInt(amount))}`
+      );
       navigation.goBack();
     } else {
       Alert.alert("Error", `Lỗi nạp tiền`);
     }
-  }
+  };
 
   const handleSubmit = async () => {
     if (!amount || parseInt(amount) <= 1000) {
@@ -65,20 +74,24 @@ export default function BuyCoins() {
     try {
       const token = await AsyncStorage.getItem("userToken");
       const userId = await AsyncStorage.getItem("userId");
-      const amountTotal = amount < 1000 ? amount * 10000 : amount
+      const amountTotal = amount < 1000 ? amount * 10000 : amount;
       const jsonBody = {
         userId,
         orderType: "Deposit",
         amount: amountTotal,
-        returnUrl: `https://bms1dl-ujj3.vercel.app/BuyCoinsReturn?amount=${amountTotal}`
+        returnUrl: `https://bms1dl-ujj3.vercel.app/BuyCoinsReturn?amount=${amountTotal}`,
       };
-      const response = await axios.post("https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url-fordeposit", jsonBody, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        "https://bms-fs-api.azurewebsites.net/api/Payment/create-payment-url-fordeposit",
+        jsonBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const { isSuccess, data } = response.data;
       if (isSuccess && data) {
@@ -111,7 +124,7 @@ export default function BuyCoins() {
         <Text style={styles.label}>Amount:</Text>
         <TextInput
           style={styles.textInput}
-          placeholder="Enter amount"
+          placeholder="*Enter amount"
           keyboardType="numeric"
           value={amount}
           onChangeText={setAmount}
@@ -140,11 +153,14 @@ export default function BuyCoins() {
       </View>
 
       {/* Top-Up Button */}
-      <TouchableOpacity style={[
-        styles.submitButton,
-        loading && styles.submitButtonProcessing,
-      ]} onPress={handleSubmit} disabled={loading}>
-        <Text style={styles.submitButtonText}>{loading && "Processing..." || "Buy Now"}</Text>
+      <TouchableOpacity
+        style={[styles.submitButton, loading && styles.submitButtonProcessing]}
+        onPress={handleSubmit}
+        disabled={loading}
+      >
+        <Text style={styles.submitButtonText}>
+          {(loading && "Processing...") || "Buy Now"}
+        </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

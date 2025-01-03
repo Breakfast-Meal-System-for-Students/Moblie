@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import axios from "axios";
 
 const SearchSchoolScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,23 +49,90 @@ const SearchSchoolScreen = ({ navigation }) => {
       type: "High School",
     },
   ];
+  const handleSchoolSelect = async (universityName) => {
+    try {
+      const response = await axios.get(
+        "https://bms-fs-api.azurewebsites.net/api/Shop/GetAllShopForMobile",
+        {
+          params: {
+            university: universityName,
+            pageIndex: 1,
+            pageSize: 5,
+          },
+        }
+      );
+      if (response.data.isSuccess) {
+        // Fetch the university ID based on the university name
+        const universityResponse = await axios.get(
+          "https://bms-fs-api.azurewebsites.net/api/University",
+          {
+            params: {
+              search: universityName,
+              pageSize: 1,
+            },
+          }
+        );
 
-  const handleSearch = (query) => {
+        if (universityResponse.data.isSuccess) {
+          const university = universityResponse.data.data.data[0]; // Get the first university result
+          const universityId = university.id; // Get the university ID
+
+          // Fetch the university details using the ID
+          const detailsResponse = await axios.get(
+            `https://bms-fs-api.azurewebsites.net/api/University/${universityId}`
+          );
+
+          if (detailsResponse.data.isSuccess) {
+            const school = detailsResponse.data.data; // Get the school details
+            navigation.navigate("SchoolMap", {
+              shops: response.data.data.data,
+              school,
+            });
+          } else {
+            console.error("Error fetching university details");
+          }
+        } else {
+          console.error("No university found for this name");
+        }
+      } else {
+        console.error("No shops found for this university");
+      }
+    } catch (error) {
+      console.error("Error fetching shops: ", error);
+    }
+  };
+  const handleSearch = async (query) => {
     setSearchQuery(query);
     if (query.trim() === "") {
       setResults([]);
     } else {
-      const filteredData = schools.filter(
-        (school) =>
-          school.name.toLowerCase().includes(query.toLowerCase()) ||
-          school.location.toLowerCase().includes(query.toLowerCase())
-      );
-      setResults(filteredData);
+      try {
+        const response = await axios.get(
+          "https://bms-fs-api.azurewebsites.net/api/University",
+          {
+            params: {
+              search: query,
+              pageSize: 5,
+            },
+          }
+        );
+        if (response.data.isSuccess) {
+          setResults(response.data.data.data);
+        } else {
+          setResults([]);
+        }
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+        setResults([]);
+      }
     }
   };
 
   const renderSchoolItem = ({ item }) => (
-    <TouchableOpacity style={styles.resultItem}>
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => handleSchoolSelect(item.name)}
+    >
       <View style={styles.schoolInfo}>
         <View style={styles.nameContainer}>
           <Ionicons name="school-outline" size={24} color="#2196F3" />
@@ -73,11 +141,11 @@ const SearchSchoolScreen = ({ navigation }) => {
         <View style={styles.detailsContainer}>
           <View style={styles.detailItem}>
             <Ionicons name="location-outline" size={16} color="#666" />
-            <Text style={styles.detailText}>{item.location}</Text>
+            <Text style={styles.detailText}>{item.address}</Text>
           </View>
           <View style={styles.detailItem}>
             <Ionicons name="book-outline" size={16} color="#666" />
-            <Text style={styles.detailText}>{item.type}</Text>
+            <Text style={styles.detailText}>{item.endMail}</Text>
           </View>
         </View>
       </View>

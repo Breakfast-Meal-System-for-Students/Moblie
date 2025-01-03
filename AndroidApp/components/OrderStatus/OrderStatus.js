@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 export default function OrderStatus() {
   const [socket, setSocket] = useState(null);
@@ -32,7 +32,6 @@ export default function OrderStatus() {
   const STATUS_CANCEL = 7;
 
   const statusLabels = [
-    
     { id: 2, label: "Ordered", value: "ORDERED" },
     { id: 3, label: "Checking", value: "CHECKING" },
     { id: 4, label: "Preparing", value: "PREPARING" },
@@ -76,7 +75,7 @@ export default function OrderStatus() {
 
   useEffect(() => {
     fetchOrders(pageIndex, status);
-    const socketConnection = io('https://bms-socket.onrender.com');
+    const socketConnection = io("https://bms-socket.onrender.com");
     setSocket(socketConnection);
 
     return () => {
@@ -114,34 +113,37 @@ export default function OrderStatus() {
 
   const sendNotiToShop = async (orderId, userId, shopId) => {
     if (socket) {
-      socket.emit('join-shop-topic', shopId);
+      socket.emit("join-shop-topic", shopId);
       const orderData = {
         userId,
         shopId,
         orderId,
       };
-      socket.emit('new-order', orderData); // Send notification to shop
+      socket.emit("new-order", orderData); // Send notification to shop
     }
   };
 
   const fetchOrderById = async (orderId) => {
     console.log("fetchOrderById");
     const token = await AsyncStorage.getItem("userToken");
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`, {
-      method: 'GET',
-      headers: {
-        accept: "*/*",
-        Authorization: `Bearer ${token}`
-      },
-    });
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
       const order = resBody.data;
-      sendNotiToShop(order.id, order.customerId, order.shopId)
+      sendNotiToShop(order.id, order.customerId, order.shopId);
     } else {
       Alert.alert("Error", "Can not to get order detail!!!");
     }
-  }
+  };
 
   const changeOrderStatus = async (orderId, statusChange) => {
     try {
@@ -203,7 +205,7 @@ export default function OrderStatus() {
       ],
       { cancelable: true } // Cho phép người dùng nhấn ra ngoài để đóng
     );
-  }
+  };
 
   const handleOpenFeedback = async (orderId) => {
     const token = await AsyncStorage.getItem("userToken");
@@ -225,6 +227,19 @@ export default function OrderStatus() {
     }
   };
 
+  const navigateToPayment = async (orderId, price) => {
+    const shopId = await AsyncStorage.getItem("shopId"); // Get shop ID from AsyncStorage
+
+    navigation.navigate("Payment", {
+      fullName: "User Name", // Replace this with the actual user’s name if available
+      orderInfo: `${orderId}`, // Pass the order ID
+      orderType: "general", // Set your order type
+      description: "Order description", // Set a description if needed
+      amount: price, // Send total price after discount
+      shopId, // Pass the shop ID for reference
+    });
+  };
+
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderCard}>
       <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
@@ -244,9 +259,9 @@ export default function OrderStatus() {
         </Text>
         <Text>
           <Icon name="dollar" size={20} color="#000" /> Total Price:{" "}
-          {new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
+          {new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
           }).format(item.totalPrice || 0)}
         </Text>
         <Text>
@@ -258,8 +273,7 @@ export default function OrderStatus() {
           {item.lastName}
         </Text>
         <Text>
-
-          <Icon name="calendar" size={20} color="#000" /> {" "}
+          <Icon name="calendar" size={20} color="#000" />{" "}
           {item.orderDate ? (
             <>
               <Text style={styles.dateText}>
@@ -268,8 +282,7 @@ export default function OrderStatus() {
                   month: "2-digit",
                   day: "2-digit",
                 })}
-              </Text>
-              {" "}
+              </Text>{" "}
               <Ionicons name="time" size={20} color="#000" />{" "}
               <Text style={styles.timeText}>
                 {new Date(item.orderDate).toLocaleTimeString("en-US", {
@@ -341,9 +354,9 @@ export default function OrderStatus() {
                   <Text> Quantity: {orderItem.quantity}</Text>
                   <Text>
                     <Icon name="" size={20} color="#000" /> Total Price:{" "}
-                    {new Intl.NumberFormat('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
                     }).format(orderItem.quantity * orderItem.price || 0)}
                   </Text>
                 </View>
@@ -358,6 +371,16 @@ export default function OrderStatus() {
             onPress={() => changeOrderStatus(item.id, STATUS_TAKEN_OVER)}
           >
             <Text style={styles.buttonText}>Take Over</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Check if the order is not paid */}
+        {!item.isPayed && (
+          <TouchableOpacity
+            style={styles.paymentButton}
+            onPress={() => navigateToPayment(item.id, item.totalPrice)} // Call navigateToPayment with order ID
+          >
+            <Text style={styles.buttonText}>Go to Payment</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -576,7 +599,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   disabledButton: {
-    backgroundColor: 'gray',
+    backgroundColor: "gray",
     opacity: 0.6,
   },
 
@@ -594,5 +617,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 14,
     fontWeight: "bold",
-  },  
+  },
+
+  paymentButton: {
+    backgroundColor: "#00cc69",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 10,
+  },
 });

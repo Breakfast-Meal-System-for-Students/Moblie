@@ -36,6 +36,7 @@ import TakePhotoStudentCard from "./components/TakePhotoStudentCard/TakePhotoStu
 import BuyCoins from "./components/BuyCoins/BuyCoins";
 import Withdraw from "./components/Withdraw/Withdraw";
 import SearchSchool from "./components/SearchSchool/SearchSchool";
+import SchoolMap from "./components/SchoolMap/SchoolMap";
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -242,6 +243,11 @@ function App() {
         <Stack.Screen
           name="SearchSchool"
           component={SearchSchool}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="SchoolMap"
+          component={SchoolMap}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
