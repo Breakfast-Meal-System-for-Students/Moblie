@@ -13,10 +13,14 @@ import {
   totalStars,
   filledStars,
   roundedStars,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faShoppingCart, faArrowLeft, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faShoppingCart,
+  faArrowLeft,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +32,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons"; // Import biểu tượng 'X'
 import { useFocusEffect } from "@react-navigation/native";
 import { io } from "socket.io-client";
+import { Ionicons } from "@expo/vector-icons"; // Import icons for better visuals
 
 // Utility function to format price
 const formatPrice = (price) => {
@@ -261,7 +266,7 @@ export default function ShopScreen() {
           console.error("Error fetching shop details:", data.messages);
         }
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error("Error fetching shop details:", error);
       } finally {
         setLoading(false);
       }
@@ -351,12 +356,25 @@ export default function ShopScreen() {
       />
       <View style={styles.productDescriptionContainer}>
         <Text style={styles.productName}>{shopDetails.name}</Text>
+
+        <Text style={styles.shopHours}>
+          {formatOpeningHours(
+            shopDetails.from_Hour,
+            shopDetails.from_Minune,
+            shopDetails.to_Hour,
+            shopDetails.to_Minune
+          )}
+        </Text>
+        <Text style={styles.shopAddress}>{shopDetails.address}</Text>
+        <Text style={styles.shopDescription}>{shopDetails.description}</Text>
+        <Text style={styles.shopPhone}>Phone: {shopDetails.phone}</Text>
         <View style={styles.productDetailsRow}>
           {renderStars(shopDetails.rate)}
           <TouchableOpacity
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
           >
+            <Ionicons name="chatbubble-outline" size={20} color="#fff" />
             <Text style={styles.feedbackButtonText}>Feedback</Text>
           </TouchableOpacity>
         </View>
@@ -430,10 +448,18 @@ export default function ShopScreen() {
     }
   };
 
+  const formatOpeningHours = (fromHour, fromMinute, toHour, toMinute) => {
+    return `${fromHour}:${
+      fromMinute < 10 ? "0" : ""
+    }${fromMinute} - ${toHour}:${toMinute < 10 ? "0" : ""}${toMinute}`;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
         <View style={styles.headerContainer}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
@@ -450,83 +476,91 @@ export default function ShopScreen() {
           </TouchableOpacity>
         </View>
         <View>
-          <Image
-            source={{
-              uri:
-                shopDetails.image ||
-                "https://i.pinimg.com/236x/eb/cb/c6/ebcbc6aaa9deca9d6efc1efc93b66945.jpg",
-            }}
-            style={styles.shopImage}
-          />
+          <Image source={{ uri: shopDetails.image }} style={styles.shopImage} />
           <View style={styles.productDescriptionContainer}>
             <Text style={styles.productName}>{shopDetails.name}</Text>
+
+            <Text style={styles.shopHours}>
+              {formatOpeningHours(
+                shopDetails.from_Hour,
+                shopDetails.from_Minune,
+                shopDetails.to_Hour,
+                shopDetails.to_Minune
+              )}
+            </Text>
+            <Text style={styles.shopAddress}>{shopDetails.address}</Text>
+            <Text style={styles.shopDescription}>
+              {shopDetails.description}
+            </Text>
+            <Text style={styles.shopPhone}>Phone: {shopDetails.phone}</Text>
             <View style={styles.productDetailsRow}>
               {renderStars(shopDetails.rate)}
               <TouchableOpacity
                 style={styles.feedbackButton}
                 onPress={() => navigation.navigate("Feedback", { shopId: id })}
               >
+                <Ionicons name="chatbubble-outline" size={20} color="#fff" />
                 <Text style={styles.feedbackButtonText}>Feedback</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
-        <Text style={styles.featuredProduct}>
-          Featured Product
-        </Text>
-        {products && products.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.productItem}
-            onPress={() => goToProductDetail(item)}
-          >
-            <Image
-              source={{
-                uri: item.images?.[0]?.url || "https://via.placeholder.com/150",
-              }}
-              style={styles.productImage}
-            />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>
-                {item.name || "Unnamed Product"}
-              </Text>
-              <Text style={styles.productPrice}>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(item.price || 0)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-        <Text style={styles.featuredProduct}>
-          Top Combo Deals
-        </Text>
-        {listCombo && listCombo.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.productItem}
-            onPress={() => goToProductDetail(item)}
-          >
-            <Image
-              source={{
-                uri: item.images?.[0]?.url || "https://via.placeholder.com/150",
-              }}
-              style={styles.productImage}
-            />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>
-                {item.name || "Unnamed Product"}
-              </Text>
-              <Text style={styles.productPrice}>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(item.price || 0)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        <Text style={styles.featuredProduct}>Menu</Text>
+        {products &&
+          products.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.productItem}
+              onPress={() => goToProductDetail(item)}
+            >
+              <Image
+                source={{
+                  uri:
+                    item.images?.[0]?.url || "https://via.placeholder.com/150",
+                }}
+                style={styles.productImage}
+              />
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>
+                  {item.name || "Unnamed Product"}
+                </Text>
+                <Text style={styles.productPrice}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(item.price || 0)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        <Text style={styles.featuredProduct}>Top Combo Deals</Text>
+        {listCombo &&
+          listCombo.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.productItem}
+              onPress={() => goToProductDetail(item)}
+            >
+              <Image
+                source={{
+                  uri:
+                    item.images?.[0]?.url || "https://via.placeholder.com/150",
+                }}
+                style={styles.productImage}
+              />
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>
+                  {item.name || "Unnamed Product"}
+                </Text>
+                <Text style={styles.productPrice}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(item.price || 0)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
       </ScrollView>
       {/* Fixed Button */}
       {(isCreatorCartGroup && (
@@ -664,7 +698,7 @@ const styles = StyleSheet.create({
   feedbackButton: {
     marginLeft: 10,
     alignSelf: "flex-end",
-    marginLeft: "auto"
+    marginLeft: "auto",
   },
   feedbackButtonText: {
     color: "#fff",
@@ -738,11 +772,31 @@ const styles = StyleSheet.create({
   },
   featuredProduct: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 20,
     marginBottom: 15,
-    textAlign: 'center',
-    fontFamily: 'Roboto', // Hoặc bất kỳ font nào bạn muốn
+    textAlign: "center",
+    fontFamily: "Roboto", // Hoặc bất kỳ font nào bạn muốn
+  },
+  shopHours: {
+    fontSize: 16,
+    marginTop: 10,
+    fontWeight: "600",
+  },
+  shopAddress: {
+    fontSize: 16,
+    color: "#555",
+    marginTop: 5,
+  },
+  shopDescription: {
+    fontSize: 16,
+    color: "#333",
+    marginTop: 5,
+  },
+  shopPhone: {
+    fontSize: 16,
+    color: "#333",
+    marginTop: 5,
   },
 });
