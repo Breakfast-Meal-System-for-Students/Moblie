@@ -133,12 +133,20 @@ export default function ProfileScreen() {
         <Text style={styles.profileEmail}>{`${
           data?.phone || "No phone available"
         }`}</Text>
-        <Text style={styles.profileBalance}>
-          {`${new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          }).format(wallet?.balance ?? 0)}`}
-        </Text>
+        <View style={styles.profileBalanceContainer}>
+          <Ionicons
+            name="wallet-outline"
+            size={24}
+            color="#FFD700"
+            style={styles.walletIcon}
+          />
+          <Text style={styles.profileBalance}>
+            {`${new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(wallet?.balance ?? 0)}`}
+          </Text>
+        </View>
       </View>
 
       <ScrollView style={styles.profileOptions}>
@@ -227,9 +235,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
   },
+  profileBalanceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 11,
+  },
+  walletIcon: {
+    marginRight: 8,
+  },
   profileBalance: {
-    fontSize: 14,
-    color: "#888",
+    fontSize: 18,
+    color: "#FFD700",
+    fontWeight: "bold",
+    textShadowRadius: 3,
   },
   profileOptions: {
     borderTopWidth: 1,

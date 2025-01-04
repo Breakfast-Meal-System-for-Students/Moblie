@@ -121,7 +121,7 @@ export default function BuyCoins() {
 
       {/* Amount Input */}
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Amount:</Text>
+        <Text style={styles.label}>Amount*</Text>
         <TextInput
           style={styles.textInput}
           placeholder="*Enter amount"
