@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     elevation: 3, // Bóng trên Android
   },
   searchButtonText: {
-    marginLeft: 5, // Khoảng cách giữa biểu tượng và text
+    marginLeft: 10,
     color: "#2196f3",
     fontSize: 16,
     fontWeight: "bold",

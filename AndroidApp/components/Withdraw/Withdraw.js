@@ -69,10 +69,10 @@ const WithdrawScreen = ({ navigation }) => {
 
       {/* Amount Input */}
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Amount:</Text>
+        <Text style={styles.label}>Amount*</Text>
         <TextInput
           style={styles.textInput}
-          placeholder="*Enter amount"
+          placeholder="Enter amount"
           keyboardType="numeric"
           value={amount}
           onChangeText={setAmount}
