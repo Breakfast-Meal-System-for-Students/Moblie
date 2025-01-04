@@ -365,6 +365,15 @@ export default function ShopScreen() {
             shopDetails.to_Minune
           )}
         </Text>
+        <Text style={styles.shopHours}>
+          Tomorrow's Opening Hours:{" "}
+          {formatOpeningHours(
+            shopDetails.from_HourTomorow,
+            shopDetails.from_MinuneTomorow,
+            shopDetails.to_HourTomorow,
+            shopDetails.to_MinuneTomorow
+          )}
+        </Text>
         <Text style={styles.shopAddress}>{shopDetails.address}</Text>
         <Text style={styles.shopDescription}>{shopDetails.description}</Text>
         <Text style={styles.shopPhone}>Phone: {shopDetails.phone}</Text>
@@ -481,11 +490,21 @@ export default function ShopScreen() {
             <Text style={styles.productName}>{shopDetails.name}</Text>
 
             <Text style={styles.shopHours}>
+              Today:{" "}
               {formatOpeningHours(
                 shopDetails.from_Hour,
                 shopDetails.from_Minune,
                 shopDetails.to_Hour,
                 shopDetails.to_Minune
+              )}
+            </Text>
+            <Text style={styles.shopHours}>
+              Tomorrow:{" "}
+              {formatOpeningHours(
+                shopDetails.from_HourTomorow,
+                shopDetails.from_MinuneTomorow,
+                shopDetails.to_HourTomorow,
+                shopDetails.to_MinuneTomorow
               )}
             </Text>
             <Text style={styles.shopAddress}>{shopDetails.address}</Text>

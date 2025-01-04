@@ -12,12 +12,12 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import CheckBox from '@react-native-community/checkbox';
+import CheckBox from "@react-native-community/checkbox";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Grid } from "react-native-feather";
-import { Picker } from '@react-native-picker/picker';
+import { Picker } from "@react-native-picker/picker";
 
 export default function Register() {
   const navigation = useNavigation();
@@ -29,7 +29,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [isProccessing, setIsProccessing] = useState(false);
-  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedValue, setSelectedValue] = useState("");
   const [listUniversity, setListUniversity] = useState([]);
   const { width, height } = Dimensions.get("window");
   const [useStudentEmail, setUseStudentEmail] = useState(false);
@@ -37,11 +37,11 @@ export default function Register() {
   useEffect(() => {
     setIsFormValid(
       fullName.trim() !== "" &&
-      lastName.trim() !== "" &&
-      email.trim() !== "" &&
-      studentIdCard.trim() !== "" &&
-      password.trim() !== "" &&
-      password === confirmPassword
+        lastName.trim() !== "" &&
+        email.trim() !== "" &&
+        studentIdCard.trim() !== "" &&
+        password.trim() !== "" &&
+        password === confirmPassword
     );
   }, [fullName, lastName, email, password, confirmPassword]);
 
@@ -51,14 +51,16 @@ export default function Register() {
 
   const fetchUniversity = async (search, isDesc, pageIndex, pageSize) => {
     const params = new URLSearchParams({ search, isDesc, pageIndex, pageSize });
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/University?${params.toString()}`);
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/University?${params.toString()}`
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
       setListUniversity(resBody.data.data);
     } else {
       console.log(resBody);
     }
-  }
+  };
 
   function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Biểu thức chính quy kiểm tra email
@@ -83,7 +85,7 @@ export default function Register() {
       return;
     }
     var universitySelect = null;
-    for(let i = 0; i < listUniversity.length; i++) {
+    for (let i = 0; i < listUniversity.length; i++) {
       const item = listUniversity[i];
       if (selectedValue == item.id) {
         universitySelect = item;
@@ -91,12 +93,11 @@ export default function Register() {
       }
     }
     if (universitySelect != null) {
-      if (universitySelect.idStudentFormat && !studentIdCard.includes(universitySelect.idStudentFormat)) {
-        Alert.alert("Error", "Please enter a valid Student ID of your school.");
-        setIsProccessing(false);
-        return;
-      }
-      if (useStudentEmail && universitySelect.endMail && !email.includes(universitySelect.endMail)) {
+      if (
+        useStudentEmail &&
+        universitySelect.endMail &&
+        !email.includes(universitySelect.endMail)
+      ) {
         Alert.alert("Error", "Please enter a student email of your school.");
         setIsProccessing(false);
         return;
@@ -108,21 +109,24 @@ export default function Register() {
       email,
       password,
       universityId: selectedValue,
-      studentIdCard: studentIdCard
+      studentIdCard: studentIdCard,
     };
     if (!useStudentEmail) {
       setIsProccessing(false);
       navigation.navigate("TakePhotoStudentCard", { jsonRequest });
       return;
     }
-    const response = await fetch("https://bms-fs-api.azurewebsites.net/api/Auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        accept: "*/*",
-      },
-      body: JSON.stringify(jsonRequest)
-    })
+    const response = await fetch(
+      "https://bms-fs-api.azurewebsites.net/api/Auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify(jsonRequest),
+      }
+    );
     const resBody = await response.json();
     if (resBody.isSuccess) {
       Alert.alert("Success", "Sign up successfully!", [
@@ -164,7 +168,7 @@ export default function Register() {
               {
                 width: width * 0.3,
                 height: width * 0.3,
-                borderRadius: width * 0.3 / 2,
+                borderRadius: (width * 0.3) / 2,
               },
             ]}
           />
@@ -192,10 +196,15 @@ export default function Register() {
             style={styles.textInput}
             onValueChange={(itemValue) => setSelectedValue(itemValue)}
           >
-            <Picker.Item label="Select your school *" value="0" style={styles.placeholderItem} />
-            {listUniversity && listUniversity.map((row, index) => (
-              <Picker.Item key={index} label={row.name} value={row.id} />
-            ))}
+            <Picker.Item
+              label="Select your school *"
+              value="0"
+              style={styles.placeholderItem}
+            />
+            {listUniversity &&
+              listUniversity.map((row, index) => (
+                <Picker.Item key={index} label={row.name} value={row.id} />
+              ))}
           </Picker>
 
           <TextInput
@@ -242,11 +251,14 @@ export default function Register() {
             </View>
           </View>
 
-          <Pressable style={[
-            styles.button,
-            isProccessing && styles.buttonProccessing,
-          ]} onPress={handleRegister} disabled={isProccessing}>
-            <Text style={styles.buttonText}>{isProccessing && "Processing..." || "Register"}</Text>
+          <Pressable
+            style={[styles.button, isProccessing && styles.buttonProccessing]}
+            onPress={handleRegister}
+            disabled={isProccessing}
+          >
+            <Text style={styles.buttonText}>
+              {(isProccessing && "Processing...") || "Register"}
+            </Text>
           </Pressable>
 
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -262,7 +274,7 @@ export default function Register() {
 
 const styles = StyleSheet.create({
   containerDevide: {
-    display: 'flex'
+    display: "flex",
   },
   container: {
     flex: 1,
@@ -301,8 +313,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   placeholderItem: {
-    color: 'lightgray',
-    fontStyle: 'italic',
+    color: "lightgray",
+    fontStyle: "italic",
   },
   textInput: {
     width: "100%",
@@ -325,9 +337,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   rowDevide: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', // Đảm bảo khoảng cách giữa hai ô
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between", // Đảm bảo khoảng cách giữa hai ô
+    alignItems: "center",
   },
   button: {
     width: "100%",
@@ -343,7 +355,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buttonProccessing: {
-    backgroundColor: 'gray'
+    backgroundColor: "gray",
   },
   signInText: {
     textAlign: "center",
@@ -352,18 +364,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     borderRadius: 5,
   },
   checkbox: {
     marginRight: 10,
-    tintColor: '#FFFFFF', // Màu checkbox trắng
-    backgroundColor: '#FFFFFF', // Màu border trắng
+    tintColor: "#FFFFFF", // Màu checkbox trắng
+    backgroundColor: "#FFFFFF", // Màu border trắng
   },
   checkboxLabel: {
     fontSize: 16,
-    color: '#FFFFFF', // Màu chữ trắng
+    color: "#FFFFFF", // Màu chữ trắng
   },
 });
