@@ -309,6 +309,16 @@ const MapScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Route & Shop Finder</Text>
       </View>
+      {/* Search Button */}
+      <View style={styles.centerContainer}>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={() => navigation.navigate("SearchSchool")}
+        >
+          <Ionicons name="search" size={20} color="#2196f3" />
+          <Text style={styles.searchButtonText}>Search School</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Address Input Section */}
       <View style={styles.inputSection}>
@@ -352,17 +362,6 @@ const MapScreen = () => {
           >
             <Text style={styles.findButtonText}>Find Route</Text>
           </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
-      {/* Search Button */}
-      <View style={styles.centerContainer}>
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => navigation.navigate("SearchSchool")}
-        >
-          <Ionicons name="search" size={20} color="#2196f3" />
-          <Text style={styles.searchButtonText}>Search School</Text>
         </TouchableOpacity>
       </View>
 
@@ -655,6 +654,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, // Độ mờ bóng
     shadowRadius: 4, // Độ nhòe bóng
     elevation: 3, // Bóng trên Android
+    margin: 10,
   },
   searchButtonText: {
     marginLeft: 10,
