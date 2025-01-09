@@ -21,7 +21,7 @@ import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from "../BottomNavigationBar/BottomNavigationBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 const { width } = Dimensions.get("window");
 
@@ -41,9 +41,7 @@ function RestaurantCard({ item }) {
             <FontAwesomeIcon icon={faStar} style={styles.starIcon} size={15} />
             <Text style={styles.ratingText}>{Math.floor(item.stars)}</Text>
 
-
             <Text style={styles.categoryText}>{item.category}</Text>
-
           </View>
           <View style={styles.locationInfo}>
             <FontAwesomeIcon icon={faMapPin} color="green" size={16} />
@@ -116,27 +114,27 @@ export default function HomeScreen() {
   );
 
   const handleConnectionSocket = async () => {
-    const socket = io('https://bms-socket.onrender.com');
+    const socket = io("https://bms-socket.onrender.com");
     setSocket(socket);
 
-    socket.on('connect', () => {
-      console.log('Connected to server with socket ID:', socket.id);
+    socket.on("connect", () => {
+      console.log("Connected to server with socket ID:", socket.id);
     });
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server");
     });
 
     // Kết nối tới room "shop" theo shopId
     const userId = await AsyncStorage.getItem("userId");
-    console.log('Emitting join-user-topic for userId:', userId);
-    socket.emit('join-user-topic', userId);
+    console.log("Emitting join-user-topic for userId:", userId);
+    socket.emit("join-user-topic", userId);
 
     // Lắng nghe sự kiện thông báo
-    socket.on('order-notification', (message) => {
+    socket.on("order-notification", (message) => {
       fetchCountNotifications(); // Cập nhật lại số lượng thông báo chưa đọc
     });
-  }
+  };
 
   // Fetch user profile data
   useEffect(() => {
@@ -299,7 +297,9 @@ export default function HomeScreen() {
           {/* Display full name */}
         </View>
         <View style={styles.iconContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notifications")}
+          >
             <View style={styles.iconWithBadge}>
               <Ionicons name="notifications-outline" size={24} color="black" />
               {unreadCount > 0 && (
@@ -318,46 +318,58 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color="#888" />
-          <TextInput
-            placeholder="Search"
-            style={styles.searchInput}
-            onFocus={() => navigation.navigate("Search")} // Navigate to Search screen on focus
-          />
-
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={20} color="#666" />
+            <TextInput
+              placeholder="Search for food, restaurants..."
+              placeholderTextColor="#999"
+              style={styles.searchInput}
+              onFocus={() => navigation.navigate("Search")}
+            />
+          </View>
         </View>
 
         {/* Featured Images Slider */}
-        <FlatList
-          ref={flatListRef}
-          data={featured}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                item.id != 'custom_image' ? navigation.navigate("Shop", { id: item.id, orderIdSuccess: null }) : null
-              }
-              disabled={!item.id}
-              activeOpacity={item.id ? 0.8 : 1}
-              style={[
-                styles.featuredImageContainer,
-                !item.id && { opacity: 0.5 },
-              ]}
-            >
-              <View style={styles.featuredImageContainer}>
-                <Image style={styles.featuredImage} source={item.image} />
-                <View style={styles.imageOverlay}>
-                  <Text style={styles.featuredTitle}>{item.title}</Text>
-                  <Text style={styles.featuredDescription}>{item.description}</Text>
+        <View style={styles.sliderContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={featured}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() =>
+                  item.id != "custom_image"
+                    ? navigation.navigate("Shop", {
+                        id: item.id,
+                        orderIdSuccess: null,
+                      })
+                    : null
+                }
+                disabled={!item.id}
+                activeOpacity={item.id ? 0.8 : 1}
+              >
+                <View style={styles.featuredImageContainer}>
+                  <Image
+                    style={styles.featuredImage}
+                    source={item.image}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.imageOverlay}>
+                    <View style={styles.overlayContent}>
+                      <Text style={styles.featuredTitle}>{item.title}</Text>
+                      <Text style={styles.featuredDescription}>
+                        {item.description}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={{ paddingHorizontal: 30, paddingBottom: 30 }}
-        />
+              </TouchableOpacity>
+            )}
+          />
+        </View>
 
         {/* Categories */}
         <Text style={styles.categories}>Categories</Text>
@@ -435,69 +447,73 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchContainer: {
+    padding: 16,
+  },
+  searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f1f1f1",
-    borderRadius: 10,
-    paddingVertical: 10,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
     paddingHorizontal: 16,
-    marginBottom: 2,
-    marginHorizontal: 19,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#EEEEEE",
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
     fontSize: 16,
+    color: "#333",
   },
+
   filterButton: {
     backgroundColor: "#00cc69",
     padding: 10,
     borderRadius: 10,
   },
   featuredImageContainer: {
-    position: 'relative',
+    position: "relative",
     width: 350,
     height: 200,
   },
   featuredImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 20,
-
   },
   imageOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
 
     borderRadius: 10,
     padding: 15,
   },
   featuredTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textShadowColor: '#000',
+    fontWeight: "bold",
+    color: "#fff",
+    textShadowColor: "#000",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 6,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
     letterSpacing: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   featuredDescription: {
     fontSize: 18,
-    color: '#fff',
-    textAlign: 'center',
+    color: "#fff",
+    textAlign: "center",
     opacity: 0.9,
-    textShadowColor: '#000',
+    textShadowColor: "#000",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   categoryScrollView: {
     paddingHorizontal: Platform.OS === "ios" ? 20 : 15,
@@ -615,5 +631,51 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 10,
     fontWeight: "bold",
+  },
+  sliderContainer: {
+    marginBottom: 24,
+  },
+  featuredImageContainer: {
+    width: width - 32,
+    height: 200,
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  featuredImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  overlayContent: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 12,
+    borderRadius: 8,
+  },
+  featuredTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  featuredDescription: {
+    fontSize: 14,
+    color: "#FFFFFF",
+    opacity: 0.9,
+  },
+  categoriesSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 16,
+    paddingHorizontal: 16,
   },
 });
