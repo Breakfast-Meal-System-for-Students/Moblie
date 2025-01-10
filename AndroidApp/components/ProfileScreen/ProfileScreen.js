@@ -75,9 +75,11 @@ export default function ProfileScreen() {
   const handleEditProfile = () => {
     navigation.navigate("EditProfile", { data });
   };
-
   const handleGoToCart = () => {
     navigation.navigate("CartMain");
+  };
+  const handleGoToViewlistcart = () => {
+    navigation.navigate("ViewListCart");
   };
 
   const handleGoToSettings = () => {
@@ -151,6 +153,11 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.profileOptions}>
         <OptionItem
+          icon="cart-outline"
+          title="View List Cart"
+          onPress={handleGoToViewlistcart}
+        />
+        <OptionItem
           icon="wallet-outline"
           title="Buy Coins"
           onPress={() => navigation.navigate("BuyCoins")}
@@ -185,6 +192,7 @@ export default function ProfileScreen() {
           title="Help & Support"
           onPress={handleGoToHelpSupport}
         />
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
