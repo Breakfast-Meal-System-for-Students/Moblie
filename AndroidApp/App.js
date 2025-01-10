@@ -37,6 +37,8 @@ import BuyCoins from "./components/BuyCoins/BuyCoins";
 import Withdraw from "./components/Withdraw/Withdraw";
 import SearchSchool from "./components/SearchSchool/SearchSchool";
 import SchoolMap from "./components/SchoolMap/SchoolMap";
+import ViewListCart from "./components/ViewListCart/ViewListCart.js";
+
 const Stack = createNativeStackNavigator();
 
 const linking = {
@@ -248,6 +250,11 @@ function App() {
         <Stack.Screen
           name="SchoolMap"
           component={SchoolMap}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ViewListCart"
+          component={ViewListCart}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
