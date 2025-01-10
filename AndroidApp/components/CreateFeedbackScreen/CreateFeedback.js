@@ -18,7 +18,7 @@ import { AirbnbRating } from "react-native-ratings"; // Cần cài đặt react-
 export default function CreateFeedback({ route }) {
   const { orderId } = route.params; // Lấy orderId từ đầu vào của trang
   const [feedback, setFeedback] = useState(""); // State cho nội dung feedback
-  const [rating, setRating] = useState(0); // State cho đánh giá sao
+  const [rating, setRating] = useState(3); // State cho đánh giá sao
   const [order, setOrder] = useState([]);
   const navigation = useNavigation();
 
@@ -50,7 +50,12 @@ export default function CreateFeedback({ route }) {
       Alert.alert("Success", "Thank you for your feedback!");
       navigation.navigate("Feedback", {shopId: order.shopId, token: token});
     } else {
-      Alert.alert("Error", "An error occurs in process feedback");
+      console.log(resBody);
+      if (resBody && resBody.messages && resBody.messages.length > 0) {
+        Alert.alert("Error", resBody.messages[0].content);
+      } else {
+        Alert.alert("Error", "An error occurs in process feedback");
+      }
     }
   };
 
@@ -101,9 +106,9 @@ export default function CreateFeedback({ route }) {
         {/* Đánh giá sao */}
         <AirbnbRating
           count={5}
-          defaultRating={0}
+          rating={rating}
           size={30}
-          onFinishRating={(value) => setRating(value)}
+          onFinishRating={(value) => setRating(ratingValue)}
         />
 
         {/* Khung nhập feedback */}
