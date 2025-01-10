@@ -8,7 +8,10 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Modal,
+  Button,
   Alert,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -16,9 +19,17 @@ import { Ionicons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { io } from "socket.io-client";
 
+const cancellationReasons = [
+  'Order is late',
+  'Wrong item',
+  'Changed mind',
+  'Other',
+];
+
 export default function OrderStatus() {
   const [socket, setSocket] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [orderIdCancel, setOrderIdCancel] = useState('');
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize] = useState(5);
@@ -27,6 +38,9 @@ export default function OrderStatus() {
   const [search, setSearch] = useState("");
   const [isDesc, setIsDesc] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedReason, setSelectedReason] = useState(null);
+  const [customReason, setCustomReason] = useState('');
   const navigation = useNavigation();
   const STATUS_TAKEN_OVER = 6;
   const STATUS_CANCEL = 7;
@@ -145,7 +159,7 @@ export default function OrderStatus() {
     }
   };
 
-  const changeOrderStatus = async (orderId, statusChange) => {
+  const changeOrderStatus = async (orderId, statusChange, reasonOfCancel = null) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) throw new Error("User token is missing");
@@ -153,6 +167,9 @@ export default function OrderStatus() {
       const formData = new FormData();
       formData.append("id", orderId);
       formData.append("status", statusChange);
+      if (reasonOfCancel) {
+        formData.append("reasonOfCancel", reasonOfCancel);
+      }
 
       const response = await fetch(
         "https://bms-fs-api.azurewebsites.net/api/Order/ChangeOrderStatus",
@@ -199,7 +216,8 @@ export default function OrderStatus() {
         {
           text: "Yes",
           onPress: async () => {
-            changeOrderStatus(orderId, STATUS_CANCEL);
+            setOrderIdCancel(orderId);
+            setModalVisible(true);
           },
         },
       ],
@@ -387,6 +405,27 @@ export default function OrderStatus() {
     </View>
   );
 
+  const handleSubmit = () => {
+    if (orderIdCancel == null || orderIdCancel == '') {
+      Alert.alert('Please select a product to cancel');
+      return;
+    }
+    const reason = selectedReason === 'Other' ? customReason : selectedReason;
+    if (selectedReason === 'Other' && customReason.trim() == '') {
+      Alert.alert('Notification','Please enter you reason to cancel');
+      return;
+    }
+    if (reason) {
+      changeOrderStatus(orderIdCancel, 'CANCEL', reason);
+      setModalVisible(false);
+      setOrderIdCancel('');
+      setCustomReason('');
+      console.log(`Order canceled with reason: ${reason}`);
+    } else {
+      Alert.alert("Notification",'Please select a reason or enter a custom reason');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -414,6 +453,51 @@ export default function OrderStatus() {
         showsHorizontalScrollIndicator={false}
         style={styles.statusTabs}
       />
+
+      {/* Modal chọn lý do hủy đơn */}
+      <Modal
+        transparent={true}
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.title}>Select Cancellation Reason</Text>
+            {cancellationReasons.map((reason, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedReason(reason)}
+                style={[
+                  styles.optionButton,
+                  selectedReason === reason && styles.selectedOption,
+                ]}
+              >
+                <Text style={styles.optionText}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+
+            {selectedReason === 'Other' && (
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your reason"
+                value={customReason}
+                onChangeText={setCustomReason}
+              />
+            )}
+
+            {/* Nút Submit và Cancel nằm cùng dòng và sát lề phải */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={[styles.button, styles.cancelButtonDialog]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.buttonTextRed}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, styles.submitButtonDialog]} onPress={handleSubmit}>
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {loading ? (
         <ActivityIndicator
@@ -618,12 +702,82 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-
   paymentButton: {
     backgroundColor: "#00cc69",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
     marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  optionButton: {
+    padding: 10,
+    width: '100%',
+    marginBottom: 10,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 5,
+  },
+  selectedOption: {
+    backgroundColor: '#d3d3d3',
+  },
+  optionText: {
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: '100%',
+    marginTop: 20,
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginLeft: 10,
+    alignItems: 'center',
+  },
+  cancelButtonDialog: {
+    backgroundColor: 'transparent', // Màu nền trong suốt
+    borderWidth: 2, // Độ dày của viền
+    borderColor: '#f44336', // Màu đỏ cho viền
+  },
+  submitButtonDialog: {
+    backgroundColor: '#00cc69', // Màu xanh cho nút gửi
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  buttonTextRed: {
+    color: 'red',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
