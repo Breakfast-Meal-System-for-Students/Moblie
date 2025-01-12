@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   RefreshControl,
   Dimensions,
+  Image,
 } from "react-native";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
@@ -111,17 +112,24 @@ const ViewListCart = () => {
   const renderCartItem = ({ item }) => (
     <TouchableOpacity
       style={styles.cartContainer}
-      onPress={() => navigation.navigate("Cart", { id: item.shopId })}
+      onPress={async () => {
+        await AsyncStorage.setItem("shopId", item.shopId);
+        navigation.navigate("Cart", { id: item.shopId });
+      }}
     >
       <View style={styles.cartHeader}>
         <View style={styles.shopInfo}>
           <Ionicons name="storefront" size={20} color="#00cc69" />
           <Text style={styles.shopName} numberOfLines={1}>
-            Shop ID: {item.shopId}
+            {item.shopName}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </View>
+
+      {item.shopImage && (
+        <Image source={{ uri: item.shopImage }} style={styles.shopImage} />
+      )}
 
       <FlatList
         data={item.cartDetails}
@@ -210,6 +218,8 @@ const ViewListCart = () => {
             ListEmptyComponent={ListEmptyComponent}
             contentContainerStyle={styles.listContent}
             ItemSeparatorComponent={() => <View style={styles.cartSeparator} />}
+            onEndReached={loadMoreCarts}
+            onEndReachedThreshold={0.5}
           />
           {totalItems > 0 && renderPagination()}
         </>
@@ -239,17 +249,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     flex: 1,
   },
-  paginationContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
-    backgroundColor: "#fff",
-  },
   pageButton: {
     backgroundColor: "#00cc69",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 5,
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
+    backgroundColor: "#fff",
   },
   pageButtonText: {
     color: "white",
@@ -370,6 +380,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  shopImage: {
+    width: "100%",
+    height: 150,
+    borderRadius: 8,
+    marginVertical: 8,
   },
 });
 
