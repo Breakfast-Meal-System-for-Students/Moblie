@@ -8,7 +8,7 @@ import {
   Button,
   TouchableOpacity,
   Alert,
-  StatusBar
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,21 +34,24 @@ export default function CreateFeedback({ route }) {
       description: feedback,
       rating,
       userId: order.customerId,
-      shopId: order.shopId
+      shopId: order.shopId,
     };
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Feedback/send-feedback`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        accept: "*/*", 
-        Authorization: `Bearer ${token}` 
-      },
-      body: JSON.stringify(jsonBody)
-    });
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Feedback/send-feedback`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(jsonBody),
+      }
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
       Alert.alert("Success", "Thank you for your feedback!");
-      navigation.navigate("Feedback", {shopId: order.shopId, token: token});
+      navigation.navigate("Feedback", { shopId: order.shopId, token: token });
     } else {
       console.log(resBody);
       if (resBody && resBody.messages && resBody.messages.length > 0) {
@@ -61,24 +64,27 @@ export default function CreateFeedback({ route }) {
 
   const fetchOrderById = async () => {
     const token = await AsyncStorage.getItem("userToken");
-    const result = await fetch(`https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`, {
-      method: 'GET',
-      headers: {
-        accept: "*/*",
-        Authorization: `Bearer ${token}`
-      },
-    });
+    const result = await fetch(
+      `https://bms-fs-api.azurewebsites.net/api/Order/GetOrderById/${orderId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     const resBody = await result.json();
     if (resBody.isSuccess) {
       setOrder(resBody.data);
     } else {
-      Alert.alert("Error","Can not to get order detail!!!");
+      Alert.alert("Error", "Can not to get order detail!!!");
     }
-  }
- 
+  };
+
   useEffect(() => {
     fetchOrderById();
-  },[orderId]);
+  }, [orderId]);
 
   useEffect(() => {
     // Ẩn thanh trạng thái
@@ -102,13 +108,13 @@ export default function CreateFeedback({ route }) {
         </TouchableOpacity>
         <Text style={styles.headerText}>FEEDBACK YOUR ORDER</Text>
       </View>
-      <View style={{padding:10}}>
+      <View style={{ padding: 10 }}>
         {/* Đánh giá sao */}
         <AirbnbRating
           count={5}
           rating={rating}
           size={30}
-          onFinishRating={(value) => setRating(ratingValue)}
+          onFinishRating={(value) => setRating(value)}
         />
 
         {/* Khung nhập feedback */}
