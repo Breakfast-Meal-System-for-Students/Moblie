@@ -82,6 +82,9 @@ export default function ProfileScreen() {
     navigation.navigate("ViewListCart");
   };
 
+  const handleGoToTransactionHistory = () => {
+    navigation.navigate("TransactionHistory");
+  };
   const handleGoToSettings = () => {
     navigation.navigate("Settings");
   };
@@ -106,6 +109,15 @@ export default function ProfileScreen() {
       }));
     }
   }, [route.params?.updatedAvatar]);
+
+  useEffect(() => {
+    if (route.params?.updatedData) {
+      setData((prevData) => ({
+        ...prevData,
+        ...route.params.updatedData,
+      }));
+    }
+  }, [route.params?.updatedData]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,17 +170,22 @@ export default function ProfileScreen() {
           onPress={handleGoToViewlistcart}
         />
         <OptionItem
-          icon="wallet-outline"
+          icon="time-outline"
+          title="Transaction History"
+          onPress={handleGoToTransactionHistory}
+        />
+        <OptionItem
+          icon="cash-outline"
           title="Buy Coins"
           onPress={() => navigation.navigate("BuyCoins")}
         />
         <OptionItem
-          icon="cash-outline"
+          icon="log-out-outline"
           title="Withdraw"
           onPress={() => navigation.navigate("Withdraw")}
         />
         <OptionItem
-          icon="cart-outline"
+          icon="receipt-outline"
           title="My Order"
           onPress={() => navigation.navigate("Order")}
         />
@@ -178,7 +195,7 @@ export default function ProfileScreen() {
           onPress={() => navigation.navigate("Notifications")}
         />
         <OptionItem
-          icon="person-outline"
+          icon="create-outline"
           title="Edit Profile"
           onPress={handleEditProfile}
         />
@@ -188,11 +205,10 @@ export default function ProfileScreen() {
           onPress={handleGoToSettings}
         />
         <OptionItem
-          icon="help-circle-outline"
+          icon="help-buoy-outline"
           title="Help & Support"
           onPress={handleGoToHelpSupport}
         />
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>

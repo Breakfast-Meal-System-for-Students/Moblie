@@ -463,27 +463,30 @@ export default function ShopScreen() {
     }${fromMinute} - ${toHour}:${toMinute < 10 ? "0" : ""}${toMinute}`;
   };
 
+  const headerHeight = 60; // Adjust this value based on your header's height
+
   return (
     <SafeAreaView style={styles.container}>
+      <View style={[styles.headerContainer, { height: headerHeight }]}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.shopName}>
+          {shopDetails.name || "Shop Name Not Available"}
+        </Text>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate("Checkout", { cart })}
+        >
+          <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
+          <Text style={styles.cartItemCount}>{cartCount}</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
+        contentInset={{ top: headerHeight }}
       >
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <FontAwesomeIcon icon={faArrowLeft} size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.shopName}>
-            {shopDetails.name || "Shop Name Not Available"}
-          </Text>
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={() => navigation.navigate("Checkout", { cart })}
-          >
-            <FontAwesomeIcon icon={faShoppingCart} size={24} color="#fff" />
-            <Text style={styles.cartItemCount}>{cartCount}</Text>
-          </TouchableOpacity>
-        </View>
         <View>
           <Image source={{ uri: shopDetails.image }} style={styles.shopImage} />
           <View style={styles.productDescriptionContainer}>
@@ -617,13 +620,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: Platform.OS === "ios" ? 15 : 9,
+    paddingVertical: Platform.OS === "ios" ? 40 : 2,
     paddingHorizontal: 10,
     backgroundColor: "#00cc69",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    marginTop: 1,
   },
   backButton: {
     padding: 10,
@@ -658,6 +663,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 300,
     resizeMode: "cover",
+    marginTop: 25,
   },
   productDescriptionContainer: {
     paddingHorizontal: 20,

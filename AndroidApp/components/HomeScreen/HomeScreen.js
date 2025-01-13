@@ -247,6 +247,8 @@ export default function HomeScreen() {
             image: {
               uri: "https://i.pinimg.com/736x/7d/8e/f1/7d8ef10c148ee4166d647e8a7ca19c06.jpg",
             },
+            title: "Welcome to BMS",
+            description: "Breakfast meal system for students",
             restaurants: [],
           };
 

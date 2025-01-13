@@ -38,6 +38,7 @@ import Withdraw from "./components/Withdraw/Withdraw";
 import SearchSchool from "./components/SearchSchool/SearchSchool";
 import SchoolMap from "./components/SchoolMap/SchoolMap";
 import ViewListCart from "./components/ViewListCart/ViewListCart.js";
+import TransactionHistory from "./components/TransactionHistory/TransactionHistory.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -255,6 +256,11 @@ function App() {
         <Stack.Screen
           name="ViewListCart"
           component={ViewListCart}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="TransactionHistory"
+          component={TransactionHistory}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
