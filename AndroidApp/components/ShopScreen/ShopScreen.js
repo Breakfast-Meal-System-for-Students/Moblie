@@ -378,7 +378,7 @@ export default function ShopScreen() {
         <Text style={styles.shopDescription}>{shopDetails.description}</Text>
         <Text style={styles.shopPhone}>Phone: {shopDetails.phone}</Text>
         <View style={styles.productDetailsRow}>
-          {renderStars(shopDetails.rate)}
+          {renderStars(Math.round(shopDetails.rate))}
           <TouchableOpacity
             style={styles.feedbackButton}
             onPress={() => navigation.navigate("Feedback", { shopId: id })}
@@ -516,7 +516,7 @@ export default function ShopScreen() {
             </Text>
             <Text style={styles.shopPhone}>Phone: {shopDetails.phone}</Text>
             <View style={styles.productDetailsRow}>
-              {renderStars(shopDetails.rate)}
+              {renderStars(Math.round(shopDetails.rate))}
               <TouchableOpacity
                 style={styles.feedbackButton}
                 onPress={() => navigation.navigate("Feedback", { shopId: id })}

@@ -39,7 +39,7 @@ function RestaurantCard({ item }) {
           <Text style={styles.restaurantName}>{item.name}</Text>
           <View style={styles.restaurantRatingContainer}>
             <FontAwesomeIcon icon={faStar} style={styles.starIcon} size={15} />
-            <Text style={styles.ratingText}>{Math.floor(item.stars)}</Text>
+            <Text style={styles.ratingText}>{Math.round(item.stars)}</Text>
 
             <Text style={styles.categoryText}>{item.category}</Text>
           </View>
@@ -235,7 +235,7 @@ export default function HomeScreen() {
                 name: item.name,
                 image: { uri: item.image || "default_image_url" },
                 description: item.description,
-                stars: item.rate || 0,
+                stars: Math.round(item.rate) || 0,
                 address: item.address,
               },
             ],
