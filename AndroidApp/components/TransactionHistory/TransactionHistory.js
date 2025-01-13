@@ -20,6 +20,16 @@ import { useNavigation } from "@react-navigation/native";
 const { width, height } = Dimensions.get("window");
 const ITEM_HEIGHT = 100;
 
+const statusMapping = {
+  1: "PAID",
+  2: "PAID TO SHOP",
+  3: "ERROR",
+  4: "REFUND",
+  5: "DEPOSIT",
+  6: "WITHDRAW",
+  7: "PAID PACKAGE",
+};
+
 const TransactionHistory = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,15 +101,9 @@ const TransactionHistory = () => {
     }).format(amount);
   };
 
-  const TransactionIcon = ({ type, status }) => {
-    const iconName =
-      status === 1
-        ? type === "deposit"
-          ? "arrow-down-circle"
-          : "arrow-up-circle"
-        : "close-circle";
-    const iconColor =
-      status === 1 ? (type === "deposit" ? "#00C853" : "#FF5252") : "#757575";
+  const TransactionIcon = ({ price }) => {
+    const iconName = price > 0 ? "arrow-up-circle" : "arrow-down-circle"; // Up for positive, down for negative
+    const iconColor = price > 0 ? "#00C853" : "#FF5252"; // Green for positive, red for negative
 
     return (
       <View
@@ -113,8 +117,7 @@ const TransactionHistory = () => {
   const renderTransactionItem = ({ item }) => (
     <TouchableOpacity style={styles.transactionCard} activeOpacity={0.7}>
       <TransactionIcon
-        type={item.price > 0 ? "deposit" : "withdraw"}
-        status={item.status}
+        price={item.price} // Pass price directly
       />
       <View style={styles.transactionInfo}>
         <View style={styles.transactionHeader}>
@@ -154,7 +157,7 @@ const TransactionHistory = () => {
                 { color: item.status === 1 ? "#00C853" : "#757575" },
               ]}
             >
-              {item.status === 1 ? "Successful" : "Failed"}
+              {statusMapping[item.status] || "UNKNOWN"}
             </Text>
           </View>
         </View>
