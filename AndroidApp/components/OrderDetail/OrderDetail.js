@@ -102,7 +102,7 @@ export default function OrderDetail() {
           data.messages[0]?.content || "Failed to change order status"
         );
       }
-      
+
       Alert.alert("Success", data.messages[0].content.toString().trim(), [
         {
           text: "OK",
@@ -149,7 +149,7 @@ export default function OrderDetail() {
       ],
       { cancelable: true } // Cho phép người dùng nhấn ra ngoài để đóng
     );
-  }
+  };
 
   if (loading) {
     return (
@@ -177,21 +177,25 @@ export default function OrderDetail() {
       </View>
 
       <View style={styles.orderInfoContainer}>
-        <Image source={{ uri: orderDetail.shopImage }} style={styles.shopImage} />
+        <Image
+          source={{ uri: orderDetail.shopImage }}
+          style={styles.shopImage}
+        />
         <Text style={styles.title}>Order ID: {orderDetail.id}</Text>
         <Text>
-        {" "}<Icon name="dollar" size={20} color="#000" />   Total Price:{" "}
+          {" "}
+          <Icon name="dollar" size={20} color="#000" /> Total Price:{" "}
           {new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
           }).format(orderDetail.totalPrice || 0)}
         </Text>
         <Text>
-            <Icon name="shopping-cart" size={20} color="#000" />  Shop Name: {orderDetail.shopName}
+          <Icon name="shopping-cart" size={20} color="#000" /> Shop Name:{" "}
+          {orderDetail.shopName}
         </Text>
         <Text>
-
-          <Icon name="calendar" size={20} color="#000" /> {" "}
+          <Icon name="calendar" size={20} color="#000" />{" "}
           {orderDetail.orderDate ? (
             <>
               <Text style={styles.dateText}>
@@ -200,8 +204,7 @@ export default function OrderDetail() {
                   month: "2-digit",
                   day: "2-digit",
                 })}
-              </Text>
-              {" "}
+              </Text>{" "}
               <Ionicons name="time" size={20} color="#000" />{" "}
               <Text style={styles.timeText}>
                 {new Date(orderDetail.orderDate).toLocaleTimeString("en-US", {
@@ -217,13 +220,14 @@ export default function OrderDetail() {
           )}
         </Text>
         <Text style={styles.orderType}>
-          <Icon name="users" size={20} color="#000" />{"  "}
+          <Icon name="users" size={20} color="#000" />
+          {"  "}
           {orderDetail.isGroup ? "Group Order" : "Individual Order"}
         </Text>
         <Text style={styles.statusText}>
-            <Icon name="info-circle" size={20} color="#ff6347" />
-            {"  "}Status:{" "}
-            <Text style={styles.statusValue}>{orderDetail.status}</Text>
+          <Icon name="info-circle" size={20} color="#ff6347" />
+          {"  "}Status:{" "}
+          <Text style={styles.statusValue}>{orderDetail.status}</Text>
         </Text>
       </View>
 
@@ -237,14 +241,17 @@ export default function OrderDetail() {
               style={styles.productImage}
             />
             <View>
-              <Text style={styles.productText}>Product: {item.productName}</Text>
+              <Text style={styles.productText}>
+                Product: {item.productName}
+              </Text>
               <Text>Quantity: {item.quantity}</Text>
-              <Text>Price: {" "}
-               {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
+              <Text>
+                Price:{" "}
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
                 }).format(item.price || 0)}
-                </Text>
+              </Text>
             </View>
           </View>
         )}
@@ -253,37 +260,38 @@ export default function OrderDetail() {
 
       {/* Buttons */}
       {orderDetail.status === "PREPARED" && (
-          <TouchableOpacity
-            style={styles.takeOverButton}
-            onPress={() => changeOrderStatus(orderDetail.id, STATUS_TAKEN_OVER)}
-          >
-            <Text style={styles.buttonText}>Take Over</Text>
-          </TouchableOpacity>
-        )}
-      {(orderDetail.status === 'ORDERED' || orderDetail.status === 'CHECKING') && (
-          <TouchableOpacity
-            style={[
-              styles.actionButtonCancel,
-              !orderDetail.canCancel && styles.disabledButton,
-            ]}
-            onPress={() => handleCancelOrder(orderDetail.id)}
-            disabled={!orderDetail.canCancel}
-          >
-            <Text style={styles.buttonText}>Cancel Order</Text>
-          </TouchableOpacity>
-        )}
-        {orderDetail.status === 'COMPLETE' && (
-          <TouchableOpacity
-            style={[
-              styles.feedbackButton,
-              !orderDetail.canFeedback && styles.disabledButton,
-            ]}
-            onPress={() => handleOpenFeedback(orderDetail.id)}
-            disabled={!orderDetail.canFeedback}
-          >
-            <Text style={styles.buttonText}>Feedback</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.takeOverButton}
+          onPress={() => changeOrderStatus(orderDetail.id, STATUS_TAKEN_OVER)}
+        >
+          <Text style={styles.buttonText}>Take Over</Text>
+        </TouchableOpacity>
+      )}
+      {(orderDetail.status === "ORDERED" ||
+        orderDetail.status === "CHECKING") && (
+        <TouchableOpacity
+          style={[
+            styles.actionButtonCancel,
+            !orderDetail.canCancel && styles.disabledButton,
+          ]}
+          onPress={() => handleCancelOrder(orderDetail.id)}
+          disabled={!orderDetail.canCancel}
+        >
+          <Text style={styles.buttonText}>Cancel Order</Text>
+        </TouchableOpacity>
+      )}
+      {orderDetail.status === "COMPLETE" && (
+        <TouchableOpacity
+          style={[
+            styles.feedbackButton,
+            !orderDetail.canFeedback && styles.disabledButton,
+          ]}
+          onPress={() => handleOpenFeedback(orderDetail.id)}
+          disabled={!orderDetail.canFeedback}
+        >
+          <Text style={styles.buttonText}>Feedback</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
@@ -296,8 +304,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#00cc69",
     padding: 16,
   },
-  headerText: { color: "white", fontSize: 20, fontWeight: "bold", marginLeft: 10 },
-  orderInfoContainer: { padding: 16, backgroundColor: "white", marginBottom: 10 },
+  headerText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+  orderInfoContainer: {
+    padding: 16,
+    backgroundColor: "white",
+    marginBottom: 10,
+  },
   title: { fontWeight: "bold", fontSize: 18 },
   productItem: { flexDirection: "row", marginVertical: 10 },
   productImage: { width: 60, height: 60, marginRight: 10 },
@@ -318,7 +335,7 @@ const styles = StyleSheet.create({
   },
   actionText: { color: "white", fontWeight: "bold" },
   disabledButton: {
-    backgroundColor: 'gray',
+    backgroundColor: "gray",
     opacity: 0.6,
   },
   takeOverButton: {
@@ -351,23 +368,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statusText: {
-    fontSize: 20,          // Tăng kích thước chữ
-    fontWeight: "bold",    // Chữ đậm
-    color: "#ff6347",      // Màu cam nổi bật
-    marginVertical: 10,    // Khoảng cách trên/dưới
-    textAlign: "center",   // Canh giữa dòng
+    fontSize: 20, // Tăng kích thước chữ
+    fontWeight: "bold", // Chữ đậm
+    color: "#ff6347", // Màu cam nổi bật
+    marginVertical: 10, // Khoảng cách trên/dưới
+    textAlign: "center", // Canh giữa dòng
     backgroundColor: "#fffbe6", // Màu nền vàng nhạt nổi bật
-    borderRadius: 8,       // Bo góc nền
-    padding: 10,           // Tạo padding cho chữ và icon
-    shadowColor: "#000",   // Tạo bóng nhẹ
+    borderRadius: 8, // Bo góc nền
+    padding: 10, // Tạo padding cho chữ và icon
+    shadowColor: "#000", // Tạo bóng nhẹ
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 3,          // Bóng trên Android
+    elevation: 3, // Bóng trên Android
   },
   statusValue: {
-    color: "#000",         // Màu chữ đen hoặc có thể để màu khác
-    fontSize: 22,          // Kích thước chữ lớn hơn
-    fontWeight: "bold",    // Đậm
-  },  
+    color: "#000", // Màu chữ đen hoặc có thể để màu khác
+    fontSize: 22, // Kích thước chữ lớn hơn
+    fontWeight: "bold", // Đậm
+  },
 });

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +26,7 @@ export default function EditProfile() {
   const [avatar, setAvatar] = useState(
     data?.avatar || "https://via.placeholder.com/100"
   );
+  const [phoneError, setPhoneError] = useState("");
 
   const handleUpdateProfile = async () => {
     const token = await AsyncStorage.getItem("userToken");
@@ -33,12 +35,13 @@ export default function EditProfile() {
     formData.append("lastName", lastName);
     formData.append("phone", phone);
     const response = await fetch(
-      `https://bms-fs-api.azurewebsites.net/api/Account`,{
-        method: 'PUT',
+      `https://bms-fs-api.azurewebsites.net/api/Account`,
+      {
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: formData
+        body: formData,
       }
     );
     if (response.status != 200) {
@@ -64,7 +67,7 @@ export default function EditProfile() {
             },
           }
         );
-  
+
         if (response.status === 200) {
           Alert.alert("Success", "Profile updated successfully!");
           // Pass the updated avatar back to ProfileScreen
@@ -80,10 +83,19 @@ export default function EditProfile() {
   };
 
   const handleSave = async () => {
-    if (!firstName || !lastName || !phone) {
-      Alert.alert("Error", "Please fill all the fields");
+    if (!firstName || !lastName) {
+      Alert.alert("Error", "Please fill in the first and last name");
       return;
     }
+
+    // Validate phone number
+    if (phone.length !== 10 || isNaN(phone)) {
+      setPhoneError("Phone number must be exactly 10 digits.");
+      return;
+    } else {
+      setPhoneError(""); // Clear error if valid
+    }
+
     await handleUpdateProfile();
   };
 
@@ -108,7 +120,7 @@ export default function EditProfile() {
   };
 
   return (
-    <View style={styles.outerContainer}>
+    <ScrollView style={styles.outerContainer}>
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -125,7 +137,6 @@ export default function EditProfile() {
             <Image source={{ uri: avatar }} style={styles.profileImage} />
           </TouchableOpacity>
           <Text style={styles.profileName}>{`${firstName} ${lastName}`}</Text>
-          <Text style={styles.profileEmail}>youremail@example.com</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -147,19 +158,22 @@ export default function EditProfile() {
 
           <Text style={styles.label}>Phone</Text>
           <TextInput
-            style={styles.input}
+            style={styles.phoneInput}
             value={phone}
             onChangeText={setPhone}
             placeholder="Enter your phone number"
             keyboardType="phone-pad"
           />
+          {phoneError ? (
+            <Text style={styles.errorText}>{phoneError}</Text>
+          ) : null}
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -167,7 +181,6 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     backgroundColor: "#f2f2f2",
-    paddingTop: 40,
   },
   headerContainer: {
     flexDirection: "row",
@@ -212,10 +225,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
-  profileEmail: {
-    fontSize: 14,
-    color: "#777",
-  },
   formContainer: {
     padding: 20,
   },
@@ -235,6 +244,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: "#f9f9f9",
   },
+  phoneInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9",
+    height: 50,
+  },
   saveButton: {
     backgroundColor: "#00c853",
     paddingVertical: 14,
@@ -246,5 +266,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
   },
 });

@@ -122,7 +122,7 @@ export default function Register() {
       {/* Hình nền */}
       <ImageBackground
         source={{
-          uri: "https://i.pinimg.com/564x/22/a1/55/22a155dbc71897dab5b766dcce874973.jpg",
+          uri: "https://img5.thuthuatphanmem.vn/uploads/2021/11/17/hinh-nen-powerpoint-dong-ngo-nghinh_110015707.gif",
         }}
         style={styles.background}
         resizeMode="cover"

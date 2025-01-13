@@ -40,7 +40,7 @@ const MapScreen = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyt8ZwzYhw3uW_AZfbaPZzmTmr-GYGVkZVJ", // Replace with your API Key
+            "X-Goog-Api-Key": "AlzaSylG4sZv4fcy4G2W-RdIvAnTAa3BOPjUVYF", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
@@ -178,7 +178,7 @@ const MapScreen = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyt8ZwzYhw3uW_AZfbaPZzmTmr-GYGVkZVJ", // Replace with your API Key
+            "X-Goog-Api-Key": "AlzaSylG4sZv4fcy4G2W-RdIvAnTAa3BOPjUVYF", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
@@ -231,7 +231,7 @@ const MapScreen = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Goog-Api-Key": "AlzaSyt8ZwzYhw3uW_AZfbaPZzmTmr-GYGVkZVJ", // Replace with your API Key
+            "X-Goog-Api-Key": "AlzaSylG4sZv4fcy4G2W-RdIvAnTAa3BOPjUVYF", // Replace with your API Key
           },
           body: JSON.stringify({
             origin: {
